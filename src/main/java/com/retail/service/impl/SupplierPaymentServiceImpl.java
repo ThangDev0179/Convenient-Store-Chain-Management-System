@@ -37,8 +37,8 @@ public class SupplierPaymentServiceImpl implements SupplierPaymentService {
         SupplierInvoice invoice = supplierInvoiceRepository.findById(request.getSupplierInvoiceId())
                 .orElseThrow(() -> new ValidationException("Không tìm thấy hóa đơn cần thanh toán."));
 
-        if (!"Unpaid".equals(invoice.getStatus()) && !"Partially_Paid".equals(invoice.getStatus())) {
-            throw new ValidationException("Hóa đơn phải ở trạng thái Chưa thanh toán hoặc Thanh toán một phần mới được chi tiền.");
+        if (!"Approved".equals(invoice.getStatus()) && !"Unpaid".equals(invoice.getStatus()) && !"Partially_Paid".equals(invoice.getStatus())) {
+            throw new ValidationException("Hóa đơn phải ở trạng thái Đã duyệt hoặc Thanh toán một phần mới được chi tiền.");
         }
 
         Employee employee = employeeRepository.findById(employeeId)

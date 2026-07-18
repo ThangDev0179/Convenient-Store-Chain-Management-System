@@ -44,6 +44,7 @@ public class SupplierPaymentController {
         return "manager/purchase/payment-list";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/new")
     public String newPaymentForm(@RequestParam("invoiceId") Long invoiceId, Model model) {
         SupplierInvoiceResponse invoice = supplierInvoiceService.getInvoiceById(invoiceId);
@@ -61,6 +62,7 @@ public class SupplierPaymentController {
         return "manager/purchase/payment-form";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
     public String createPayment(
             @Valid @ModelAttribute("paymentReq") CreateSupplierPaymentRequest paymentReq,

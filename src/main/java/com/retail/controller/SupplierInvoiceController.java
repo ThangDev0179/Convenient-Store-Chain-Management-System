@@ -47,6 +47,7 @@ public class SupplierInvoiceController {
         return "manager/purchase/invoice-detail";
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{id}/approve")
     public String approveInvoice(
             @PathVariable("id") Long id,

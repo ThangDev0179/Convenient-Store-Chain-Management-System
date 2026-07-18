@@ -71,7 +71,7 @@ public class SupplierInvoiceServiceImpl implements SupplierInvoiceService {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ValidationException("Nhân viên duyệt hóa đơn không tồn tại."));
 
-        invoice.setStatus("Unpaid");
+        invoice.setStatus("Approved");
         invoice.setApprovedBy(employee);
         invoice.setApprovedAt(LocalDateTime.now());
         SupplierInvoice saved = supplierInvoiceRepository.save(invoice);
@@ -83,7 +83,7 @@ public class SupplierInvoiceServiceImpl implements SupplierInvoiceService {
                 .entityName("SupplierInvoice")
                 .entityId(invoice.getSupplierInvoiceId())
                 .oldValue("Draft")
-                .newValue("Unpaid")
+                .newValue("Approved")
                 .reason("Approved supplier invoice for GRN: " + invoice.getGrn().getGrnCode())
                 .build();
         auditLogRepository.save(audit);
