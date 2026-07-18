@@ -103,7 +103,6 @@
                                     <span th:text="${po.details.get(stat.index).uomName}"></span>
                                 </td>
                                 <td class="text-end">
-                                    <input type="hidden" th:field="*{details[__${stat.index}__].quantityOrdered}">
                                     <span class="text-secondary font-weight-bold" 
                                           th:text="${#numbers.formatDecimal(po.details.get(stat.index).quantityOrdered, 0, 'COMMA', 0, 'POINT')}"></span>
                                 </td>
