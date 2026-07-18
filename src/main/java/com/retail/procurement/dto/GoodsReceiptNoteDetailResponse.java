@@ -15,8 +15,6 @@ public class GoodsReceiptNoteDetailResponse {
     private String productName;
     private Long uomId;
     private String uomName;
-    private BigDecimal quantityOrdered;
     private BigDecimal quantityReceived;
-    private BigDecimal unitCost;
-    private BigDecimal totalCost;
+    private BigDecimal quantityConvertedBase;
 }

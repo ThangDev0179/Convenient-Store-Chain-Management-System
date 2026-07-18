@@ -83,11 +83,9 @@
                         <thead>
                             <tr>
                                 <th>Sản Phẩm</th>
-                                <th style="width: 150px;">Đơn Vị Tính</th>
-                                <th style="width: 180px;" class="text-end">Số Lượng Đặt (PO)</th>
-                                <th style="width: 180px;" class="text-end">Số Lượng Thực Nhận</th>
-                                <th style="width: 180px;" class="text-end">Đơn Giá Nhập (đ)</th>
-                                <th style="width: 180px;" class="text-end">Thành Tiền Tạm Tính</th>
+                                <th style="width: 180px;">Đơn Vị Tính</th>
+                                <th style="width: 220px;" class="text-end">Số Lượng Đặt (PO)</th>
+                                <th style="width: 220px;" class="text-end">Số Lượng Thực Nhận</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -111,16 +109,7 @@
                                 </td>
                                 <td>
                                     <input type="number" step="0.001" th:field="*{details[__${stat.index}__].quantityReceived}"
-                                           class="form-control text-end quantity-received-input" placeholder="0" min="0.001" required
-                                           th:data-index="${stat.index}" oninput="recalculateRowCost(this)">
-                                </td>
-                                <td>
-                                    <input type="number" step="1" th:field="*{details[__${stat.index}__].unitCost}"
-                                           class="form-control text-end unit-cost-input" placeholder="0đ" min="0" required
-                                           th:data-index="${stat.index}" oninput="recalculateRowCost(this)">
-                                </td>
-                                <td class="text-end text-success font-weight-bold row-total-cost" th:id="'row-total-' + ${stat.index}"
-                                    th:text="${#numbers.formatDecimal(po.details.get(stat.index).lineTotal, 0, 'COMMA', 0, 'POINT')} + 'đ'">
+                                           class="form-control text-end quantity-received-input" placeholder="0" min="0.001" required>
                                 </td>
                             </tr>
                         </tbody>
@@ -139,23 +128,5 @@
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        function recalculateRowCost(element) {
-            var index = element.getAttribute("data-index");
-            var row = element.closest("tr");
-            
-            var qtyInput = row.querySelector(".quantity-received-input").value;
-            var costInput = row.querySelector(".unit-cost-input").value;
-            
-            var qty = parseFloat(qtyInput) || 0;
-            var cost = parseFloat(costInput) || 0;
-            
-            var total = qty * cost;
-            
-            var formattedTotal = new Intl.NumberFormat('vi-VN').format(Math.round(total)) + 'đ';
-            document.getElementById("row-total-" + index).innerText = formattedTotal;
-        }
-    </script>
 </body>
 </html>

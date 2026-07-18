@@ -84,10 +84,9 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
                 .grnCode(grnCode)
                 .purchaseOrder(po)
                 .branch(branch)
-                .receivedDate(LocalDateTime.now())
+                .receivedAt(LocalDateTime.now())
                 .receivedBy(user)
                 .status("Completed")
-                .totalCost(BigDecimal.ZERO)
                 .build();
 
         // Save first to obtain GRN ID
@@ -115,28 +114,22 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
                 throw new ValidationException("Số lượng thực nhận phải lớn hơn 0.");
             }
 
-            if (detailReq.getUnitCost().compareTo(BigDecimal.ZERO) < 0) {
-                throw new ValidationException("Đơn giá nhập kho không được âm.");
-            }
-
-            BigDecimal rowCost = detailReq.getQuantityReceived().multiply(detailReq.getUnitCost());
-            totalCost = totalCost.add(rowCost);
+            // Update Branch Inventory in Base Unit Quantity
+            BigDecimal baseQtyReceived = detailReq.getQuantityReceived().multiply(uom.getConversionRate());
 
             GoodsReceiptNoteDetail detail = GoodsReceiptNoteDetail.builder()
                     .goodsReceiptNote(savedGrn)
                     .product(product)
                     .uom(uom)
-                    .quantityOrdered(detailReq.getQuantityOrdered())
                     .quantityReceived(detailReq.getQuantityReceived())
-                    .unitCost(detailReq.getUnitCost())
-                    .totalCost(rowCost)
+                    .quantityConvertedBase(baseQtyReceived)
                     .build();
 
             grnDetailRepository.save(detail);
             details.add(detail);
 
+            // Already calculated above
             // Update Branch Inventory in Base Unit Quantity
-            BigDecimal baseQtyReceived = detailReq.getQuantityReceived().multiply(uom.getConversionRate());
             
             BranchInventory inventory = branchInventoryRepository.findByBranchBranchIdAndProductProductId(branch.getBranchId(), product.getProductId())
                     .orElseGet(() -> BranchInventory.builder()
@@ -167,7 +160,6 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
         }
 
         savedGrn.setDetails(details);
-        savedGrn.setTotalCost(totalCost);
         grnRepository.save(savedGrn);
 
         // Update status of the Purchase Order
@@ -180,7 +172,7 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
                 .entityName("GoodsReceiptNote")
                 .entityId(savedGrn.getGrnId())
                 .oldValue(null)
-                .newValue("{\"grnCode\":\"" + grnCode + "\",\"totalCost\":" + totalCost + "}")
+                .newValue("{\"grnCode\":\"" + grnCode + "\"}")
                 .reason("Imported products from PO: " + po.getPoCode())
                 .build();
         auditLogRepository.save(audit);
@@ -281,10 +273,8 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
                     .productName(d.getProduct().getProductName())
                     .uomId(d.getUom().getUomId())
                     .uomName(d.getUom().getUomName())
-                    .quantityOrdered(d.getQuantityOrdered())
                     .quantityReceived(d.getQuantityReceived())
-                    .unitCost(d.getUnitCost())
-                    .totalCost(d.getTotalCost())
+                    .quantityConvertedBase(d.getQuantityConvertedBase())
                     .build()
         ).collect(Collectors.toList());
 
@@ -295,11 +285,10 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
                 .purchaseOrderCode(grn.getPurchaseOrder().getPoCode())
                 .branchId(grn.getBranch().getBranchId())
                 .branchName(grn.getBranch().getBranchName())
-                .receivedDate(grn.getReceivedDate())
+                .receivedAt(grn.getReceivedAt())
                 .receivedById(grn.getReceivedBy().getEmployeeId())
                 .receivedByName(grn.getReceivedBy().getFullName())
                 .status(grn.getStatus())
-                .totalCost(grn.getTotalCost())
                 .createdAt(grn.getCreatedAt())
                 .details(details)
                 .build();

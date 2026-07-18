@@ -96,7 +96,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="info-label">Ngày Tiếp Nhận</div>
-                    <div class="info-value text-light" th:text="${#temporals.format(grn.receivedDate, 'dd/MM/yyyy HH:mm')}"></div>
+                    <div class="info-value text-light" th:text="${#temporals.format(grn.receivedAt, 'dd/MM/yyyy HH:mm')}"></div>
                 </div>
                 <div class="col-md-3">
                     <div class="info-label">Người Tiếp Nhận</div>
@@ -114,11 +114,6 @@
                         </span>
                     </div>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="info-label">Tổng Chi Phí Thực Tế (đã gồm VAT)</div>
-                    <div class="h3 mb-0 font-weight-bold text-success" 
-                         th:text="${#numbers.formatDecimal(grn.totalCost, 0, 'COMMA', 0, 'POINT')} + 'đ'"></div>
-                </div>
             </div>
         </div>
 
@@ -130,11 +125,8 @@
                     <thead>
                         <tr>
                             <th>Sản Phẩm</th>
-                            <th style="width: 150px;">Đơn Vị Quy Đổi</th>
-                            <th style="width: 180px;" class="text-end">Số Lượng Đặt (PO)</th>
-                            <th style="width: 180px;" class="text-end">Số Lượng Thực Nhận</th>
-                            <th style="width: 180px;" class="text-end">Đơn Giá Nhập (đ)</th>
-                            <th style="width: 180px;" class="text-end">Thành Tiền Thực Tế</th>
+                            <th style="width: 180px;">Đơn Vị Quy Đổi</th>
+                            <th style="width: 220px;" class="text-end">Số Lượng Thực Nhận</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -145,14 +137,8 @@
                                 <small class="text-muted" th:text="'SKU: ' + ${detail.productSku}"></small>
                             </td>
                             <td th:text="${detail.uomName}"></td>
-                            <td class="text-end text-secondary font-weight-bold" 
-                                th:text="${#numbers.formatDecimal(detail.quantityOrdered, 0, 'COMMA', 0, 'POINT')}"></td>
                             <td class="text-end text-light font-weight-bold" 
                                 th:text="${#numbers.formatDecimal(detail.quantityReceived, 0, 'COMMA', 0, 'POINT')}"></td>
-                            <td class="text-end" 
-                                th:text="${#numbers.formatDecimal(detail.unitCost, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                            <td class="text-end text-success font-weight-bold" 
-                                th:text="${#numbers.formatDecimal(detail.totalCost, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
                         </tr>
                     </tbody>
                 </table>

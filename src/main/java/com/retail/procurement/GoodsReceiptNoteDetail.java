@@ -30,25 +30,17 @@ public class GoodsReceiptNoteDetail {
     @JoinColumn(name = "UomId", nullable = false)
     private ProductUOM uom;
 
-    @Column(name = "QuantityOrdered", nullable = false, precision = 18, scale = 3)
-    private BigDecimal quantityOrdered;
-
     @Column(name = "QuantityReceived", nullable = false, precision = 18, scale = 3)
     private BigDecimal quantityReceived;
 
-    @Column(name = "UnitCost", nullable = false, precision = 18, scale = 2)
-    private BigDecimal unitCost;
-
-    @Column(name = "TotalCost", nullable = false, precision = 18, scale = 2)
-    private BigDecimal totalCost;
+    @Column(name = "QuantityConvertedBase", nullable = false, precision = 18, scale = 3)
+    private BigDecimal quantityConvertedBase;
 
     @PrePersist
     @PreUpdate
-    public void calculateTotalCost() {
-        if (quantityReceived != null && unitCost != null) {
-            this.totalCost = quantityReceived.multiply(unitCost);
-        } else {
-            this.totalCost = BigDecimal.ZERO;
+    public void calculateConvertedQuantity() {
+        if (quantityReceived != null && uom != null) {
+            this.quantityConvertedBase = quantityReceived.multiply(uom.getConversionRate());
         }
     }
 }

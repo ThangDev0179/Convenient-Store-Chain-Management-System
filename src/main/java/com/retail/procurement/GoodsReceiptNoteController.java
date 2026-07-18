@@ -100,9 +100,7 @@ public class GoodsReceiptNoteController {
                 GoodsReceiptNoteDetailRequest.builder()
                         .productId(d.getProductId())
                         .uomId(d.getUomId())
-                        .quantityOrdered(d.getQuantityOrdered())
                         .quantityReceived(d.getQuantityOrdered()) // Default to ordered quantity
-                        .unitCost(d.getUnitCost()) // Pre-populate proposed cost
                         .build()
             ).collect(Collectors.toList());
 

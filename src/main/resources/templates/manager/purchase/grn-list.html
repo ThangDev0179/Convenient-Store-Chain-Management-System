@@ -118,7 +118,6 @@
                             <th>Chi Nhánh</th>
                             <th>Ngày Nhận</th>
                             <th>Người Nhập</th>
-                            <th class="text-end">Tổng Tiền Nhập</th>
                             <th class="text-center">Trạng Thái</th>
                             <th class="text-center">Hành Động</th>
                         </tr>
@@ -131,10 +130,8 @@
                                    class="text-indigo" th:text="${grn.purchaseOrderCode}" style="text-decoration:none; font-weight:500;"></a>
                             </td>
                             <td th:text="${grn.branchName}"></td>
-                            <td th:text="${#temporals.format(grn.receivedDate, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td th:text="${#temporals.format(grn.receivedAt, 'dd/MM/yyyy HH:mm')}"></td>
                             <td th:text="${grn.receivedByName}"></td>
-                            <td class="text-end text-success font-weight-bold" 
-                                th:text="${#numbers.formatDecimal(grn.totalCost, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
                             <td class="text-center">
                                 <span th:if="${grn.status == 'Completed'}" class="status-badge status-completed">
                                     <i class="fa-solid fa-circle-check"></i> Đã Hoàn Thành

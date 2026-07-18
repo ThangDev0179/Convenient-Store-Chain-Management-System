@@ -4,7 +4,6 @@ import com.retail.branch.Branch;
 import com.retail.employee.Employee;
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +33,8 @@ public class GoodsReceiptNote {
     @JoinColumn(name = "BranchId", nullable = false)
     private Branch branch;
 
-    @Column(name = "ReceivedDate", nullable = false)
-    private LocalDateTime receivedDate;
+    @Column(name = "ReceivedAt")
+    private LocalDateTime receivedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ReceivedBy", nullable = false)
@@ -43,9 +42,6 @@ public class GoodsReceiptNote {
 
     @Column(name = "Status", nullable = false, length = 30)
     private String status; // Completed, Canceled
-
-    @Column(name = "TotalCost", nullable = false, precision = 18, scale = 2)
-    private BigDecimal totalCost;
 
     @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -57,11 +53,8 @@ public class GoodsReceiptNote {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (receivedDate == null) {
-            receivedDate = LocalDateTime.now();
-        }
-        if (totalCost == null) {
-            totalCost = BigDecimal.ZERO;
+        if (receivedAt == null) {
+            receivedAt = LocalDateTime.now();
         }
     }
 }
