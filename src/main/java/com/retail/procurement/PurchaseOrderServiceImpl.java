@@ -5,6 +5,8 @@ import com.retail.branch.BranchRepository;
 import com.retail.employee.Employee;
 import com.retail.exception.ValidationException;
 import com.retail.procurement.dto.*;
+import com.retail.audit.AuditLog;
+import com.retail.audit.AuditLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,10 +43,17 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Autowired
     private ProductUOMRepository productUOMRepository;
 
+    @Autowired
+    private AuditLogRepository auditLogRepository;
+
     @Override
     public PurchaseOrderResponse createPurchaseOrder(CreatePurchaseOrderRequest request, Employee creator) {
         Supplier supplier = supplierRepository.findById(request.getSupplierId())
                 .orElseThrow(() -> new ValidationException("Nhà cung cấp không tồn tại"));
+
+        if (supplier.getStatus() == SupplierStatus.Inactive) {
+            throw new ValidationException("Nhà cung cấp đã ngừng hoạt động, không thể đặt hàng.");
+        }
 
         Branch branch = branchRepository.findById(request.getBranchId())
                 .orElseThrow(() -> new ValidationException("Chi nhánh không tồn tại"));
@@ -78,11 +87,23 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             Product product = productRepository.findById(detailReq.getProductId())
                     .orElseThrow(() -> new ValidationException("Sản phẩm không tồn tại"));
 
+            if (product.getStatus() == ProductStatus.Inactive) {
+                throw new ValidationException("Sản phẩm " + product.getProductName() + " đã ngừng kinh doanh.");
+            }
+
             ProductUOM uom = productUOMRepository.findById(detailReq.getUomId())
                     .orElseThrow(() -> new ValidationException("Đơn vị tính không tồn tại"));
 
             if (!uom.getProduct().getProductId().equals(product.getProductId())) {
                 throw new ValidationException("Đơn vị tính không khớp với sản phẩm " + product.getProductName());
+            }
+
+            if (detailReq.getQuantityOrdered().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ValidationException("Số lượng đặt của sản phẩm " + product.getProductName() + " phải lớn hơn 0.");
+            }
+
+            if (detailReq.getUnitCost().compareTo(BigDecimal.ZERO) < 0) {
+                throw new ValidationException("Giá nhập của sản phẩm " + product.getProductName() + " không được âm.");
             }
 
             PurchaseOrderDetail detail = PurchaseOrderDetail.builder()
@@ -123,8 +144,23 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             throw new ValidationException("Chỉ đơn đặt hàng ở trạng thái Nháp hoặc Chờ duyệt mới có thể hủy");
         }
 
+        String oldStatus = po.getStatus().name();
         po.setStatus(PurchaseOrderStatus.Canceled);
-        return mapToResponse(poRepository.save(po));
+        PurchaseOrder saved = poRepository.save(po);
+
+        // Write AuditLog
+        AuditLog audit = AuditLog.builder()
+                .employee(user)
+                .actionType("CancelPurchaseOrder")
+                .entityName("PurchaseOrder")
+                .entityId(po.getPurchaseOrderId())
+                .oldValue("{\"status\":\"" + oldStatus + "\"}")
+                .newValue("{\"status\":\"Canceled\"}")
+                .reason("Manager/Admin requested cancellation")
+                .build();
+        auditLogRepository.save(audit);
+
+        return mapToResponse(saved);
     }
 
     @Override
