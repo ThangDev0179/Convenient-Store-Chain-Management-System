@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/manager/purchase-orders")
@@ -94,6 +97,17 @@ public class PurchaseOrderController {
         }
     }
 
+    private List<Map<String, Object>> getProductData() {
+        return productRepository.findAll().stream().map(p -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("productId", p.getProductId());
+            map.put("sku", p.getSku());
+            map.put("productName", p.getProductName());
+            map.put("defaultSupplierId", p.getDefaultSupplier() != null ? p.getDefaultSupplier().getSupplierId() : null);
+            return map;
+        }).collect(Collectors.toList());
+    }
+
     @GetMapping("/new")
     public String newPurchaseOrderForm(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -102,14 +116,13 @@ public class PurchaseOrderController {
         Employee employee = userDetails.getEmployee();
         
         List<Supplier> suppliers = supplierRepository.findByStatus(SupplierStatus.Active);
-        List<Product> products = productRepository.findAll(); // simplified for selecting products
         
         CreatePurchaseOrderRequest poRequest = new CreatePurchaseOrderRequest();
         poRequest.setBranchId(employee.getBranch().getBranchId());
 
         model.addAttribute("poRequest", poRequest);
         model.addAttribute("suppliers", suppliers);
-        model.addAttribute("products", products);
+        model.addAttribute("products", getProductData());
         model.addAttribute("uoms", productUOMRepository.findAll());
         model.addAttribute("branch", employee.getBranch());
         
@@ -128,7 +141,7 @@ public class PurchaseOrderController {
 
         if (result.hasErrors()) {
             model.addAttribute("suppliers", supplierRepository.findByStatus(SupplierStatus.Active));
-            model.addAttribute("products", productRepository.findAll());
+            model.addAttribute("products", getProductData());
             model.addAttribute("uoms", productUOMRepository.findAll());
             model.addAttribute("branch", employee.getBranch());
             model.addAttribute("error", "Dữ liệu nhập vào không hợp lệ. Vui lòng kiểm tra lại.");
@@ -146,7 +159,7 @@ public class PurchaseOrderController {
             return "redirect:/manager/purchase-orders/" + response.getPurchaseOrderId();
         } catch (ValidationException e) {
             model.addAttribute("suppliers", supplierRepository.findByStatus(SupplierStatus.Active));
-            model.addAttribute("products", productRepository.findAll());
+            model.addAttribute("products", getProductData());
             model.addAttribute("uoms", productUOMRepository.findAll());
             model.addAttribute("branch", employee.getBranch());
             model.addAttribute("error", e.getMessage());

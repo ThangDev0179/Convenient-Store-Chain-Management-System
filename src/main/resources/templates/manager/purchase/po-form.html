@@ -81,7 +81,7 @@
                     </div>
                     <div class="col-md-6">
                         <label for="supplierId" class="form-label">Chọn Nhà Cung Cấp</label>
-                        <select th:field="*{supplierId}" class="form-control" required>
+                        <select th:field="*{supplierId}" class="form-control" required onchange="filterProductsBySupplier()">
                             <option value="">-- Chọn Nhà cung cấp đối tác --</option>
                             <option th:each="s : ${suppliers}" th:value="${s.supplierId}" th:text="${s.supplierName}"></option>
                         </select>
@@ -136,10 +136,14 @@
             var tr = document.createElement("tr");
             tr.setAttribute("id", "row-" + rowIndex);
 
-            // Build Product dropdown options
+            var supplierId = document.getElementById("supplierId").value;
+
+            // Build Product dropdown options filtered by supplier
             var productOptions = '<option value="">-- Chọn sản phẩm --</option>';
             products.forEach(function(p) {
-                productOptions += '<option value="' + p.productId + '">' + p.sku + ' - ' + p.productName + '</option>';
+                if (supplierId === "" || p.defaultSupplierId == supplierId) {
+                    productOptions += '<option value="' + p.productId + '">' + p.sku + ' - ' + p.productName + '</option>';
+                }
             });
 
             tr.innerHTML = 
@@ -219,6 +223,34 @@
                     uomSelect.appendChild(newOpt);
                 });
             }
+        }
+
+        function filterProductsBySupplier() {
+            var supplierId = document.getElementById("supplierId").value;
+            var productSelects = document.querySelectorAll(".product-select");
+            
+            productSelects.forEach(function(select) {
+                var currentValue = select.value;
+                select.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
+                
+                products.forEach(function(p) {
+                    if (supplierId === "" || p.defaultSupplierId == supplierId) {
+                        var option = document.createElement("option");
+                        option.value = p.productId;
+                        option.text = p.sku + " - " + p.productName;
+                        if (currentValue == p.productId) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    }
+                });
+                
+                // If previously selected product is no longer valid, clear it
+                if (select.value === "") {
+                    var index = select.getAttribute("name").match(/\d+/)[0];
+                    filterUom(select, index);
+                }
+            });
         }
 
         // Initialize with one row on load
