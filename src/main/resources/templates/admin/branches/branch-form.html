@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit ? 'Chỉnh sửa chi nhánh' : 'Thêm mới chi nhánh'} + ' - Hệ thống bán lẻ'">Form chi nhánh</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-wrapper" style="max-width: 600px;">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title" th:text="${isEdit ? 'Chỉnh sửa chi nhánh' : 'Thêm mới chi nhánh'}">Thêm chi nhánh</h1>
+                <p class="auth-subtitle" th:text="${isEdit ? 'Cập nhật thông tin chi nhánh cửa hàng' : 'Nhập thông tin để mở chi nhánh mới'}">Mô tả</p>
+            </div>
+
+            <!-- Error message alert -->
+            <div th:if="${error}" class="alert alert-danger text-center" role="alert">
+                <span th:text="${error}">Dữ liệu nhập vào không hợp lệ</span>
+            </div>
+
+            <form th:action="${isEdit} ? @{/admin/branches/{id}/edit(id=${branchId})} : @{/admin/branches/new}" 
+                  th:object="${branchRequest}" 
+                  method="post">
+                
+                <!-- Branch Code -->
+                <div class="mb-3">
+                    <label for="branchCode" class="form-label">Mã chi nhánh</label>
+                    <!-- If Creating: allow input -->
+                    <input th:if="${!isEdit}" type="text" class="form-control" id="branchCode" th:field="*{branchCode}" placeholder="Ví dụ: BR001, Q1BR..." required>
+                    <!-- If Editing: display read-only -->
+                    <input th:if="${isEdit}" type="text" class="form-control" id="branchCode" th:value="${branchCode}" disabled>
+                    <!-- Carry original request fields if not editing -->
+                    <input th:if="${isEdit}" type="hidden" th:field="*{branchCode}" th:value="${branchCode}">
+                    <small th:if="${!isEdit}" class="text-muted" style="font-size: 0.78rem;">Mã chi nhánh gồm tối đa 10 ký tự, viết liền không dấu, viết hoa tự động.</small>
+                </div>
+
+                <!-- Branch Name -->
+                <div class="mb-3">
+                    <label for="branchName" class="form-label">Tên chi nhánh</label>
+                    <input type="text" class="form-control" id="branchName" th:field="*{branchName}" placeholder="Nhập tên chi nhánh..." required>
+                </div>
+
+                <!-- Address -->
+                <div class="mb-4">
+                    <label for="address" class="form-label">Địa chỉ</label>
+                    <textarea class="form-control" id="address" th:field="*{address}" rows="3" placeholder="Nhập số nhà, tên đường, quận/huyện..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-50" th:text="${isEdit ? 'Lưu thay đổi' : 'Tạo chi nhánh'}">Xác nhận</button>
+                    <a th:href="@{/admin/branches}" class="btn btn-secondary w-50 d-flex align-items-center justify-content-center" style="margin-top: 15px;">Hủy bỏ</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
