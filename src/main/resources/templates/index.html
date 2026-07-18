@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ - Hệ thống quản lý chuỗi cửa hàng tiện lợi</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div>
+                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Hệ Thống Bán Lẻ
+                </h1>
+                <small class="text-muted">Cửa hàng tiện lợi tiện ích và dịch vụ nhanh</small>
+            </div>
+            <div>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-secondary">Đăng xuất</button>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${param.passwordChanged}" class="alert alert-success text-center mb-4" role="alert">
+            Mật khẩu của bạn đã được thay đổi thành công!
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="h5 mb-4">Thông tin cá nhân nhân viên</h2>
+                
+                <div th:if="${employee != null}" class="dashboard-user-info">
+                    <div class="info-item">
+                        <span class="info-label">Mã nhân viên:</span>
+                        <span class="info-value" th:text="${employee.employeeCode}">EMP001</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tên đăng nhập:</span>
+                        <span class="info-value" th:text="${employee.username}">admin</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Họ và tên:</span>
+                        <span class="info-value" th:text="${employee.fullName}">Nguyễn Văn Admin</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value" th:text="${employee.email}">admin@retail.com</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Số điện thoại:</span>
+                        <span class="info-value" th:text="${employee.phone != null ? employee.phone : 'N/A'}">0901234567</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Chức vụ (Vai trò):</span>
+                        <span>
+                            <span class="badge-role" th:text="${employee.role.roleName}">Quản trị viên</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Chi nhánh:</span>
+                        <span class="info-value" th:text="${employee.branch != null ? employee.branch.branchName : 'Văn phòng chính'}">Chi nhánh Quận 1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Trạng thái tài khoản:</span>
+                        <span>
+                            <span class="badge-active" th:text="${employee.status}">Active</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div th:if="${employee == null}" class="alert alert-danger" role="alert">
+                    Không tìm thấy thông tin tài khoản đăng nhập.
+                </div>
+
+                <div class="mt-4 text-center">
+                    <a th:href="@{/change-password}" class="btn btn-primary d-inline-block px-5" style="width: auto;">Thay đổi mật khẩu</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
