@@ -3,10 +3,6 @@ package com.retail.inventorycount.service.impl;
 import com.retail.audit.service.AuditLogService;
 import com.retail.branch.Branch;
 import com.retail.employee.Employee;
-import com.retail.inventory.entity.BranchInventory;
-import com.retail.inventory.entity.BranchInventoryId;
-import com.retail.inventory.entity.TransactionType;
-import com.retail.inventory.repository.BranchInventoryRepository;
 import com.retail.inventory.service.InventoryTransactionService;
 import com.retail.inventorycount.dto.InventoryCountRequest;
 import com.retail.inventorycount.entity.InventoryCount;
@@ -14,7 +10,10 @@ import com.retail.inventorycount.entity.InventoryCountDetail;
 import com.retail.inventorycount.entity.InventoryCountStatus;
 import com.retail.inventorycount.repository.InventoryCountRepository;
 import com.retail.inventorycount.service.InventoryCountService;
-import com.retail.product.Product;
+import com.retail.procurement.BranchInventory;
+import com.retail.procurement.BranchInventoryRepository;
+import com.retail.procurement.InventoryTransactionType;
+import com.retail.procurement.Product;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,7 +38,8 @@ public class InventoryCountServiceImpl implements InventoryCountService {
     @Transactional
     public InventoryCount createDraftCount(InventoryCountRequest request, Long createdByEmployeeId) {
         InventoryCount count = new InventoryCount();
-        String code = "STK-" + request.getBranchId() + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String code = "STK-" + request.getBranchId() + "-"
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         count.setCountCode(code);
         count.setBranch(entityManager.getReference(Branch.class, request.getBranchId()));
         count.setStatus(InventoryCountStatus.Draft);
@@ -48,20 +48,21 @@ public class InventoryCountServiceImpl implements InventoryCountService {
         for (InventoryCountRequest.InventoryCountDetailDto detailDto : request.getDetails()) {
             InventoryCountDetail detail = new InventoryCountDetail();
             detail.setProduct(entityManager.getReference(Product.class, detailDto.getProductId()));
-            
-            BranchInventoryId invId = new BranchInventoryId(request.getBranchId(), detailDto.getProductId());
-            BigDecimal systemQty = branchInventoryRepository.findById(invId)
+
+            // Dùng method findByBranchBranchIdAndProductProductId của Toàn
+            BigDecimal systemQty = branchInventoryRepository
+                    .findByBranchBranchIdAndProductProductId(request.getBranchId(), detailDto.getProductId())
                     .map(BranchInventory::getQtyOnHand)
                     .orElse(BigDecimal.ZERO);
-                    
+
             detail.setSystemQty(systemQty);
             detail.setActualQty(detailDto.getActualQty());
-            
             count.addDetail(detail);
         }
 
         InventoryCount saved = countRepository.save(count);
-        auditLogService.logAction(createdByEmployeeId, "CreateInventoryCount", "InventoryCount", saved.getInventoryCountId(), null, saved.getStatus().name(), "Created Draft", null, null);
+        auditLogService.logAction(createdByEmployeeId, "CreateInventoryCount", "InventoryCount",
+                saved.getInventoryCountId(), null, saved.getStatus().name(), "Tạo phiếu kiểm kê nháp", null, null);
         return saved;
     }
 
@@ -70,14 +71,15 @@ public class InventoryCountServiceImpl implements InventoryCountService {
     public InventoryCount submitCount(Long countId, Long employeeId) {
         InventoryCount count = getCountById(countId);
         if (count.getStatus() != InventoryCountStatus.Draft) {
-            throw new IllegalStateException("Only Draft count can be submitted");
+            throw new IllegalStateException("Chỉ phiếu ở trạng thái Draft mới được gửi duyệt");
         }
         String oldStatus = count.getStatus().name();
         count.setStatus(InventoryCountStatus.Submitted);
         count.setSubmittedAt(LocalDateTime.now());
-        
+
         InventoryCount saved = countRepository.save(count);
-        auditLogService.logAction(employeeId, "SubmitInventoryCount", "InventoryCount", saved.getInventoryCountId(), oldStatus, saved.getStatus().name(), "Submitted for approval", null, null);
+        auditLogService.logAction(employeeId, "SubmitInventoryCount", "InventoryCount",
+                saved.getInventoryCountId(), oldStatus, saved.getStatus().name(), "Gửi duyệt", null, null);
         return saved;
     }
 
@@ -86,37 +88,33 @@ public class InventoryCountServiceImpl implements InventoryCountService {
     public InventoryCount approveCount(Long countId, Long approvedByEmployeeId) {
         InventoryCount count = getCountById(countId);
         if (count.getStatus() != InventoryCountStatus.Submitted) {
-            throw new IllegalStateException("Only Submitted count can be approved");
+            throw new IllegalStateException("Chỉ phiếu đã gửi mới được phê duyệt");
         }
-        
+
         String oldStatus = count.getStatus().name();
         count.setStatus(InventoryCountStatus.Approved);
         count.setApprovedBy(entityManager.getReference(Employee.class, approvedByEmployeeId));
         count.setApprovedAt(LocalDateTime.now());
 
         for (InventoryCountDetail detail : count.getDetails()) {
-            BigDecimal actual = detail.getActualQty();
-            BigDecimal system = detail.getSystemQty();
-            BigDecimal delta = actual.subtract(system);
-
+            BigDecimal delta = detail.getActualQty().subtract(detail.getSystemQty());
             if (delta.compareTo(BigDecimal.ZERO) != 0) {
                 transactionService.recordTransaction(
                         count.getBranch().getBranchId(),
                         detail.getProduct().getProductId(),
-                        delta, 
-                        delta, 
-                        BigDecimal.ZERO, 
-                        TransactionType.CountAdjustment,
-                        "InventoryCount",
-                        count.getInventoryCountId(),
-                        "Inventory Count Approved: " + count.getCountCode(),
+                        delta, delta, BigDecimal.ZERO,
+                        InventoryTransactionType.CountAdjustment,
+                        "InventoryCount", count.getInventoryCountId(),
+                        "Phê duyệt kiểm kê: " + count.getCountCode(),
                         approvedByEmployeeId
                 );
             }
         }
 
         InventoryCount saved = countRepository.save(count);
-        auditLogService.logAction(approvedByEmployeeId, "ApproveInventoryCount", "InventoryCount", saved.getInventoryCountId(), oldStatus, saved.getStatus().name(), "Approved and inventory updated", null, null);
+        auditLogService.logAction(approvedByEmployeeId, "ApproveInventoryCount", "InventoryCount",
+                saved.getInventoryCountId(), oldStatus, saved.getStatus().name(),
+                "Phê duyệt và cập nhật tồn kho", null, null);
         return saved;
     }
 
@@ -125,14 +123,14 @@ public class InventoryCountServiceImpl implements InventoryCountService {
     public InventoryCount rejectCount(Long countId, Long rejectedByEmployeeId) {
         InventoryCount count = getCountById(countId);
         if (count.getStatus() != InventoryCountStatus.Submitted) {
-            throw new IllegalStateException("Only Submitted count can be rejected");
+            throw new IllegalStateException("Chỉ phiếu đã gửi mới được từ chối");
         }
-        
         String oldStatus = count.getStatus().name();
         count.setStatus(InventoryCountStatus.Rejected);
-        
+
         InventoryCount saved = countRepository.save(count);
-        auditLogService.logAction(rejectedByEmployeeId, "RejectInventoryCount", "InventoryCount", saved.getInventoryCountId(), oldStatus, saved.getStatus().name(), "Rejected", null, null);
+        auditLogService.logAction(rejectedByEmployeeId, "RejectInventoryCount", "InventoryCount",
+                saved.getInventoryCountId(), oldStatus, saved.getStatus().name(), "Từ chối", null, null);
         return saved;
     }
 
@@ -144,6 +142,6 @@ public class InventoryCountServiceImpl implements InventoryCountService {
     @Override
     public InventoryCount getCountById(Long countId) {
         return countRepository.findById(countId)
-                .orElseThrow(() -> new IllegalArgumentException("Inventory count not found with id: " + countId));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu kiểm kê ID: " + countId));
     }
 }

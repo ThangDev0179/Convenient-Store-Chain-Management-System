@@ -1,6 +1,6 @@
 package com.retail.transfer.entity;
 
-import com.retail.product.Product;
+import com.retail.procurement.Product;
 import jakarta.persistence.*;
 import lombok.*;
 

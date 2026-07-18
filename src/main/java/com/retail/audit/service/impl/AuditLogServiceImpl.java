@@ -1,12 +1,13 @@
 package com.retail.audit.service.impl;
 
-import com.retail.audit.entity.AuditLog;
-import com.retail.audit.repository.AuditLogRepository;
+import com.retail.audit.AuditLog;
+import com.retail.audit.AuditLogRepository;
 import com.retail.audit.service.AuditLogService;
 import com.retail.employee.Employee;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -17,23 +18,24 @@ public class AuditLogServiceImpl implements AuditLogService {
     private final EntityManager entityManager;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logAction(Long employeeId, String actionType, String entityName, Long entityId,
                           String oldValue, String newValue, String reason, String ipAddress, String deviceId) {
-        
-        AuditLog auditLog = new AuditLog();
-        if (employeeId != null) {
-            auditLog.setEmployee(entityManager.getReference(Employee.class, employeeId));
-        }
-        auditLog.setActionType(actionType);
-        auditLog.setEntityName(entityName);
-        auditLog.setEntityId(entityId);
-        auditLog.setOldValue(oldValue);
-        auditLog.setNewValue(newValue);
-        auditLog.setReason(reason);
-        auditLog.setIpAddress(ipAddress);
-        auditLog.setDeviceId(deviceId);
+        AuditLog log = AuditLog.builder()
+                .actionType(actionType)
+                .entityName(entityName)
+                .entityId(entityId)
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .reason(reason)
+                .ipAddress(ipAddress)
+                .deviceId(deviceId)
+                .build();
 
-        auditLogRepository.save(auditLog);
+        if (employeeId != null) {
+            log.setEmployee(entityManager.getReference(Employee.class, employeeId));
+        }
+
+        auditLogRepository.save(log);
     }
 }
