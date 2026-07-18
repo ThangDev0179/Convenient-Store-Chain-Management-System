@@ -7,9 +7,9 @@ import com.retail.auth.exception.AccountInactiveException;
 import com.retail.auth.exception.ChangePasswordException;
 import com.retail.auth.exception.ForgotPasswordException;
 import com.retail.auth.exception.InvalidCredentialsException;
-import com.retail.entity.Employee;
-import com.retail.entity.EmployeeStatus;
-import com.retail.repository.EmployeeRepository;
+import com.retail.employee.Employee;
+import com.retail.employee.EmployeeStatus;
+import com.retail.employee.EmployeeRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -23,7 +23,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 @Service
@@ -44,7 +43,6 @@ public class AuthServiceImpl implements AuthService {
         String username = request.getUsername();
         String password = request.getPassword();
 
-        // Manual validation
         if (username == null || username.trim().isEmpty()) {
             throw new InvalidCredentialsException("Tên đăng nhập không được để trống");
         }
@@ -63,7 +61,6 @@ public class AuthServiceImpl implements AuthService {
             throw new AccountInactiveException("Tài khoản của bạn đã bị khóa hoặc ngừng hoạt động");
         }
 
-        // Establish Spring Security Context
         List<GrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_" + employee.getRole().getRoleCode().name())
         );
@@ -82,7 +79,6 @@ public class AuthServiceImpl implements AuthService {
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
 
-        // Manually save context to session
         securityContextRepository.saveContext(context, httpRequest, httpResponse);
     }
 
@@ -97,12 +93,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void changePassword(String username, ChangePasswordRequest request) {
-        String oldPassword = request.getOldPassword();
+        String currentPassword = request.getCurrentPassword();
         String newPassword = request.getNewPassword();
         String confirmPassword = request.getConfirmPassword();
 
-        // Manual validation
-        if (oldPassword == null || oldPassword.trim().isEmpty() ||
+        if (currentPassword == null || currentPassword.trim().isEmpty() ||
             newPassword == null || newPassword.trim().isEmpty() ||
             confirmPassword == null || confirmPassword.trim().isEmpty()) {
             throw new ChangePasswordException("Các trường thông tin không được để trống");
@@ -119,14 +114,12 @@ public class AuthServiceImpl implements AuthService {
         Employee employee = employeeRepository.findByUsername(username)
                 .orElseThrow(() -> new ChangePasswordException("Tài khoản không tồn tại"));
 
-        if (!passwordEncoder.matches(oldPassword, employee.getPasswordHash())) {
+        if (!passwordEncoder.matches(currentPassword, employee.getPasswordHash())) {
             throw new ChangePasswordException("Mật khẩu cũ không chính xác");
         }
 
-        // Update password hash and clear force-change flag
         employee.setPasswordHash(passwordEncoder.encode(newPassword));
         employee.setForceChangePassword(false);
-        employee.setForceChangePassword(false); // ensure cleared
         employeeRepository.save(employee);
     }
 
@@ -145,7 +138,6 @@ public class AuthServiceImpl implements AuthService {
     public void processForgotPassword(ForgotPasswordRequest request) {
         String email = request.getEmail();
 
-        // Manual validation
         if (email == null || email.trim().isEmpty()) {
             throw new ForgotPasswordException("Email không được để trống");
         }
@@ -158,7 +150,6 @@ public class AuthServiceImpl implements AuthService {
             throw new ForgotPasswordException("Email không tồn tại trong hệ thống");
         }
 
-        // Simulate link dispatching
         System.out.println("DEBUG: Password reset link generated and simulated for email: " + email);
     }
 }

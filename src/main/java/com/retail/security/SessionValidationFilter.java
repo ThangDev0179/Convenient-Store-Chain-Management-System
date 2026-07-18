@@ -1,6 +1,6 @@
 package com.retail.security;
 
-import com.retail.service.ActiveSessionService;
+import com.retail.auth.ActiveSessionService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

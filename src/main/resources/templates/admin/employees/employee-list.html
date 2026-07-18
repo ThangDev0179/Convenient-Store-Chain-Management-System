@@ -119,9 +119,9 @@
                 <div class="col-md-2">
                     <select name="status" class="form-control">
                         <option value="">Tất cả Trạng thái</option>
-                        <option th:each="st : ${T(com.retail.entity.EmployeeStatus).values()}"
+                        <option th:each="st : ${T(com.retail.employee.EmployeeStatus).values()}"
                                 th:value="${st}"
-                                th:text="${st == T(com.retail.entity.EmployeeStatus).Active ? 'Đang hoạt động' : 'Bị khóa/Ngưng'}"
+                                th:text="${st == T(com.retail.employee.EmployeeStatus).Active ? 'Đang hoạt động' : 'Bị khóa/Ngưng'}"
                                 th:selected="${st == status}"></option>
                     </select>
                 </div>

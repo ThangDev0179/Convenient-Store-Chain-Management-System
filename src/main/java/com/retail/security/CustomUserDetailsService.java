@@ -1,7 +1,7 @@
 package com.retail.security;
 
-import com.retail.entity.Employee;
-import com.retail.repository.EmployeeRepository;
+import com.retail.employee.Employee;
+import com.retail.employee.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

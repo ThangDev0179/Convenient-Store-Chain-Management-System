@@ -1,7 +1,7 @@
 package com.retail.config;
 
-import com.retail.entity.Employee;
-import com.retail.repository.EmployeeRepository;
+import com.retail.employee.Employee;
+import com.retail.employee.EmployeeRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
