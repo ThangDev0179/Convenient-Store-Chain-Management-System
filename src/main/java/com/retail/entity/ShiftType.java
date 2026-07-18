@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "[ShiftType]")
+@Table(name = "ShiftType")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,7 +18,7 @@ public class ShiftType {
     @Column(name = "ShiftTypeId")
     private Integer shiftTypeId;
 
-    @Column(name = "ShiftName", unique = true, nullable = false, length = 100)
+    @Column(name = "ShiftName", unique = true, nullable = false, length = 50)
     private String shiftName;
 
     @Column(name = "StartTime", nullable = false)

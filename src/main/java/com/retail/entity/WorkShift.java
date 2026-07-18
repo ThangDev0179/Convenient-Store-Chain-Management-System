@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "[WorkShift]")
+@Table(name = "WorkShift")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,7 +33,7 @@ public class WorkShift {
     private LocalDateTime checkOutTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "Status", nullable = false, length = 50)
+    @Column(name = "Status", nullable = false, length = 30)
     private WorkShiftStatus status;
 
     @Column(name = "CreatedAt", nullable = false, updatable = false)

@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "[ActiveSession]")
+@Table(name = "ActiveSession")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,7 +25,7 @@ public class ActiveSession {
     @Column(name = "SessionToken", nullable = false, length = 500)
     private String sessionToken;
 
-    @Column(name = "DeviceId", length = 255)
+    @Column(name = "DeviceId", length = 200)
     private String deviceId;
 
     @Column(name = "IpAddress", length = 50)
@@ -34,6 +34,6 @@ public class ActiveSession {
     @Column(name = "LoginAt", nullable = false)
     private LocalDateTime loginAt;
 
-    @Column(name = "ExpiresAt", nullable = false)
+    @Column(name = "ExpiresAt")
     private LocalDateTime expiresAt;
 }

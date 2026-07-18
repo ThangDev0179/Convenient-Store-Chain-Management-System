@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "[ShiftMetrics]")
+@Table(name = "ShiftMetrics")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,7 +29,7 @@ public class ShiftMetrics {
     @Column(name = "CashCounted", nullable = false, precision = 18, scale = 2)
     private BigDecimal cashCounted;
 
-    @Column(name = "CashVariance", nullable = false, precision = 18, scale = 2)
+    @Column(name = "CashVariance", insertable = false, updatable = false, precision = 18, scale = 2)
     private BigDecimal cashVariance;
 
     @Column(name = "BankCardAmount", nullable = false, precision = 18, scale = 2)
@@ -38,6 +38,6 @@ public class ShiftMetrics {
     @Column(name = "QrAmount", nullable = false, precision = 18, scale = 2)
     private BigDecimal qrAmount;
 
-    @Column(name = "ClosedAt", nullable = false)
+    @Column(name = "ClosedAt")
     private LocalDateTime closedAt;
 }
