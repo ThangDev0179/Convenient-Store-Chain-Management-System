@@ -1,7 +1,7 @@
-package com.retail.report.service;
+package com.retail.service;
 
-import com.retail.report.dto.LossReportDto;
-import com.retail.report.dto.StockValueReportDto;
+import com.retail.dto.LossReportDto;
+import com.retail.dto.StockValueReportDto;
 
 import java.time.LocalDateTime;
 import java.util.List;

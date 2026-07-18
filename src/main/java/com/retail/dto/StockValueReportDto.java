@@ -1,4 +1,4 @@
-package com.retail.report.dto;
+package com.retail.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,8 +1,8 @@
-package com.retail.report.controller;
+package com.retail.controller;
 
-import com.retail.report.dto.LossReportDto;
-import com.retail.report.dto.StockValueReportDto;
-import com.retail.report.service.ReportService;
+import com.retail.dto.LossReportDto;
+import com.retail.dto.StockValueReportDto;
+import com.retail.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;

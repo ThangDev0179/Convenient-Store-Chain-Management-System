@@ -1,6 +1,6 @@
-package com.retail.report.dto;
+package com.retail.dto;
 
-import com.retail.disposal.entity.DisposalSourceType;
+import com.retail.entity.DisposalSourceType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

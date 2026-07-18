@@ -1,9 +1,9 @@
-package com.retail.report.service.impl;
+package com.retail.service.impl;
 
-import com.retail.disposal.entity.DisposalSourceType;
-import com.retail.report.dto.LossReportDto;
-import com.retail.report.dto.StockValueReportDto;
-import com.retail.report.service.ReportService;
+import com.retail.entity.DisposalSourceType;
+import com.retail.dto.LossReportDto;
+import com.retail.dto.StockValueReportDto;
+import com.retail.service.ReportService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
