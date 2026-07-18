@@ -1,9 +1,10 @@
-package com.retail.service;
+package com.retail.service.impl;
 
 import com.retail.dto.ShiftTypeRequest;
 import com.retail.entity.ShiftType;
 import com.retail.exception.ValidationException;
 import com.retail.repository.ShiftTypeRepository;
+import com.retail.service.ShiftTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

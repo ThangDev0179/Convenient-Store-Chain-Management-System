@@ -1,4 +1,4 @@
-package com.retail.service;
+package com.retail.service.impl;
 
 import com.retail.dto.DashboardStatsDto;
 import com.retail.entity.BranchStatus;
@@ -7,6 +7,8 @@ import com.retail.entity.WorkShiftStatus;
 import com.retail.repository.BranchRepository;
 import com.retail.repository.EmployeeRepository;
 import com.retail.repository.WorkShiftRepository;
+import com.retail.service.DashboardService;
+import com.retail.service.DashboardStatsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

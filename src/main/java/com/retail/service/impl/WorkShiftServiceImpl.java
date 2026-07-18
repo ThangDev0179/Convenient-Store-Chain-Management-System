@@ -1,4 +1,4 @@
-package com.retail.service;
+package com.retail.service.impl;
 
 import com.retail.dto.CashClosingRequest;
 import com.retail.dto.CheckInRequest;
@@ -10,6 +10,7 @@ import com.retail.repository.BranchRepository;
 import com.retail.repository.EmployeeRepository;
 import com.retail.repository.ShiftMetricsRepository;
 import com.retail.repository.WorkShiftRepository;
+import com.retail.service.WorkShiftService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;

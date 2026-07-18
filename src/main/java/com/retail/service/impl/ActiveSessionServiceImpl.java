@@ -1,8 +1,9 @@
-package com.retail.service;
+package com.retail.service.impl;
 
 import com.retail.entity.ActiveSession;
 import com.retail.entity.Employee;
 import com.retail.repository.ActiveSessionRepository;
+import com.retail.service.ActiveSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

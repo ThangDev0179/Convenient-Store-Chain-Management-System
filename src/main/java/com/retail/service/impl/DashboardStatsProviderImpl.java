@@ -1,5 +1,6 @@
-package com.retail.service;
+package com.retail.service.impl;
 
+import com.retail.service.DashboardStatsProvider;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 

@@ -1,4 +1,4 @@
-package com.retail.service;
+package com.retail.service.impl;
 
 import com.retail.dto.ScheduleRequest;
 import com.retail.entity.Branch;
@@ -10,6 +10,7 @@ import com.retail.repository.BranchRepository;
 import com.retail.repository.EmployeeRepository;
 import com.retail.repository.EmployeeShiftScheduleRepository;
 import com.retail.repository.ShiftTypeRepository;
+import com.retail.service.ScheduleService;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

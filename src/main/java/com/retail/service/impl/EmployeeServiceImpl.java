@@ -1,4 +1,4 @@
-package com.retail.service;
+package com.retail.service.impl;
 
 import com.retail.dto.*;
 import com.retail.entity.Branch;
@@ -10,6 +10,8 @@ import com.retail.exception.ValidationException;
 import com.retail.repository.BranchRepository;
 import com.retail.repository.EmployeeRepository;
 import com.retail.repository.RoleRepository;
+import com.retail.service.EmailService;
+import com.retail.service.EmployeeService;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

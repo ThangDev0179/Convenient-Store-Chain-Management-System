@@ -1,4 +1,4 @@
-package com.retail.service;
+package com.retail.service.impl;
 
 import com.retail.dto.BranchResponse;
 import com.retail.dto.CreateBranchRequest;
@@ -9,6 +9,7 @@ import com.retail.exception.BranchHasActiveDataException;
 import com.retail.exception.DuplicateBranchCodeException;
 import com.retail.exception.ValidationException;
 import com.retail.repository.BranchRepository;
+import com.retail.service.BranchService;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
