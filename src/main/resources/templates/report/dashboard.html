@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container-fluid mt-4">
+    <h2 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>Tổng quan hệ thống (Dashboard)</h2>
+
+    <!-- Hàng thẻ chỉ số (Cards) -->
+    <div class="row g-3 mb-4">
+        <!-- Stock Value -->
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase text-white-50">Tổng giá trị tồn kho</h6>
+                    <h3 class="mb-0" th:text="${#numbers.formatDecimal(metrics.totalStockValue, 0, 'COMMA', 0, 'POINT')} + ' đ'"></h3>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="/report/stock" class="text-white text-decoration-none small"><i class="bi bi-arrow-right-circle me-1"></i>Xem chi tiết</a>
+                </div>
+            </div>
+        </div>
+        <!-- Loss Value -->
+        <div class="col-md-3">
+            <div class="card bg-danger text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase text-white-50">Hao hụt (Tháng này)</h6>
+                    <h3 class="mb-0" th:text="${#numbers.formatDecimal(metrics.totalLossValue, 0, 'COMMA', 0, 'POINT')} + ' đ'"></h3>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="/report/loss" class="text-white text-decoration-none small"><i class="bi bi-arrow-right-circle me-1"></i>Xem chi tiết</a>
+                </div>
+            </div>
+        </div>
+        <!-- Pending Counts -->
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase text-dark-50">Kiểm kê chờ duyệt</h6>
+                    <h3 class="mb-0" th:text="${metrics.pendingCounts}"></h3>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="/inventory-count" class="text-dark text-decoration-none small"><i class="bi bi-arrow-right-circle me-1"></i>Xem danh sách</a>
+                </div>
+            </div>
+        </div>
+        <!-- Transit / Draft Disposal -->
+        <div class="col-md-3">
+            <div class="card bg-info text-dark h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase text-dark-50">Vận chuyển / Hủy nháp</h6>
+                    <h3 class="mb-0">
+                        <span th:text="${metrics.transitTransfers}" title="Điều chuyển đang vận chuyển"></span> 
+                        <span class="fs-5 fw-normal text-muted">/</span> 
+                        <span th:text="${metrics.draftDisposals}" class="text-danger" title="Phiếu hủy nháp"></span>
+                    </h3>
+                </div>
+                <div class="card-footer bg-transparent border-0 d-flex justify-content-between">
+                    <a href="/transfer" class="text-dark text-decoration-none small">Điều chuyển</a>
+                    <a href="/disposal" class="text-danger fw-bold text-decoration-none small">Xuất hủy</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light fw-bold">
+                    Cơ cấu Giá trị tồn kho theo Chi nhánh
+                </div>
+                <div class="card-body">
+                    <canvas id="stockChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const stockReport = /*[[${stockReport}]]*/ [];
+    /*]]>*/
+
+    const branchNames = stockReport.map(item => item.branchName);
+    const stockValues = stockReport.map(item => item.totalValue);
+
+    const ctx = document.getElementById('stockChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: branchNames,
+            datasets: [{
+                label: 'Giá trị tồn kho (VNĐ)',
+                data: stockValues,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
