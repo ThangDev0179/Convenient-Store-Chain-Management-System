@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard - Hệ thống bán lẻ</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div>
+                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #6366f1, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    STAFF DASHBOARD
+                </h1>
+                <small class="text-muted">Hệ thống bán hàng nhân viên thu ngân</small>
+            </div>
+            <div>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-secondary">Đăng xuất</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div th:if="${employee != null}" class="dashboard-user-info">
+                    <div class="info-item">
+                        <span class="info-label">Mã nhân viên:</span>
+                        <span class="info-value" th:text="${employee.employeeCode}">EMP003</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tên đăng nhập:</span>
+                        <span class="info-value" th:text="${employee.username}">staff</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Họ và tên:</span>
+                        <span class="info-value" th:text="${employee.fullName}">Nguyễn Văn Staff</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Vai trò:</span>
+                        <span>
+                            <span class="badge-role" style="background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.4); color: #a5b4fc;" th:text="${employee.role.roleName}">Sales Staff</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Cửa hàng làm việc:</span>
+                        <span class="info-value" th:text="${employee.branch != null ? employee.branch.branchName : 'Chưa phân công'}">Chi nhánh Quận 1</span>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center d-flex gap-3 justify-content-center">
+                    <a th:href="@{/change-password}" class="btn btn-secondary px-4">Thay đổi mật khẩu</a>
+                    <button class="btn btn-primary px-4" style="width: auto;">Bắt đầu ca bán hàng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
