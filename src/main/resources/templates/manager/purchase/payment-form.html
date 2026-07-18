@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lập Phiếu Chi - Hệ thống bán lẻ</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .form-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-lg);
+        }
+        .dashboard-container {
+            width: 95%;
+            max-width: 700px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header mb-4">
+            <div>
+                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #10b981, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    LẬP PHIẾU CHI THANH TOÁN (AP)
+                </h1>
+                <small class="text-muted">Chi trả tiền công nợ cho nhà cung cấp đối tác</small>
+            </div>
+            <div>
+                <a th:href="@{/manager/invoices/{id}(id=${invoice.supplierInvoiceId})}" class="btn btn-secondary px-4 py-2">Quay Lại</a>
+            </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <form th:action="@{/manager/payments/create}" th:object="${paymentReq}" method="post">
+            <!-- Hidden context ID -->
+            <input type="hidden" th:field="*{supplierInvoiceId}">
+
+            <!-- General Invoice Info -->
+            <div class="form-card">
+                <h3 class="h6 mb-4 font-weight-bold text-secondary text-uppercase" style="letter-spacing:1px;">Thông Tin Hóa Đơn</h3>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small text-uppercase">Mã Hóa Đơn</label>
+                        <input type="text" class="form-control" th:value="'INV-' + ${invoice.supplierInvoiceId}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small text-uppercase">Mã Phiếu Nhập GRN</label>
+                        <input type="text" class="form-control" th:value="${invoice.grnCode}" readonly>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label text-secondary small text-uppercase">Nhà Cung Cấp Đối Tác</label>
+                        <input type="text" class="form-control" th:value="${invoice.supplierName}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small text-uppercase">Tổng Tiền Hóa Đơn</label>
+                        <input type="text" class="form-control" th:value="${#numbers.formatDecimal(invoice.amount, 0, 'COMMA', 0, 'POINT')} + 'đ'" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small text-uppercase">Nợ Còn Lại Cần Trả</label>
+                        <input type="text" class="form-control text-warning font-weight-bold" 
+                               th:value="${#numbers.formatDecimal(invoice.amount - invoice.amountPaid, 0, 'COMMA', 0, 'POINT')} + 'đ'" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Details Form -->
+            <div class="form-card">
+                <h3 class="h6 mb-4 font-weight-bold text-secondary text-uppercase" style="letter-spacing:1px;">Thông Tin Giao Dịch Chi Tiền</h3>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label text-secondary small text-uppercase">Số Tiền Chi (đ)</label>
+                        <input type="number" step="1" th:field="*{amountPaid}"
+                               class="form-control" placeholder="0đ" min="1" required>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('amountPaid')}" th:errors="*{amountPaid}"></div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label text-secondary small text-uppercase">Phương Thức Thanh Toán</label>
+                        <select th:field="*{paymentMethod}" class="form-select bg-dark border-secondary text-light">
+                            <option value="Bank">Bank Transfer (Chuyển khoản)</option>
+                            <option value="Cash">Cash (Tiền mặt)</option>
+                            <option value="QR">QR Code (Ví điện tử)</option>
+                            <option value="Card">Card (Thẻ ngân hàng)</option>
+                        </select>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('paymentMethod')}" th:errors="*{paymentMethod}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-flex justify-content-end gap-3 mt-4">
+                <button type="submit" class="btn btn-primary px-5 py-3" style="background: linear-gradient(90deg, #10b981 0%, #059669 100%); font-weight:600;">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> Xác Nhận Chi Tiền
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -75,6 +75,9 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
     @Autowired
     private AuditLogRepository auditLogRepository;
 
+    @Autowired
+    private com.retail.service.SupplierInvoiceService supplierInvoiceService;
+
     @Override
     public GoodsReceiptNoteResponse createGoodsReceiptNote(CreateGoodsReceiptNoteRequest request, Employee user) {
         PurchaseOrder po = poRepository.findById(request.getPurchaseOrderId())
@@ -186,6 +189,9 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
 
         // Update status of the Purchase Order
         updatePurchaseOrderStatus(po);
+
+        // Auto create Supplier Invoice (Draft) for the GRN
+        supplierInvoiceService.createInvoiceFromGrn(savedGrn);
 
         // Write AuditLog
         AuditLog audit = AuditLog.builder()
