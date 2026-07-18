@@ -1,5 +1,6 @@
 package com.retail.security;
 
+import com.retail.service.ActiveSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -30,6 +32,12 @@ public class SecurityConfig {
 
     @Autowired
     private CustomAuthenticationEntryPoint authenticationEntryPoint;
+
+    @Autowired
+    private SessionValidationFilter sessionValidationFilter;
+
+    @Autowired
+    private ActiveSessionService activeSessionService;
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -68,6 +76,12 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
+                .addLogoutHandler((request, response, authentication) -> {
+                    if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+                        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+                        activeSessionService.invalidate(userDetails.getEmployee().getEmployeeId());
+                    }
+                })
                 .logoutSuccessUrl("/login?logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
@@ -80,7 +94,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .maximumSessions(1)
                 .maxSessionsPreventsLogin(false)
-            );
+            )
+            .addFilterAfter(sessionValidationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
