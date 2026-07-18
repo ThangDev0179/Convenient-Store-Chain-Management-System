@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý chi nhánh - Hệ thống bán lẻ</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .dashboard-container {
+            max-width: 1100px;
+        }
+        .table {
+            color: var(--text-primary);
+        }
+        .table tbody tr {
+            border-bottom: 1px solid var(--card-border);
+            transition: background-color 0.2s ease;
+        }
+        .table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        .table th {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--card-border);
+        }
+        .pagination .page-link {
+            background-color: rgba(15, 23, 42, 0.6);
+            border-color: var(--card-border);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        .pagination .page-link:hover {
+            background-color: var(--primary-glow);
+            border-color: var(--primary-glow);
+        }
+        .pagination .active .page-link {
+            background: var(--primary-gradient);
+            border-color: #6366f1;
+        }
+        .badge-closed {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-archived {
+            background: rgba(156, 163, 175, 0.2);
+            border: 1px solid rgba(156, 163, 175, 0.4);
+            color: #d1d5db;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container my-5">
+        <div class="dashboard-header">
+            <div>
+                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    QUẢN LÝ CHI NHÁNH
+                </h1>
+                <small class="text-muted">Xem, thêm mới, sửa đổi thông tin chi nhánh cửa hàng</small>
+            </div>
+            <div>
+                <a th:href="@{/}" class="btn btn-secondary me-2">Quay lại Dashboard</a>
+                <a th:href="@{/admin/branches/new}" class="btn btn-primary" style="width: auto;">Thêm chi nhánh mới</a>
+            </div>
+        </div>
+
+        <!-- Notification Banner -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Filter and Search -->
+        <div class="card bg-transparent border-0 mb-4">
+            <form th:action="@{/admin/branches}" method="get" class="row g-3">
+                <div class="col-md-5">
+                    <input type="text" name="search" th:value="${search}" class="form-control" placeholder="Tìm theo Mã hoặc Tên chi nhánh...">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-control">
+                        <option value="">Tất cả Trạng thái</option>
+                        <option th:each="st : ${T(com.retail.entity.BranchStatus).values()}"
+                                th:value="${st}"
+                                th:text="${st == T(com.retail.entity.BranchStatus).Active ? 'Đang Hoạt Động (Active)' : (st == T(com.retail.entity.BranchStatus).Closed ? 'Đóng Cửa (Closed)' : 'Đã Lưu Trữ (Archived)')}"
+                                th:selected="${st == status}"></option>
+                    </select>
+                </div>
+                <input type="hidden" name="sortBy" th:value="${sortBy}">
+                <input type="hidden" name="direction" th:value="${direction}">
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-secondary px-4 w-50">Tìm kiếm</button>
+                    <a th:href="@{/admin/branches}" class="btn btn-outline-secondary px-4 w-50" style="border: 1px solid var(--card-border); color: var(--text-primary);">Xóa bộ lọc</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Mã Chi Nhánh</th>
+                        <th>Tên Chi Nhánh</th>
+                        <th>Địa Chỉ</th>
+                        <th>Trạng Thái</th>
+                        <th>Ngày Tạo</th>
+                        <th class="text-center" style="width: 250px;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="branch : ${branches}">
+                        <td class="font-weight-bold text-info" th:text="${branch.branchCode}">BR001</td>
+                        <td th:text="${branch.branchName}">Chi nhánh A</td>
+                        <td th:text="${branch.address}">Địa chỉ A</td>
+                        <td>
+                            <span th:if="${branch.status.name() == 'Active'}" class="badge-active">Hoạt động</span>
+                            <span th:if="${branch.status.name() == 'Closed'}" class="badge-closed">Đóng cửa</span>
+                            <span th:if="${branch.status.name() == 'Archived'}" class="badge-archived">Lưu trữ</span>
+                        </td>
+                        <td th:text="${#temporals.format(branch.createdAt, 'dd/MM/yyyy HH:mm')}">18/07/2026</td>
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center">
+                                <a th:href="@{/admin/branches/{id}(id=${branch.branchId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Xem</a>
+                                <a th:href="@{/admin/branches/{id}/edit(id=${branch.branchId})}" 
+                                   class="btn btn-sm btn-outline-light" 
+                                   style="border-radius: 6px; border-color: var(--card-border);"
+                                   th:if="${branch.status.name() != 'Archived'}">Sửa</a>
+                                
+                                <!-- Toggle Closed/Active -->
+                                <form th:action="@{/admin/branches/{id}/close(id=${branch.branchId})}" 
+                                      method="post" 
+                                      class="d-inline"
+                                      th:if="${branch.status.name() != 'Archived'}">
+                                    <button type="submit" 
+                                            class="btn btn-sm" 
+                                            th:classappend="${branch.status.name() == 'Active' ? 'btn-outline-warning' : 'btn-outline-success'}"
+                                            style="border-radius: 6px;"
+                                            th:text="${branch.status.name() == 'Active' ? 'Tạm đóng' : 'Mở lại'}">Đóng</button>
+                                </form>
+
+                                <!-- Archive -->
+                                <form th:action="@{/admin/branches/{id}/archive(id=${branch.branchId})}" 
+                                      method="post" 
+                                      class="d-inline"
+                                      th:if="${branch.status.name() != 'Archived'}"
+                                      onsubmit="return confirm('Bạn có chắc chắn muốn lưu trữ chi nhánh này không? Thao tác này không thể hoàn tác.');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Lưu trữ</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(branches)}">
+                        <td colspan="6" class="text-center text-muted py-4">Không tìm thấy chi nhánh nào thỏa mãn bộ lọc.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav th:if="${totalPages > 1}" class="d-flex justify-content-between align-items-center mt-4">
+            <span class="text-muted" th:text="${'Hiển thị từ ' + (currentPage * 5 + 1) + ' đến ' + ((currentPage * 5 + 5) > totalItems ? totalItems : (currentPage * 5 + 5)) + ' trên tổng số ' + totalItems + ' chi nhánh'}"></span>
+            <ul class="pagination mb-0">
+                <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/admin/branches(search=${search}, status=${status}, page=${currentPage - 1}, sortBy=${sortBy}, direction=${direction})}">Trước</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i ? 'active' : ''}">
+                    <a class="page-link" th:href="@{/admin/branches(search=${search}, status=${status}, page=${i}, sortBy=${sortBy}, direction=${direction})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/admin/branches(search=${search}, status=${status}, page=${currentPage + 1}, sortBy=${sortBy}, direction=${direction})}">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
