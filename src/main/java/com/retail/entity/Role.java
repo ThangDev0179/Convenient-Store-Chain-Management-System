@@ -1,0 +1,26 @@
+package com.retail.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "[Role]")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Role {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "RoleId")
+    private Long roleId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "RoleCode", nullable = false, length = 50)
+    private RoleCode roleCode;
+
+    @Column(name = "RoleName", nullable = false, length = 100)
+    private String roleName;
+}
