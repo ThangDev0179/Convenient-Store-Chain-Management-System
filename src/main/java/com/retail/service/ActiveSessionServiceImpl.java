@@ -25,22 +25,14 @@ public class ActiveSessionServiceImpl implements ActiveSessionService {
             throw new IllegalArgumentException("Token phiên đăng nhập không được để trống");
         }
 
-        // Remove existing active session for this employee (enforcing single active session)
-        activeSessionRepository.deleteById(employee.getEmployeeId());
-        activeSessionRepository.flush(); // Commit deletion immediately
-
-        // Create new active session record
-        ActiveSession activeSession = ActiveSession.builder()
-                .employeeId(employee.getEmployeeId())
-                .employee(employee)
-                .sessionToken(sessionToken)
-                .deviceId(deviceId)
-                .ipAddress(ipAddress)
-                .loginAt(LocalDateTime.now())
-                .expiresAt(expiresAt)
-                .build();
-
-        activeSessionRepository.save(activeSession);
+        activeSessionRepository.upsertSession(
+                employee.getEmployeeId(),
+                sessionToken,
+                deviceId,
+                ipAddress,
+                LocalDateTime.now(),
+                expiresAt
+        );
     }
 
     @Override
