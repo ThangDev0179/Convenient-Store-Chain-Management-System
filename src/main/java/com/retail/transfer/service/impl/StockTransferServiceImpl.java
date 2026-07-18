@@ -143,10 +143,10 @@ public class StockTransferServiceImpl implements StockTransferService {
                     "Xác nhận nhận: " + transfer.getTransferCode(), receivedByEmployeeId
             );
 
-            // Chi nhánh nhận: Trừ QtyInTransit, cộng QtyOnHand + QtyAvailable
+            // Chi nhánh nhận: Trừ QtyInTransit (toàn bộ số lượng đã gửi), cộng QtyOnHand + QtyAvailable (số lượng thực nhận)
             transactionService.recordTransaction(
                     toBranchId, productId,
-                    qtyReceived, qtyReceived, qtyReceived.negate(),
+                    qtyReceived, qtyReceived, qtySent.negate(),
                     InventoryTransactionType.TransferIn,
                     "StockTransfer", transferId,
                     "Xác nhận nhận: " + transfer.getTransferCode(), receivedByEmployeeId
