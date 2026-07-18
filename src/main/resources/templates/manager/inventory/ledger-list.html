@@ -160,7 +160,7 @@
                             <td class="text-indigo" th:text="${p.referenceTable} + ' #' + ${p.referenceId}"></td>
                             <td class="text-end font-weight-bold"
                                 th:classappend="${p.quantityChange.compareTo(0.0) >= 0} ? 'qty-plus' : 'qty-minus'"
-                                th:text="${p.quantityChange.compareTo(0.0) >= 0 ? '+' + #numbers.formatDecimal(p.quantityChange, 0, 'COMMA', 3, 'POINT') : #numbers.formatDecimal(p.quantityChange, 0, 'COMMA', 3, 'POINT')}"></td>
+                                th:text="${p.quantityChange.compareTo(0.0) >= 0 ? '+' + #numbers.formatDecimal(p.quantityChange, 1, 'COMMA', 3, 'POINT') : #numbers.formatDecimal(p.quantityChange, 1, 'COMMA', 3, 'POINT')}"></td>
                             <td th:text="${p.reason != null ? p.reason : 'Không có ghi chú'}"></td>
                             <td th:text="${p.createdByName}"></td>
                         </tr>

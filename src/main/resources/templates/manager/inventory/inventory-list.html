@@ -121,11 +121,11 @@
                             </td>
                             <td th:text="${item.categoryName}"></td>
                             <td class="text-end text-light font-weight-bold" 
-                                th:text="${#numbers.formatDecimal(item.qtyOnHand, 0, 'COMMA', 3, 'POINT')}"></td>
+                                th:text="${#numbers.formatDecimal(item.qtyOnHand, 1, 'COMMA', 3, 'POINT')}"></td>
                             <td class="text-end text-success font-weight-bold" 
-                                th:text="${#numbers.formatDecimal(item.qtyAvailable, 0, 'COMMA', 3, 'POINT')}"></td>
+                                th:text="${#numbers.formatDecimal(item.qtyAvailable, 1, 'COMMA', 3, 'POINT')}"></td>
                             <td class="text-end text-warning font-weight-bold" 
-                                th:text="${#numbers.formatDecimal(item.qtyInTransit, 0, 'COMMA', 3, 'POINT')}"></td>
+                                th:text="${#numbers.formatDecimal(item.qtyInTransit, 1, 'COMMA', 3, 'POINT')}"></td>
                             <td th:text="${item.updatedAt != null ? #temporals.format(item.updatedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(inventoryPage.content)}">
