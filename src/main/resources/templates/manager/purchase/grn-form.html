@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lập Phiếu Nhập Kho (GRN) - Hệ thống bán lẻ</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .form-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-lg);
+        }
+        .table {
+            color: var(--text-primary);
+        }
+        .table th {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        .dashboard-container {
+            width: 95%;
+            max-width: 1100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    LẬP PHIẾU NHẬP KHO THỰC TẾ (GRN)
+                </h1>
+                <small class="text-muted">Kiểm đếm và nhập kho hàng hóa thực nhận từ nhà cung cấp</small>
+            </div>
+            <div>
+                <a th:href="@{/manager/purchase-orders/{id}(id=${po.purchaseOrderId})}" class="btn btn-secondary px-4 py-2">Quay Lại</a>
+            </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <form th:action="@{/manager/grn/create}" th:object="${grnRequest}" method="post">
+            <!-- Hidden context IDs -->
+            <input type="hidden" th:field="*{purchaseOrderId}">
+            <input type="hidden" th:field="*{branchId}">
+
+            <!-- General Information -->
+            <div class="form-card">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small text-uppercase">Chi Nhánh Nhận Hàng</label>
+                        <input type="text" class="form-control" th:value="${branch.branchName}" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small text-uppercase">Đơn Đặt Hàng Gốc (PO)</label>
+                        <input type="text" class="form-control" th:value="${po.poCode}" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-secondary small text-uppercase">Nhà Cung Cấp Đối Tác</label>
+                        <input type="text" class="form-control" th:value="${po.supplierName}" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List of Goods to Receive -->
+            <div class="form-card">
+                <h3 class="h5 mb-4 font-weight-bold text-secondary text-uppercase" style="letter-spacing:1px;">Chi Tiết Hàng Hóa Thực Nhận</h3>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Sản Phẩm</th>
+                                <th style="width: 150px;">Đơn Vị Tính</th>
+                                <th style="width: 180px;" class="text-end">Số Lượng Đặt (PO)</th>
+                                <th style="width: 180px;" class="text-end">Số Lượng Thực Nhận</th>
+                                <th style="width: 180px;" class="text-end">Đơn Giá Nhập (đ)</th>
+                                <th style="width: 180px;" class="text-end">Thành Tiền Tạm Tính</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Iterate request details mapped directly from controller pre-population -->
+                            <tr th:each="detail, stat : *{details}">
+                                <td>
+                                    <!-- Keep product name visible but submit productId -->
+                                    <input type="hidden" th:field="*{details[__${stat.index}__].productId}">
+                                    <span class="text-light font-weight-bold" th:text="${po.details[__${stat.index}__].productName}"></span>
+                                    <br>
+                                    <small class="text-muted" th:text="'SKU: ' + ${po.details[__${stat.index}__].productSku}"></small>
+                                </td>
+                                <td>
+                                    <input type="hidden" th:field="*{details[__${stat.index}__].uomId}">
+                                    <span th:text="${po.details[__${stat.index}__].uomName}"></span>
+                                </td>
+                                <td class="text-end">
+                                    <input type="hidden" th:field="*{details[__${stat.index}__].quantityOrdered}">
+                                    <span class="text-secondary font-weight-bold" 
+                                          th:text="${#numbers.formatDecimal(po.details[__${stat.index}__].quantityOrdered, 0, 'COMMA', 0, 'POINT')}"></span>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.001" th:field="*{details[__${stat.index}__].quantityReceived}"
+                                           class="form-control text-end quantity-received-input" placeholder="0" min="0.001" required
+                                           th:data-index="${stat.index}" oninput="recalculateRowCost(this)">
+                                </td>
+                                <td>
+                                    <input type="number" step="1" th:field="*{details[__${stat.index}__].unitCost}"
+                                           class="form-control text-end unit-cost-input" placeholder="0đ" min="0" required
+                                           th:data-index="${stat.index}" oninput="recalculateRowCost(this)">
+                                </td>
+                                <td class="text-end text-success font-weight-bold row-total-cost" th:id="'row-total-' + ${stat.index}"
+                                    th:text="${#numbers.formatDecimal(po.details[__${stat.index}__].totalCost, 0, 'COMMA', 0, 'POINT')} + 'đ'">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-flex justify-content-end gap-3 mt-4">
+                <button type="submit" class="btn btn-primary px-5 py-3" style="background: linear-gradient(90deg, #10b981 0%, #059669 100%); font-weight:600;">
+                    <i class="fa-solid fa-circle-check"></i> Xác Nhận Hoàn Thành Nhập Kho
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function recalculateRowCost(element) {
+            var index = element.getAttribute("data-index");
+            var row = element.closest("tr");
+            
+            var qtyInput = row.querySelector(".quantity-received-input").value;
+            var costInput = row.querySelector(".unit-cost-input").value;
+            
+            var qty = parseFloat(qtyInput) || 0;
+            var cost = parseFloat(costInput) || 0;
+            
+            var total = qty * cost;
+            
+            var formattedTotal = new Intl.NumberFormat('vi-VN').format(Math.round(total)) + 'đ';
+            document.getElementById("row-total-" + index).innerText = formattedTotal;
+        }
+    </script>
+</body>
+</html>
