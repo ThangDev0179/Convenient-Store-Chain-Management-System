@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Chi tiết Phiếu Xuất Hủy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-trash3 text-danger me-2"></i>Chi tiết Phiếu Xuất Hủy</h2>
+        <a href="/disposal" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" th:text="${successMessage}">
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" th:text="${errorMessage}">
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Thông tin chung -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-header fw-bold bg-light">Thông tin phiếu</div>
+        <div class="card-body row g-2">
+            <div class="col-md-3"><strong>Mã phiếu:</strong> <span th:text="${disposal.disposalCode}"></span></div>
+            <div class="col-md-3"><strong>Chi nhánh:</strong> <span th:text="${disposal.branch.branchName}"></span></div>
+            <div class="col-md-3">
+                <strong>Trạng thái: </strong>
+                <span th:class="${'badge ' + 
+                    (disposal.status.name() == 'Draft' ? 'bg-secondary' : 
+                    (disposal.status.name() == 'Approved' ? 'bg-success' : 'bg-danger'))}"
+                      th:text="${disposal.status}">
+                </span>
+            </div>
+            <div class="col-md-3">
+                <strong>Nguồn: </strong>
+                <span th:class="${'badge ' + 
+                    (disposal.sourceType.name() == 'Manual' ? 'bg-primary' : 
+                    (disposal.sourceType.name() == 'TransferLoss' ? 'bg-warning text-dark' : 'bg-info text-dark'))}"
+                      th:text="${disposal.sourceType}">
+                </span>
+            </div>
+            <div class="col-md-4"><strong>Người tạo:</strong> <span th:text="${disposal.createdBy.fullName}"></span></div>
+            <div class="col-md-4"><strong>Ngày tạo:</strong> <span th:text="${#temporals.format(disposal.createdAt, 'dd/MM/yyyy HH:mm')}"></span></div>
+            <div class="col-md-4">
+                <strong>Lý do:</strong> <span th:text="${disposal.reason != null ? disposal.reason : '-'}"></span>
+            </div>
+            <div class="col-md-4" th:if="${disposal.approvedBy != null}">
+                <strong>Người duyệt:</strong> <span th:text="${disposal.approvedBy.fullName}"></span>
+            </div>
+            <div class="col-md-4" th:if="${disposal.approvedAt != null}">
+                <strong>Ngày duyệt:</strong> <span th:text="${#temporals.format(disposal.approvedAt, 'dd/MM/yyyy HH:mm')}"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hành động -->
+    <div class="mb-3 d-flex gap-2" sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+        <!-- Approve -->
+        <form th:if="${disposal.status.name() == 'Draft'}"
+              th:action="@{/disposal/{id}/approve(id=${disposal.disposalId})}" method="post">
+            <button type="submit" class="btn btn-success"
+                    onclick="return confirm('Bạn có chắc muốn phê duyệt phiếu hủy này không?')">
+                <i class="bi bi-check-circle me-1"></i>Phê duyệt
+            </button>
+        </form>
+        <!-- Reject -->
+        <form th:if="${disposal.status.name() == 'Draft'}"
+              th:action="@{/disposal/{id}/reject(id=${disposal.disposalId})}" method="post">
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Bạn có chắc muốn từ chối phiếu hủy này không?')">
+                <i class="bi bi-x-circle me-1"></i>Từ chối
+            </button>
+        </form>
+    </div>
+
+    <!-- Danh sách sản phẩm -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-header fw-bold bg-light">Danh sách hàng hủy</div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Sản phẩm (ID)</th>
+                        <th>SL Hủy</th>
+                        <th>Đơn giá Ước tính</th>
+                        <th>Giá trị tổn thất (Loss Value)</th>
+                        <th>Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="detail, stat : ${disposal.details}">
+                        <td th:text="${stat.index + 1}"></td>
+                        <td th:text="${detail.product.productName + ' (' + detail.product.productId + ')'}"></td>
+                        <td class="text-danger fw-bold" th:text="${detail.quantityDisposed}"></td>
+                        <td th:text="${detail.unitCost}"></td>
+                        <td class="text-danger fw-bold" th:text="${detail.quantityDisposed.multiply(detail.unitCost)}"></td>
+                        <td th:text="${detail.note != null ? detail.note : '-'}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
