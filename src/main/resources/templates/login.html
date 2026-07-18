@@ -32,6 +32,11 @@
                 <span>Đổi mật khẩu thành công!</span>
             </div>
 
+            <!-- Session Expired Notification -->
+            <div th:if="${param.expired}" class="alert alert-danger text-center" role="alert">
+                <span>Phiên đăng nhập của bạn đã hết hạn hoặc tài khoản được đăng nhập từ một thiết bị khác.</span>
+            </div>
+
             <form th:action="@{/login}" th:object="${loginRequest}" method="post">
                 <!-- CSRF Token auto-inserted by thymeleaf -->
                 <div class="mb-4">
