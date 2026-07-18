@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "[Role]")
+@Table(name = "Role")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,7 +18,7 @@ public class Role {
     private Long roleId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "RoleCode", nullable = false, length = 50)
+    @Column(name = "RoleCode", nullable = false, unique = true, length = 20)
     private RoleCode roleCode;
 
     @Column(name = "RoleName", nullable = false, length = 100)

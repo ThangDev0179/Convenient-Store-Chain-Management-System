@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "[Employee]")
+@Table(name = "Employee")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,19 +18,19 @@ public class Employee {
     @Column(name = "EmployeeId")
     private Long employeeId;
 
-    @Column(name = "EmployeeCode", nullable = false, length = 50)
+    @Column(name = "EmployeeCode", unique = true, nullable = false, length = 20)
     private String employeeCode;
 
     @Column(name = "Username", unique = true, nullable = false, length = 50)
     private String username;
 
-    @Column(name = "PasswordHash", nullable = false, length = 255)
+    @Column(name = "PasswordHash", nullable = false, length = 200)
     private String passwordHash;
 
-    @Column(name = "FullName", nullable = false, length = 100)
+    @Column(name = "FullName", nullable = false, length = 150)
     private String fullName;
 
-    @Column(name = "Email", unique = true, nullable = false, length = 100)
+    @Column(name = "Email", unique = true, length = 150)
     private String email;
 
     @Column(name = "Phone", length = 20)
@@ -41,20 +41,20 @@ public class Employee {
     private Role role;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "BranchId")
+    @JoinColumn(name = "BranchId", nullable = false)
     private Branch branch;
 
-    @Column(name = "IsBranchManager")
+    @Column(name = "IsBranchManager", nullable = false)
     private Boolean isBranchManager;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "Status", nullable = false, length = 20)
     private EmployeeStatus status;
 
-    @Column(name = "ForceChangePassword")
+    @Column(name = "ForceChangePassword", nullable = false)
     private Boolean forceChangePassword;
 
-    @Column(name = "CreatedAt", updatable = false)
+    @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "UpdatedAt")
@@ -64,6 +64,15 @@ public class Employee {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (isBranchManager == null) {
+            isBranchManager = false;
+        }
+        if (forceChangePassword == null) {
+            forceChangePassword = true;
+        }
+        if (status == null) {
+            status = EmployeeStatus.Active;
+        }
     }
 
     @PreUpdate

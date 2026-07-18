@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "[EmployeeShiftSchedule]")
+@Table(name = "EmployeeShiftSchedule")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,7 +32,7 @@ public class EmployeeShiftSchedule {
     private ShiftType shiftType;
 
     @Column(name = "DayOfWeek", nullable = false)
-    private Integer dayOfWeek; // 1-7 represents Mon-Sun
+    private Integer dayOfWeek;
 
     @Column(name = "EffectiveFrom", nullable = false)
     private LocalDate effectiveFrom;
