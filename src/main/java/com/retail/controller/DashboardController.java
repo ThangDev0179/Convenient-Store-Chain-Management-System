@@ -2,6 +2,8 @@ package com.retail.controller;
 
 import com.retail.entity.Employee;
 import com.retail.repository.EmployeeRepository;
+import com.retail.dto.DashboardStatsDto;
+import com.retail.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -14,9 +16,16 @@ public class DashboardController {
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    @Autowired
+    private DashboardService dashboardService;
+
     @GetMapping("/admin/dashboard")
     public String adminDashboard(Model model, Authentication auth) {
         populateEmployeeModel(model, auth);
+        
+        DashboardStatsDto stats = dashboardService.getStats();
+        model.addAttribute("stats", stats);
+        
         return "admin/dashboard";
     }
 

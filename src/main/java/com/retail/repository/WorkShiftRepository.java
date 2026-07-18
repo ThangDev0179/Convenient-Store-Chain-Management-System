@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface WorkShiftRepository extends JpaRepository<WorkShift, Long>, JpaSpecificationExecutor<WorkShift> {
     Optional<WorkShift> findFirstByEmployeeEmployeeIdAndStatus(Long employeeId, WorkShiftStatus status);
     boolean existsByEmployeeEmployeeIdAndStatus(Long employeeId, WorkShiftStatus status);
+    long countByStatus(WorkShiftStatus status);
 }

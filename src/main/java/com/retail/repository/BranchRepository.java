@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface BranchRepository extends JpaRepository<Branch, Integer>, JpaSpecificationExecutor<Branch> {
     Optional<Branch> findByBranchCode(String branchCode);
     boolean existsByBranchCode(String branchCode);
+    long countByStatus(com.retail.entity.BranchStatus status);
 
     @Query(value = "SELECT COUNT(*) FROM [Employee] WHERE BranchId = :branchId AND Status = 'Active'", nativeQuery = true)
     long countActiveEmployees(@Param("branchId") Integer branchId);
