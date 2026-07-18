@@ -20,5 +20,6 @@ public class CreateSupplierPaymentRequest {
     private BigDecimal amountPaid;
 
     @NotBlank(message = "Phương thức thanh toán không được để trống")
+    @jakarta.validation.constraints.Pattern(regexp = "^(Cash|Bank|QR|Card)$", message = "Phương thức thanh toán phải là Cash, Bank, QR hoặc Card")
     private String paymentMethod; // Cash, Bank, QR, Card
 }
