@@ -14,6 +14,8 @@ import com.retail.procurement.BranchInventory;
 import com.retail.procurement.BranchInventoryRepository;
 import com.retail.procurement.InventoryTransactionType;
 import com.retail.procurement.Product;
+import com.retail.disposal.service.StockDisposalService;
+import com.retail.disposal.entity.DisposalSourceType;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,7 @@ public class InventoryCountServiceImpl implements InventoryCountService {
     private final InventoryCountRepository countRepository;
     private final BranchInventoryRepository branchInventoryRepository;
     private final InventoryTransactionService transactionService;
+    private final StockDisposalService disposalService;
     private final AuditLogService auditLogService;
     private final EntityManager entityManager;
 
@@ -108,6 +111,14 @@ public class InventoryCountServiceImpl implements InventoryCountService {
                         "Phê duyệt kiểm kê: " + count.getCountCode(),
                         approvedByEmployeeId
                 );
+                
+                // Nếu delta < 0 (thiếu hàng), tự động sinh phiếu Xuất Hủy (Disposal) để ghi nhận chi phí/báo cáo
+                if (delta.compareTo(BigDecimal.ZERO) < 0) {
+                    disposalService.autoCreateFromLoss(count.getBranch().getBranchId(), 
+                            detail.getProduct().getProductId(), delta.negate(), 
+                            DisposalSourceType.CountVariance, count.getInventoryCountId(), 
+                            "Hụt kho qua kiểm kê: " + count.getCountCode(), approvedByEmployeeId);
+                }
             }
         }
 

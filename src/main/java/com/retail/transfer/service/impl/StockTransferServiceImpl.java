@@ -14,6 +14,8 @@ import com.retail.transfer.entity.StockTransferStatus;
 import com.retail.transfer.repository.StockTransferDetailRepository;
 import com.retail.transfer.repository.StockTransferRepository;
 import com.retail.transfer.service.StockTransferService;
+import com.retail.disposal.service.StockDisposalService;
+import com.retail.disposal.entity.DisposalSourceType;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ public class StockTransferServiceImpl implements StockTransferService {
     private final StockTransferRepository transferRepository;
     private final StockTransferDetailRepository detailRepository;
     private final InventoryTransactionService transactionService;
+    private final StockDisposalService disposalService;
     private final AuditLogService auditLogService;
     private final EntityManager entityManager;
 
@@ -159,6 +162,11 @@ public class StockTransferServiceImpl implements StockTransferService {
                         detail.getTransferDetailId(), null,
                         "Hao hụt: " + loss + " — sản phẩm ID=" + productId,
                         "Hao hụt trong vận chuyển: " + transfer.getTransferCode(), null, null);
+                
+                // Tự động sinh phiếu Xuất Hủy (Disposal) để ghi nhận chi phí/báo cáo
+                disposalService.autoCreateFromLoss(toBranchId, productId, loss, 
+                        DisposalSourceType.TransferLoss, transferId, 
+                        "Hao hụt vận chuyển phiếu: " + transfer.getTransferCode(), receivedByEmployeeId);
             }
         }
 
