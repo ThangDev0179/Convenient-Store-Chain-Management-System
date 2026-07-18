@@ -14,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Map;
@@ -108,6 +109,7 @@ public class PurchaseOrderController {
         }).collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/new")
     public String newPurchaseOrderForm(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -129,6 +131,7 @@ public class PurchaseOrderController {
         return "manager/purchase/po-form";
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @PostMapping("/create")
     public String createPurchaseOrder(
             @Valid @ModelAttribute("poRequest") CreatePurchaseOrderRequest poRequest,
