@@ -132,6 +132,13 @@
 
         <!-- Actions panel -->
         <div class="d-flex justify-content-end gap-3 mt-4">
+            <!-- Create GRN if PO is in Submitted or Partially_Received state -->
+            <a th:if="${po.status == 'Submitted' or po.status == 'Partially_Received'}" 
+               th:href="@{/manager/grn/new(poId=${po.purchaseOrderId})}" 
+               class="btn btn-warning px-4 py-2" style="font-weight:600; color:#111827;">
+                <i class="fa-solid fa-truck-ramp-box"></i> Nhập Kho Thực Tế (GRN)
+            </a>
+
             <!-- Submit order for approval if in Draft state -->
             <form th:if="${po.status == 'Draft'}" th:action="@{/manager/purchase-orders/{id}/submit(id=${po.purchaseOrderId})}" method="post">
                 <button type="submit" class="btn btn-primary px-4 py-2" style="background: linear-gradient(90deg, #10b981 0%, #059669 100%);">

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Phiếu Nhập Kho (GRN) - Hệ thống bán lẻ</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .detail-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-lg);
+        }
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .table {
+            color: var(--text-primary);
+        }
+        .table th {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        .dashboard-container {
+            width: 95%;
+            max-width: 1100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    PHIẾU NHẬP KHO THỰC TẾ: <span th:text="${grn.grnCode}"></span>
+                </h1>
+                <small class="text-muted">Xem chi tiết biên bản bàn giao và tiếp nhận hàng hóa từ đối tác</small>
+            </div>
+            <div class="d-flex gap-3">
+                <a th:href="@{/manager/grn}" class="btn btn-secondary px-4 py-2">
+                    <i class="fa-solid fa-arrow-left"></i> Quay Lại
+                </a>
+            </div>
+        </div>
+
+        <!-- Notification Alerts -->
+        <div th:if="${success}" class="alert alert-success text-center" th:text="${success}"></div>
+
+        <!-- Metadata Section -->
+        <div class="detail-card">
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="info-label">Mã Phiếu Nhập</div>
+                    <div class="info-value text-indigo" th:text="${grn.grnCode}"></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-label">Nhập Cho Đơn Hàng PO</div>
+                    <div class="info-value">
+                        <a th:href="@{/manager/purchase-orders/{id}(id=${grn.purchaseOrderId})}" 
+                           class="text-indigo" th:text="${grn.purchaseOrderCode}" style="text-decoration:none;"></a>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-label">Ngày Tiếp Nhận</div>
+                    <div class="info-value text-light" th:text="${#temporals.format(grn.receivedAt, 'dd/MM/yyyy HH:mm')}"></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-label">Người Tiếp Nhận</div>
+                    <div class="info-value" th:text="${grn.receivedByName}"></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-label">Chi Nhánh Nhận</div>
+                    <div class="info-value" th:text="${grn.branchName}"></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-label">Trạng Thái Phiếu</div>
+                    <div>
+                        <span th:if="${grn.status == 'Completed'}" class="status-badge status-completed">
+                            <i class="fa-solid fa-circle-check"></i> Đã Hoàn Thành
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Table -->
+        <div class="detail-card">
+            <h3 class="h5 mb-4 font-weight-bold text-secondary text-uppercase" style="letter-spacing:1px;">Danh Mục Sản Phẩm Đã Nhập Kho</h3>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Sản Phẩm</th>
+                            <th style="width: 180px;">Đơn Vị Quy Đổi</th>
+                            <th style="width: 220px;" class="text-end">Số Lượng Thực Nhận</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="detail : ${grn.details}">
+                            <td>
+                                <span class="text-light font-weight-bold" th:text="${detail.productName}"></span>
+                                <br>
+                                <small class="text-muted" th:text="'SKU: ' + ${detail.productSku}"></small>
+                            </td>
+                            <td th:text="${detail.uomName}"></td>
+                            <td class="text-end text-light font-weight-bold" 
+                                th:text="${#numbers.formatDecimal(detail.quantityReceived, 0, 'COMMA', 0, 'POINT')}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
