@@ -19,6 +19,7 @@ public class InventoryTransactionResponse {
     private String referenceTable;
     private Long referenceId;
     private BigDecimal quantityChange;
+    private String baseUomName;
     private String reason;
     private String createdByName;
     private LocalDateTime createdAt;

@@ -6,6 +6,7 @@ import com.retail.entity.BranchInventory;
 import com.retail.entity.InventoryTransactionHistory;
 import com.retail.repository.BranchInventoryRepository;
 import com.retail.repository.InventoryTransactionHistoryRepository;
+import com.retail.repository.ProductUOMRepository;
 import com.retail.service.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,9 @@ public class InventoryServiceImpl implements InventoryService {
     @Autowired
     private InventoryTransactionHistoryRepository inventoryTransactionHistoryRepository;
 
+    @Autowired
+    private ProductUOMRepository productUOMRepository;
+
     @Override
     public Page<BranchInventoryResponse> searchInventory(Integer branchId, String keyword, Integer categoryId, Pageable pageable) {
         Page<BranchInventory> inventoryPage = branchInventoryRepository.searchInventory(branchId, keyword, categoryId, pageable);
@@ -39,6 +43,10 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     private BranchInventoryResponse mapToInventoryResponse(BranchInventory bi) {
+        String baseUom = productUOMRepository.findByProductProductIdAndIsBaseUnitTrue(bi.getProduct().getProductId())
+                .map(uom -> uom.getUomName())
+                .orElse("Đơn vị");
+
         return BranchInventoryResponse.builder()
                 .branchId(bi.getBranch().getBranchId())
                 .branchName(bi.getBranch().getBranchName())
@@ -49,11 +57,16 @@ public class InventoryServiceImpl implements InventoryService {
                 .qtyOnHand(bi.getQtyOnHand())
                 .qtyAvailable(bi.getQtyAvailable())
                 .qtyInTransit(bi.getQtyInTransit())
+                .baseUomName(baseUom)
                 .updatedAt(bi.getUpdatedAt())
                 .build();
     }
 
     private InventoryTransactionResponse mapToTransactionResponse(InventoryTransactionHistory ith) {
+        String baseUom = productUOMRepository.findByProductProductIdAndIsBaseUnitTrue(ith.getProduct().getProductId())
+                .map(uom -> uom.getUomName())
+                .orElse("Đơn vị");
+
         return InventoryTransactionResponse.builder()
                 .transactionId(ith.getTransactionId())
                 .branchId(ith.getBranch().getBranchId())
@@ -65,6 +78,7 @@ public class InventoryServiceImpl implements InventoryService {
                 .referenceTable(ith.getReferenceTable())
                 .referenceId(ith.getReferenceId())
                 .quantityChange(ith.getQuantityChange())
+                .baseUomName(baseUom)
                 .reason(ith.getReason())
                 .createdByName(ith.getCreatedBy() != null ? ith.getCreatedBy().getFullName() : "System")
                 .createdAt(ith.getCreatedAt())

@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface ProductUOMRepository extends JpaRepository<ProductUOM, Long> {
     List<ProductUOM> findByProductProductId(Long productId);
     Optional<ProductUOM> findByProductProductIdAndUomName(Long productId, String uomName);
+    Optional<ProductUOM> findByProductProductIdAndIsBaseUnitTrue(Long productId);
 }
