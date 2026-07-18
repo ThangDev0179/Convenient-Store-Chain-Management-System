@@ -82,7 +82,9 @@
                 <div class="row g-3">
                     <div class="col-md-12">
                         <label class="form-label text-secondary small text-uppercase">Số Tiền Chi (đ)</label>
-                        <input type="number" step="1" th:field="*{amountPaid}"
+                        <input type="number" step="1" 
+                               th:name="amountPaid"
+                               th:value="${#numbers.formatDecimal(paymentReq.amountPaid, 1, 'NONE', 0, 'POINT')}"
                                class="form-control" placeholder="0đ" min="1" required>
                         <div class="text-danger small mt-1" th:if="${#fields.hasErrors('amountPaid')}" th:errors="*{amountPaid}"></div>
                     </div>

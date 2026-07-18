@@ -107,7 +107,9 @@
                                           th:text="${#numbers.formatDecimal(po.details.get(stat.index).quantityOrdered, 0, 'COMMA', 0, 'POINT')}"></span>
                                 </td>
                                 <td>
-                                    <input type="number" step="0.001" th:field="*{details[__${stat.index}__].quantityReceived}"
+                                    <input type="number" step="0.001" 
+                                           th:name="'details[' + ${stat.index} + '].quantityReceived'"
+                                           th:value="${#numbers.formatDecimal(detail.quantityReceived, 1, 'NONE', 3, 'POINT')}"
                                            class="form-control text-end quantity-received-input" placeholder="0" min="0.001" required>
                                 </td>
                             </tr>
