@@ -2,14 +2,14 @@ package com.retail.inventory.service.impl;
 
 import com.retail.branch.Branch;
 import com.retail.employee.Employee;
-import com.retail.inventory.entity.BranchInventory;
-import com.retail.inventory.entity.BranchInventoryId;
-import com.retail.inventory.entity.InventoryTransactionHistory;
-import com.retail.inventory.entity.TransactionType;
-import com.retail.inventory.repository.BranchInventoryRepository;
-import com.retail.inventory.repository.InventoryTransactionHistoryRepository;
+import com.retail.procurement.BranchInventory;
+import com.retail.procurement.BranchInventoryId;
+import com.retail.procurement.BranchInventoryRepository;
+import com.retail.procurement.InventoryTransactionHistory;
+import com.retail.procurement.InventoryTransactionHistoryRepository;
+import com.retail.procurement.InventoryTransactionType;
+import com.retail.procurement.Product;
 import com.retail.inventory.service.InventoryTransactionService;
-import com.retail.product.Product;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,17 +33,17 @@ public class InventoryTransactionServiceImpl implements InventoryTransactionServ
             BigDecimal qtyOnHandChange,
             BigDecimal qtyAvailableChange,
             BigDecimal qtyInTransitChange,
-            TransactionType transactionType,
+            InventoryTransactionType transactionType,
             String referenceTable,
             Long referenceId,
             String reason,
             Long createdById) {
 
-        BranchInventoryId inventoryId = new BranchInventoryId(branchId, productId);
-        BranchInventory inventory = branchInventoryRepository.findById(inventoryId)
+        // Dùng method của Toàn: findByBranchBranchIdAndProductProductId
+        BranchInventory inventory = branchInventoryRepository
+                .findByBranchBranchIdAndProductProductId(branchId, productId)
                 .orElseGet(() -> {
                     BranchInventory newInv = new BranchInventory();
-                    newInv.setId(inventoryId);
                     newInv.setBranch(entityManager.getReference(Branch.class, branchId));
                     newInv.setProduct(entityManager.getReference(Product.class, productId));
                     newInv.setQtyOnHand(BigDecimal.ZERO);
@@ -56,10 +56,11 @@ public class InventoryTransactionServiceImpl implements InventoryTransactionServ
         inventory.setQtyAvailable(inventory.getQtyAvailable().add(qtyAvailableChange));
         inventory.setQtyInTransit(inventory.getQtyInTransit().add(qtyInTransitChange));
 
-        if (inventory.getQtyOnHand().compareTo(BigDecimal.ZERO) < 0 || 
+        if (inventory.getQtyOnHand().compareTo(BigDecimal.ZERO) < 0 ||
             inventory.getQtyAvailable().compareTo(BigDecimal.ZERO) < 0 ||
             inventory.getQtyInTransit().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalStateException("Inventory quantity cannot be negative for product " + productId + " at branch " + branchId);
+            throw new IllegalStateException(
+                "Số lượng tồn kho không thể âm — sản phẩm ID=" + productId + " tại chi nhánh ID=" + branchId);
         }
 
         branchInventoryRepository.save(inventory);
@@ -70,7 +71,7 @@ public class InventoryTransactionServiceImpl implements InventoryTransactionServ
         history.setTransactionType(transactionType);
         history.setReferenceTable(referenceTable);
         history.setReferenceId(referenceId);
-        history.setQuantityChange(qtyOnHandChange); 
+        history.setQuantityChange(qtyOnHandChange);
         history.setReason(reason);
         if (createdById != null) {
             history.setCreatedBy(entityManager.getReference(Employee.class, createdById));

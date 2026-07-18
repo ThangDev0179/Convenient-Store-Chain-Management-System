@@ -1,24 +1,24 @@
 package com.retail.inventory.service;
 
-import com.retail.inventory.entity.TransactionType;
+import com.retail.procurement.InventoryTransactionType;
 
 import java.math.BigDecimal;
 
 public interface InventoryTransactionService {
 
     /**
-     * Updates inventory and logs a transaction.
+     * Ghi nhận giao dịch kho và cập nhật tồn kho tại chi nhánh.
      *
-     * @param branchId The ID of the branch.
-     * @param productId The ID of the product.
-     * @param qtyOnHandChange The change in quantity on hand (+/-).
-     * @param qtyAvailableChange The change in available quantity (+/-).
-     * @param qtyInTransitChange The change in in-transit quantity (+/-).
-     * @param transactionType The type of transaction.
-     * @param referenceTable The source table of the transaction (e.g., "StockTransfer").
-     * @param referenceId The ID of the record in the source table.
-     * @param reason Optional reason.
-     * @param createdById ID of the employee performing the action.
+     * @param branchId            ID chi nhánh
+     * @param productId           ID sản phẩm
+     * @param qtyOnHandChange     Thay đổi QtyOnHand (+ thêm, - bớt)
+     * @param qtyAvailableChange  Thay đổi QtyAvailable
+     * @param qtyInTransitChange  Thay đổi QtyInTransit
+     * @param transactionType     Loại giao dịch (enum InventoryTransactionType)
+     * @param referenceTable      Tên bảng nguồn (VD: "StockTransfer")
+     * @param referenceId         ID bản ghi nguồn
+     * @param reason              Ghi chú lý do
+     * @param createdById         EmployeeId thực hiện
      */
     void recordTransaction(
             Integer branchId,
@@ -26,7 +26,7 @@ public interface InventoryTransactionService {
             BigDecimal qtyOnHandChange,
             BigDecimal qtyAvailableChange,
             BigDecimal qtyInTransitChange,
-            TransactionType transactionType,
+            InventoryTransactionType transactionType,
             String referenceTable,
             Long referenceId,
             String reason,
