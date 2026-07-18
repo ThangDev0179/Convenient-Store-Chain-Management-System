@@ -29,7 +29,7 @@ public class BranchInventory {
     @Column(name = "QtyOnHand", nullable = false, precision = 18, scale = 3)
     private BigDecimal qtyOnHand;
 
-    @Column(name = "QtyAvailable", nullable = false, precision = 18, scale = 3)
+    @Column(name = "QtyAvailable", insertable = false, updatable = false, nullable = false, precision = 18, scale = 3)
     private BigDecimal qtyAvailable;
 
     @Column(name = "QtyInTransit", nullable = false, precision = 18, scale = 3)
