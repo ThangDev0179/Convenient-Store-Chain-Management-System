@@ -1,7 +1,7 @@
 package com.retail.security;
+import com.retail.entity.Employee;
+import com.retail.entity.EmployeeStatus;
 
-import com.retail.employee.Employee;
-import com.retail.employee.EmployeeStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

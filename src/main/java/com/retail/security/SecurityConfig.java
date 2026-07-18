@@ -1,6 +1,6 @@
 package com.retail.security;
+import com.retail.service.ActiveSessionService;
 
-import com.retail.auth.ActiveSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

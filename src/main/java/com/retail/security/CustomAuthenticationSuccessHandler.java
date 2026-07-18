@@ -1,7 +1,7 @@
 package com.retail.security;
+import com.retail.service.ActiveSessionService;
+import com.retail.entity.Employee;
 
-import com.retail.employee.Employee;
-import com.retail.auth.ActiveSessionService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
