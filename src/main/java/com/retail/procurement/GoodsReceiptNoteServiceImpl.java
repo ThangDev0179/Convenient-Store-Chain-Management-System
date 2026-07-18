@@ -230,9 +230,7 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
 
     private void updatePurchaseOrderStatus(PurchaseOrder po) {
         // Find all GRNs associated with this PO that are "Completed"
-        List<GoodsReceiptNote> grns = grnRepository.findAll().stream()
-                .filter(g -> g.getPurchaseOrder().getPurchaseOrderId().equals(po.getPurchaseOrderId()) && "Completed".equals(g.getStatus()))
-                .collect(Collectors.toList());
+        List<GoodsReceiptNote> grns = grnRepository.findByPurchaseOrderPurchaseOrderIdAndStatus(po.getPurchaseOrderId(), "Completed");
 
         // Map of ProductId -> Total Quantity Received so far in base units
         Map<Long, BigDecimal> receivedMap = new HashMap<>();

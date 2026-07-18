@@ -10,4 +10,6 @@ public interface GoodsReceiptNoteRepository extends JpaRepository<GoodsReceiptNo
 
     @Query("SELECT MAX(g.grnCode) FROM GoodsReceiptNote g WHERE g.branch.branchCode = :branchCode AND g.grnCode LIKE CONCAT('GRN-', :branchCode, '-', :dateStr, '-%')")
     String findMaxGrnCodeByBranchAndDate(@Param("branchCode") String branchCode, @Param("dateStr") String dateStr);
+
+    java.util.List<GoodsReceiptNote> findByPurchaseOrderPurchaseOrderIdAndStatus(Long poId, String status);
 }
