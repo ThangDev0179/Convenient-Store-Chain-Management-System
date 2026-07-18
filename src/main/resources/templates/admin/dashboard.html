@@ -8,57 +8,227 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link th:href="@{/css/style.css}" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin-top: 40px;
+            margin-bottom: 50px;
+        }
+        .stats-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .stats-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+        .card-blue::before { background: #3b82f6; }
+        .card-green::before { background: #10b981; }
+        .card-purple::before { background: #8b5cf6; }
+        .card-pink::before { background: #ec4899; }
+        
+        .stats-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 5px;
+            margin-bottom: 0;
+        }
+        .stats-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .chart-container {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            height: 350px;
+        }
+        .notification-item {
+            border-left: 3px solid #6366f1;
+            padding-left: 10px;
+            margin-bottom: 10px;
+            font-size: 0.88rem;
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
+        <!-- Header -->
         <div class="dashboard-header">
             <div>
-                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #f43f5e, #e11d48); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                     ADMIN DASHBOARD
                 </h1>
-                <small class="text-muted">Quản trị hệ thống chuỗi cửa hàng tiện lợi</small>
+                <small class="text-muted">Bảng điều khiển quản trị chuỗi hệ thống cửa hàng tiện lợi</small>
             </div>
-            <div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="text-end me-3">
+                    <small class="text-muted block">Xin chào,</small>
+                    <strong class="d-block" th:text="${employee != null ? employee.fullName : 'Quản trị viên'}">Admin</strong>
+                </div>
                 <form th:action="@{/logout}" method="post" class="d-inline">
                     <button type="submit" class="btn btn-secondary">Đăng xuất</button>
                 </form>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                <div th:if="${employee != null}" class="dashboard-user-info">
-                    <div class="info-item">
-                        <span class="info-label">Mã nhân viên:</span>
-                        <span class="info-value" th:text="${employee.employeeCode}">EMP001</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Tên đăng nhập:</span>
-                        <span class="info-value" th:text="${employee.username}">admin</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Họ và tên:</span>
-                        <span class="info-value" th:text="${employee.fullName}">Nguyễn Văn Admin</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Vai trò:</span>
-                        <span>
-                            <span class="badge-role" style="background: rgba(225, 29, 72, 0.2); border-color: rgba(225, 29, 72, 0.4); color: #fda4af;" th:text="${employee.role.roleName}">Administrator</span>
-                        </span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Chi nhánh:</span>
-                        <span class="info-value" th:text="${employee.branch != null ? employee.branch.branchName : 'Tổng bộ'}">Trụ sở chính</span>
+        <!-- 4 Summary Cards -->
+        <div class="row g-3 mb-4">
+            <!-- Total Employees -->
+            <div class="col-md-3">
+                <div class="stats-card card-blue">
+                    <div class="stats-label">Tổng Nhân sự hoạt động</div>
+                    <div class="stats-value" th:text="${stats.totalEmployees}">0</div>
+                </div>
+            </div>
+            <!-- Total Branches -->
+            <div class="col-md-3">
+                <div class="stats-card card-green">
+                    <div class="stats-label">Số Chi nhánh mở cửa</div>
+                    <div class="stats-value" th:text="${stats.totalBranches}">0</div>
+                </div>
+            </div>
+            <!-- Open Shifts -->
+            <div class="col-md-3">
+                <div class="stats-card card-purple">
+                    <div class="stats-label">Ca trực đang mở</div>
+                    <div class="stats-value" th:text="${stats.openShiftsCount}">0</div>
+                </div>
+            </div>
+            <!-- Today Revenue -->
+            <div class="col-md-3">
+                <div class="stats-card card-pink">
+                    <div class="stats-label">Doanh thu hôm nay</div>
+                    <div class="stats-value" th:text="${#numbers.formatDecimal(stats.todayRevenue, 1, 'DEFAULT', 0, 'DEFAULT') + ' đ'}">0 đ</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Panel: Chart & Navigation -->
+            <div class="col-md-8">
+                <!-- Navigation Actions -->
+                <div class="card bg-transparent border-0 mb-4">
+                    <h2 class="h6 text-secondary mb-3 text-uppercase font-weight-bold" style="letter-spacing: 0.05em;">Lối tắt quản lý hệ thống</h2>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a th:href="@{/admin/branches}" class="btn btn-primary" style="width: auto;">Quản lý Chi nhánh</a>
+                        <a th:href="@{/admin/employees}" class="btn btn-outline-light" style="border-color: var(--card-border); color: var(--text-primary);">Quản lý Nhân sự</a>
+                        <a th:href="@{/manager/schedule}" class="btn btn-outline-light" style="border-color: var(--card-border); color: var(--text-primary);">Quản lý Lịch phân ca</a>
+                        <a th:href="@{/manager/shift-history}" class="btn btn-outline-light" style="border-color: var(--card-border); color: var(--text-primary);">Đối soát két bán lẻ</a>
+                        <a th:href="@{/change-password}" class="btn btn-secondary">Đổi mật khẩu</a>
                     </div>
                 </div>
 
-                <div class="mt-4 text-center d-flex gap-3 justify-content-center">
-                    <a th:href="@{/change-password}" class="btn btn-secondary px-4">Thay đổi mật khẩu</a>
-                    <button class="btn btn-primary px-4" style="width: auto;">Bảng điều khiển quản lý (Admin Only)</button>
+                <!-- Sales Analytics Chart -->
+                <div class="chart-container">
+                    <h2 class="h6 text-secondary mb-3 text-uppercase font-weight-bold" style="letter-spacing: 0.05em;">Biểu đồ doanh thu hôm nay theo chi nhánh (VND)</h2>
+                    <div style="position: relative; height: 260px; width: 100%;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Info & Notifications -->
+            <div class="col-md-4">
+                <div class="dashboard-user-info p-4 mb-4">
+                    <h3 class="h6 text-secondary mb-3 text-uppercase font-weight-bold" style="letter-spacing: 0.05em;">Thông báo vận hành</h3>
+                    <div class="d-flex flex-column gap-1">
+                        <div class="notification-item" th:each="note : ${stats.recentNotifications}">
+                            <span class="text-white" th:text="${note}">Thông báo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-user-info p-4">
+                    <h3 class="h6 text-secondary mb-3 text-uppercase font-weight-bold" style="letter-spacing: 0.05em;">Thông tin máy chủ</h3>
+                    <div class="info-item border-0 py-1">
+                        <span class="info-label">Phiên bản:</span>
+                        <span class="info-value">1.0.0-SNAPSHOT</span>
+                    </div>
+                    <div class="info-item border-0 py-1">
+                        <span class="info-label">Database:</span>
+                        <span class="info-value text-info">SQL Server 2019+</span>
+                    </div>
+                    <div class="info-item border-0 py-1">
+                        <span class="info-label">Môi trường:</span>
+                        <span class="info-value text-success">Active Production</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Chart.js configuration script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Chi nhánh Q.1', 'Chi nhánh Q.3', 'Chi nhánh Bình Thạnh', 'Chi nhánh Thủ Đức', 'Chi nhánh Gò Vấp'],
+                    datasets: [{
+                        label: 'Doanh thu hôm nay (VND)',
+                        data: [12500000, 8900000, 16200000, 4800000, 9500000],
+                        backgroundColor: 'rgba(99, 102, 241, 0.45)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#f8fafc'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

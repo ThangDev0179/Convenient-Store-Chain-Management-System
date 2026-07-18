@@ -17,6 +17,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
     boolean existsByEmail(String email);
     boolean existsByEmailAndEmployeeIdNot(String email, Long employeeId);
     Optional<Employee> findByEmail(String email);
+    long countByStatus(EmployeeStatus status);
 
     @Query("SELECT COUNT(e) > 0 FROM Employee e WHERE e.branch.branchId = :branchId AND e.isBranchManager = true AND e.status = :status")
     boolean existsActiveBranchManager(@Param("branchId") Integer branchId, @Param("status") EmployeeStatus status);
