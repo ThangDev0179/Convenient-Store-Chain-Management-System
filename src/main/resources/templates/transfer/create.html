@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Tạo Phiếu Điều Chuyển Kho</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4" style="max-width: 800px;">
+    <h2><i class="bi bi-plus-circle me-2"></i>Tạo Phiếu Điều Chuyển Kho</h2>
+    <hr/>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <form th:action="@{/transfer/create}" th:object="${request}" method="post" id="transferForm">
+        <div class="card mb-3">
+            <div class="card-header fw-bold">Thông tin chung</div>
+            <div class="card-body row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Chi nhánh gửi <span class="text-danger">*</span></label>
+                    <input type="number" th:field="*{fromBranchId}" class="form-control"
+                           th:classappend="${#fields.hasErrors('fromBranchId')} ? 'is-invalid'" placeholder="ID chi nhánh gửi"/>
+                    <div class="invalid-feedback" th:errors="*{fromBranchId}"></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Chi nhánh nhận <span class="text-danger">*</span></label>
+                    <input type="number" th:field="*{toBranchId}" class="form-control"
+                           th:classappend="${#fields.hasErrors('toBranchId')} ? 'is-invalid'" placeholder="ID chi nhánh nhận"/>
+                    <div class="invalid-feedback" th:errors="*{toBranchId}"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+                Danh sách sản phẩm điều chuyển
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">
+                    <i class="bi bi-plus"></i> Thêm sản phẩm
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0" id="detailTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product ID</th>
+                            <th>Số lượng gửi</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailBody">
+                        <tr>
+                            <td><input type="number" name="details[0].productId" class="form-control" placeholder="ID sản phẩm" required/></td>
+                            <td><input type="number" name="details[0].quantitySent" step="0.001" class="form-control" placeholder="Số lượng" required/></td>
+                            <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)"><i class="bi bi-trash"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Lưu phiếu</button>
+            <a href="/transfer" class="btn btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let rowIndex = 1;
+    function addRow() {
+        const tbody = document.getElementById('detailBody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="number" name="details[${rowIndex}].productId" class="form-control" placeholder="ID sản phẩm" required/></td>
+            <td><input type="number" name="details[${rowIndex}].quantitySent" step="0.001" class="form-control" placeholder="Số lượng" required/></td>
+            <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)"><i class="bi bi-trash"></i></button></td>
+        `;
+        tbody.appendChild(row);
+        rowIndex++;
+    }
+    function removeRow(btn) {
+        const row = btn.closest('tr');
+        const tbody = document.getElementById('detailBody');
+        if (tbody.rows.length > 1) row.remove();
+    }
+</script>
+</body>
+</html>

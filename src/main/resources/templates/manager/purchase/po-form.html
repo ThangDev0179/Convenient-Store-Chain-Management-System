@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Mới Đơn Đặt Hàng - Hệ thống bán lẻ</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .form-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+        .table {
+            color: var(--text-primary);
+        }
+        .table th {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        .dashboard-container {
+            width: 95%;
+            max-width: 1100px;
+        }
+        .remove-row-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            transition: all 0.2s ease;
+        }
+        .remove-row-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+            color: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hidden source for UOM dropdown options -->
+    <div style="display:none;" id="uom-source">
+        <option value="">-- Chọn đơn vị --</option>
+        <option th:each="u : ${uoms}" 
+                th:value="${u.uomId}" 
+                th:data-product-id="${u.product.productId}" 
+                th:text="${u.uomName}"></option>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div>
+                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    TẠO ĐƠN ĐẶT HÀNG MỚI (PO)
+                </h1>
+                <small class="text-muted">Lập đơn đặt hàng gửi nhà cung cấp (Trạng thái mặc định: Nháp)</small>
+            </div>
+            <div>
+                <a th:href="@{/manager/purchase-orders}" class="btn btn-secondary px-4 py-2">Hủy Bỏ</a>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <form th:action="@{/manager/purchase-orders/create}" th:object="${poRequest}" method="post">
+            <!-- Force Branch ID from current user -->
+            <input type="hidden" th:field="*{branchId}">
+
+            <div class="form-card">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Chi Nhánh Thực Hiện</label>
+                        <input type="text" class="form-control" th:value="${branch.branchName}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="supplierId" class="form-label">Chọn Nhà Cung Cấp</label>
+                        <select th:field="*{supplierId}" class="form-control" required onchange="filterProductsBySupplier()">
+                            <option value="">-- Chọn Nhà cung cấp đối tác --</option>
+                            <option th:each="s : ${suppliers}" th:value="${s.supplierId}" th:text="${s.supplierName}"></option>
+                        </select>
+                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('supplierId')}" th:errors="*{supplierId}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h5 mb-0 font-weight-bold text-secondary">DANH SÁCH MẶT HÀNG ĐẶT</h3>
+                <button type="button" class="btn btn-secondary btn-sm px-3" onclick="addRow()">
+                    <i class="fa-solid fa-plus"></i> Thêm Sản Phẩm
+                </button>
+            </div>
+
+            <div class="table-responsive form-card">
+                <table class="table align-middle" id="po-details-table">
+                    <thead>
+                        <tr>
+                            <th>Sản Phẩm</th>
+                            <th style="width: 180px;">Đơn Vị Tính</th>
+                            <th style="width: 150px;" class="text-end">Số Lượng Đặt</th>
+                            <th style="width: 180px;" class="text-end">Giá Nhập dự kiến</th>
+                            <th style="width: 80px;" class="text-center">Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Dynamic rows will be inserted here -->
+                    </tbody>
+                </table>
+                <div class="text-danger small mt-2" th:if="${#fields.hasErrors('details')}" th:errors="*{details}"></div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 mt-4">
+                <button type="submit" class="btn btn-primary px-5 py-2" style="background: linear-gradient(90deg, #10b981 0%, #059669 100%);">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu Nháp Đơn Hàng PO
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script th:inline="javascript">
+        /* List of products to populate dropdowns */
+        var products = /*[[${products}]]*/ [];
+        var rowIndex = 0;
+
+        function addRow() {
+            var tbody = document.getElementById("table-body");
+            var tr = document.createElement("tr");
+            tr.setAttribute("id", "row-" + rowIndex);
+
+            var supplierId = document.getElementById("supplierId").value;
+
+            // Build Product dropdown options filtered by supplier
+            var productOptions = '<option value="">-- Chọn sản phẩm --</option>';
+            products.forEach(function(p) {
+                if (supplierId === "" || p.defaultSupplierId == supplierId) {
+                    productOptions += '<option value="' + p.productId + '">' + p.sku + ' - ' + p.productName + '</option>';
+                }
+            });
+
+            tr.innerHTML = 
+                '<td>' +
+                    '<select name="details[' + rowIndex + '].productId" class="form-control product-select" required onchange="filterUom(this, ' + rowIndex + ')">' +
+                        productOptions +
+                    '</select>' +
+                '</td>' +
+                '<td>' +
+                    '<select name="details[' + rowIndex + '].uomId" class="form-control uom-select" required>' +
+                        '<option value="">-- Chọn đơn vị --</option>' +
+                    '</select>' +
+                '</td>' +
+                '<td>' +
+                    '<input type="number" step="0.001" name="details[' + rowIndex + '].quantityOrdered" class="form-control text-end" placeholder="0" min="0.001" required>' +
+                '</td>' +
+                '<td>' +
+                    '<input type="number" step="1" name="details[' + rowIndex + '].unitCost" class="form-control text-end" placeholder="0đ" min="0" required>' +
+                '</td>' +
+                '<td class="text-center">' +
+                    '<button type="button" class="btn btn-sm remove-row-btn" onclick="removeRow(' + rowIndex + ')">' +
+                        '<i class="fa-solid fa-trash-can"></i>' +
+                    '</button>' +
+                '</td>';
+
+            tbody.appendChild(tr);
+            rowIndex++;
+        }
+
+        function removeRow(index) {
+            var row = document.getElementById("row-" + index);
+            if (row) {
+                row.remove();
+                reindexRows();
+            }
+        }
+
+        // Reindex rows to keep sequence correct for Spring List binding
+        function reindexRows() {
+            var rows = document.getElementById("table-body").children;
+            rowIndex = 0;
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                row.setAttribute("id", "row-" + rowIndex);
+                
+                var productSelect = row.querySelector(".product-select");
+                productSelect.setAttribute("name", "details[" + rowIndex + "].productId");
+                productSelect.setAttribute("onchange", "filterUom(this, " + rowIndex + ")");
+
+                var uomSelect = row.querySelector(".uom-select");
+                uomSelect.setAttribute("name", "details[" + rowIndex + "].uomId");
+
+                var qtyInput = row.querySelector("input[name$='quantityOrdered']");
+                qtyInput.setAttribute("name", "details[" + rowIndex + "].quantityOrdered");
+
+                var costInput = row.querySelector("input[name$='unitCost']");
+                costInput.setAttribute("name", "details[" + rowIndex + "].unitCost");
+
+                var removeBtn = row.querySelector(".remove-row-btn");
+                removeBtn.setAttribute("onclick", "removeRow(" + rowIndex + ")");
+
+                rowIndex++;
+            }
+        }
+
+        function filterUom(productSelectElement, index) {
+            var productId = productSelectElement.value;
+            var row = document.getElementById("row-" + index);
+            var uomSelect = row.querySelector(".uom-select");
+            uomSelect.innerHTML = '<option value="">-- Chọn đơn vị --</option>';
+
+            if (productId !== "") {
+                var uomSource = document.getElementById("uom-source");
+                var options = uomSource.querySelectorAll("option[data-product-id='" + productId + "']");
+                options.forEach(function(opt) {
+                    var newOpt = opt.cloneNode(true);
+                    uomSelect.appendChild(newOpt);
+                });
+            }
+        }
+
+        function filterProductsBySupplier() {
+            var supplierId = document.getElementById("supplierId").value;
+            var productSelects = document.querySelectorAll(".product-select");
+            
+            productSelects.forEach(function(select) {
+                var currentValue = select.value;
+                select.innerHTML = '<option value="">-- Chọn sản phẩm --</option>';
+                
+                products.forEach(function(p) {
+                    if (supplierId === "" || p.defaultSupplierId == supplierId) {
+                        var option = document.createElement("option");
+                        option.value = p.productId;
+                        option.text = p.sku + " - " + p.productName;
+                        if (currentValue == p.productId) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    }
+                });
+                
+                // If previously selected product is no longer valid, clear it
+                if (select.value === "") {
+                    var index = select.getAttribute("name").match(/\d+/)[0];
+                    filterUom(select, index);
+                }
+            });
+        }
+
+        // Initialize with one row on load
+        window.onload = function() {
+            addRow();
+        };
+    </script>
+</body>
+</html>
