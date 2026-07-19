@@ -94,7 +94,8 @@
                 </form>
 
                 <!-- Pay Invoice Form -->
-                <a th:if="${invoice.status == 'Unpaid' or invoice.status == 'Partially_Paid'}" 
+                <a sec:authorize="hasRole('ADMIN')"
+                   th:if="${invoice.status == 'Approved' or invoice.status == 'Unpaid' or invoice.status == 'Partially_Paid'}" 
                    th:href="@{/manager/payments/new(invoiceId=${invoice.supplierInvoiceId})}" 
                    class="btn btn-success px-5 py-3" style="font-weight:600;">
                     <i class="fa-solid fa-money-bill-wave"></i> Lập Phiếu Chi Thanh Toán
