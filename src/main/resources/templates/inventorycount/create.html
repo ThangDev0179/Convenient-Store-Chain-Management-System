@@ -1,21 +1,102 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>Create Inventory Count</title>
+    <title>Tạo Phiếu Kiểm Kê</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
+
 <body>
-<div class="container mt-5">
-    <h2>Create Draft Inventory Count</h2>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
-    <form th:action="@{/inventory-count/create}" th:object="${request}" method="post">
-        <div class="mb-3">
-            <label>Branch ID</label>
-            <input type="number" th:field="*{branchId}" class="form-control" required/>
+    <div class="container mt-4" style="max-width: 800px;">
+        <h2><i class="bi bi-clipboard2-check text-primary me-2"></i>Tạo Phiếu Kiểm Kê</h2>
+        <hr />
+
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        <div th:if="${#fields.hasErrors('request.*')}" class="alert alert-danger">
+            Vui lòng điền đầy đủ và đúng định dạng các trường bắt buộc.
         </div>
-        <!-- Detail fields would go here, simplified for stubbing -->
-        <button type="submit" class="btn btn-primary">Save Draft</button>
-    </form>
-</div>
+
+        <form th:action="@{/inventory-count/create}" th:object="${request}" method="post" id="countForm">
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header fw-bold bg-light">Thông tin chung</div>
+                <div class="card-body row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Chi nhánh thực hiện <span class="text-danger">*</span></label>
+                        <input type="number" th:field="*{branchId}" class="form-control"
+                            th:classappend="${#fields.hasErrors('branchId')} ? 'is-invalid'"
+                            placeholder="ID chi nhánh" required />
+                        <div class="invalid-feedback" th:errors="*{branchId}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header fw-bold bg-light d-flex justify-content-between align-items-center">
+                    Danh sách sản phẩm kiểm kê
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">
+                        <i class="bi bi-plus"></i> Thêm sản phẩm
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered mb-0" id="detailTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product ID</th>
+                                <th>Số lượng thực tế (Actual)</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailBody">
+                            <tr>
+                                <td><input type="number" name="details[0].productId" class="form-control"
+                                        placeholder="ID Sản phẩm" required /></td>
+                                <td><input type="number" name="details[0].actualQty" step="0.001" min="0"
+                                        class="form-control" placeholder="Số lượng thực tế đếm được" required /></td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="/inventory-count" class="btn btn-secondary">Quay lại</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Lưu bản nháp (Draft)
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let rowIdx = 1;
+        function addRow() {
+            const tbody = document.getElementById('detailBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="number" name="details[${rowIdx}].productId" class="form-control" placeholder="ID Sản phẩm" required/></td>
+                <td><input type="number" name="details[${rowIdx}].actualQty" step="0.001" min="0" class="form-control" placeholder="Số lượng thực tế đếm được" required/></td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)"><i class="bi bi-x-lg"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            rowIdx++;
+        }
+        function removeRow(btn) {
+            const tbody = document.getElementById('detailBody');
+            if (tbody.children.length > 1) {
+                btn.closest('tr').remove();
+            } else {
+                alert("Phải có ít nhất 1 sản phẩm!");
+            }
+        }
+    </script>
 </body>
+
 </html>
