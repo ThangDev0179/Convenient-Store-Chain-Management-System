@@ -1,0 +1,8 @@
+- `[x]` Enable method security in SecurityConfig & update CustomUserDetails authorities
+- `[x]` Create Supplier JPA Entity
+- `[x]` Create SupplierRepository with search, pagination, and sorting
+- `[x]` Create Supplier DTOs (Request & Response)
+- `[x]` Create SupplierService and SupplierServiceImpl
+- `[x]` Create SupplierController with PreAuthorize and validation
+- `[x]` Create list.html and form.html templates
+- `[x]` Verify build and functionality

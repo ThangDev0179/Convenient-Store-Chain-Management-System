@@ -2,11 +2,16 @@ package com.retail.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Maps to dbo.Refund — DO NOT rename any column.
+ */
 @Entity
 @Table(name = "Refund")
 @Getter
@@ -21,45 +26,66 @@ public class Refund {
     @Column(name = "RefundId")
     private Long refundId;
 
-    @Column(name = "RefundCode", unique = true, nullable = false, length = 40)
+    /**
+     * Format: REF-[BranchCode]-YYYYMMDD-[4 số tự tăng].
+     * Generated in service layer.
+     */
+    @Column(name = "RefundCode", length = 40, nullable = false, unique = true, updatable = false)
     private String refundCode;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "OriginalInvoiceId", nullable = false)
-    private Invoice originalInvoice;
+    /**
+     * FK → Invoice. The original paid invoice being refunded.
+     * Rule #7: only Paid invoices can be refunded.
+     */
+    @Column(name = "OriginalInvoiceId", nullable = false)
+    private Long originalInvoiceId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "BranchId", nullable = false)
-    private Branch branch;
+    /**
+     * Rule #6: must match Invoice.BranchId of the original invoice — set by service, not client.
+     */
+    @Column(name = "BranchId", nullable = false)
+    private Integer branchId;
 
-    @Column(name = "CustomerName", nullable = false, length = 150)
+    @Column(name = "CustomerName", length = 150, nullable = false)
     private String customerName;
 
-    @Column(name = "CustomerPhone", nullable = false, length = 20)
+    @Column(name = "CustomerPhone", length = 20, nullable = false)
     private String customerPhone;
 
-    @Column(name = "Reason", nullable = false, length = 500)
+    @Column(name = "Reason", length = 500, nullable = false)
     private String reason;
 
-    @Column(name = "TotalRefundAmount", nullable = false, precision = 18, scale = 2)
-    private BigDecimal totalRefundAmount;
+    @Column(name = "TotalRefundAmount", precision = 18, scale = 2, nullable = false)
+    @Builder.Default
+    private BigDecimal totalRefundAmount = BigDecimal.ZERO;
 
-    @Column(name = "Status", nullable = false, length = 20)
-    private String status; // Draft | Pending_Approval | Completed | Rejected
+    /**
+     * State: Draft → Pending_Approval → Completed | Rejected.
+     * Auto-set by service based on TotalRefundAmount threshold (≥200,000 VND → Pending_Approval).
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Status", columnDefinition = "NVARCHAR(20) CHECK (Status IN ('Draft','Pending_Approval','Completed','Rejected'))", nullable = false)
+    @Builder.Default
+    private RefundStatus status = RefundStatus.Draft;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "RequestedBy", nullable = false)
-    private Employee requestedBy;
+    /** FK → Employee. Set to currently logged-in employee (not client-provided). */
+    @Column(name = "RequestedBy", nullable = false)
+    private Long requestedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ApprovedBy")
-    private Employee approvedBy;
+    /** FK → Employee (Manager). Nullable until approved. */
+    @Column(name = "ApprovedBy")
+    private Long approvedBy;
 
+    /**
+     * True when Manager physically at POS uses PIN override to approve immediately.
+     * See 3.2.2 override-approve endpoint.
+     */
     @Column(name = "PinOverrideUsed", nullable = false)
     @Builder.Default
-    private Boolean pinOverrideUsed = false;
+    private boolean pinOverrideUsed = false;
 
     @Column(name = "CreatedAt", nullable = false, updatable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "ApprovedAt")
@@ -69,15 +95,14 @@ public class Refund {
     @Builder.Default
     private List<RefundDetail> details = new ArrayList<>();
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        if (status == null) status = "Draft";
-        if (pinOverrideUsed == null) pinOverrideUsed = false;
+    public void addDetail(RefundDetail detail) {
+        detail.setRefund(this);
+        this.details.add(detail);
     }
 
-    public void addDetail(RefundDetail detail) {
-        details.add(detail);
-        detail.setRefund(this);
+    public void recalculateTotalRefundAmount() {
+        this.totalRefundAmount = details.stream()
+                .map(d -> d.getUnitRefundAmount().multiply(d.getQuantity()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

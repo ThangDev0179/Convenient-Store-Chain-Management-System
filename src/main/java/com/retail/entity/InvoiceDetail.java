@@ -2,8 +2,19 @@ package com.retail.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 
+/**
+ * Maps to dbo.InvoiceDetail — DO NOT rename any column.
+ *
+ * IMPORTANT — LineTotal computed column:
+ *   The DB defines LineTotal AS (Quantity * UnitPrice) PERSISTED.
+ *   We map it with @Formula (Hibernate read-only formula) so Hibernate
+ *   reads it from DB but never tries to INSERT or UPDATE it.
+ *   The @Column insertable/updatable=false approach is an alternative but
+ *   @Formula is cleaner for server-computed columns in Hibernate.
+ */
 @Entity
 @Table(name = "InvoiceDetail")
 @Getter
@@ -18,24 +29,49 @@ public class InvoiceDetail {
     @Column(name = "InvoiceDetailId")
     private Long invoiceDetailId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    /**
+     * ManyToOne back-reference to Invoice.
+     * FetchType.LAZY: don't load parent Invoice when loading a standalone detail.
+     */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "InvoiceId", nullable = false)
     private Invoice invoice;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ProductId", nullable = false)
-    private Product product;
+    /**
+     * FK → Product. Not mapped as @ManyToOne to avoid cross-module dependency;
+     * Product data is fetched via ProductStub repository in service layer when needed.
+     */
+    @Column(name = "ProductId", nullable = false)
+    private Long productId;
 
-    @Column(name = "Quantity", nullable = false, precision = 18, scale = 3)
+    /**
+     * Quantity > 0, validated by @DecimalMin("0.001") in DTO layer.
+     * DECIMAL(18,3) in DB.
+     */
+    @Column(name = "Quantity", precision = 18, scale = 3, nullable = false)
     private BigDecimal quantity;
 
-    @Column(name = "UnitPrice", nullable = false, precision = 18, scale = 2)
+    /**
+     * Final POS price at time of sale (after promotion, if any).
+     * Captured at sale time — NOT affected by future price changes.
+     */
+    @Column(name = "UnitPrice", precision = 18, scale = 2, nullable = false)
     private BigDecimal unitPrice;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PromotionId")
-    private Promotion promotion;
+    /**
+     * FK → Promotion (nullable). Set when a promotion is applied at sale time.
+     * Only 1 promotion per line item. Selection strategy (if multiple active promotions):
+     * choose the one with the most recent StartDateTime (closest to now).
+     * See InvoiceServiceImpl.findBestActivePromotion() for implementation.
+     */
+    @Column(name = "PromotionId")
+    private Long promotionId;
 
-    @Column(name = "LineTotal", insertable = false, updatable = false, precision = 18, scale = 2)
+    /**
+     * READ-ONLY: computed column from DB (Quantity * UnitPrice).
+     * SQL Server will compute this. Hibernate reads it but doesn't insert/update.
+     * Use invoice.recalculateTotalAmount() in service to keep Invoice.TotalAmount in sync.
+     */
+    @Column(name = "LineTotal", precision = 18, scale = 2, insertable = false, updatable = false)
     private BigDecimal lineTotal;
 }

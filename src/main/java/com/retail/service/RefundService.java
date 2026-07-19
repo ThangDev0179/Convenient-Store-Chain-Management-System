@@ -1,14 +1,26 @@
 package com.retail.service;
 
-import com.retail.entity.Refund;
-import com.retail.entity.RefundDetail;
-import java.math.BigDecimal;
-import java.util.List;
+import com.retail.dto.*;
+import com.retail.dto.RefundResponse;
+import org.springframework.data.domain.Page;
 
 public interface RefundService {
-    Refund createRefund(Long originalInvoiceId, String customerName, String customerPhone, String reason, Long cashierId);
-    Refund addDetail(Long refundId, Long productId, BigDecimal quantity, String conditionType);
-    Refund approveRefund(Long refundId, Long managerEmployeeId, String managerPinOverride);
-    Refund getDetail(Long refundId);
-    List<Refund> getRefundsByBranch(Integer branchId);
+
+    /** 3.2.1 — Tạo yêu cầu đổi trả */
+    RefundResponse createRefund(CreateRefundRequest request);
+
+    /** 3.2.2 — MANAGER/ADMIN: Phê duyệt refund */
+    RefundResponse approveRefund(Long refundId);
+
+    /** 3.2.2 — MANAGER/ADMIN: Từ chối refund */
+    RefundResponse rejectRefund(Long refundId, String rejectionReason);
+
+    /** 3.2.2 — Manager PIN override tại POS */
+    RefundResponse overrideApprove(Long refundId, RefundOverrideApproveRequest request);
+
+    /** 3.2.4 — Danh sách refund có filter + phân trang */
+    Page<RefundResponse> listRefunds(RefundSearchRequest request);
+
+    /** 3.2.4 — Chi tiết refund */
+    RefundResponse getRefundDetail(Long refundId);
 }
