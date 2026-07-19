@@ -71,7 +71,8 @@ public class RefundValidator {
 
             // Rule #5: Cumulative refunded quantity + current request must not exceed sold quantity
             BigDecimal alreadyRefunded = refundDetailRepository
-                    .sumRefundedQuantity(item.productId(), originalInvoice.getInvoiceId());
+                    .sumRefundedQuantity(item.productId(), originalInvoice.getInvoiceId(),
+                            java.util.Arrays.asList(com.retail.entity.RefundStatus.Completed, com.retail.entity.RefundStatus.Pending_Approval));
             BigDecimal totalRequested = alreadyRefunded.add(item.quantity());
 
             if (totalRequested.compareTo(soldDetail.getQuantity()) > 0) {

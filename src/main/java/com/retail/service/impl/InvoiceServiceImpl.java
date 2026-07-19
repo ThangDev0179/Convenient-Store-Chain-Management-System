@@ -351,7 +351,8 @@ public class InvoiceServiceImpl implements InvoiceService {
         Sort sort = parseSort(request.sort());
         Pageable pageable = PageRequest.of(request.page(), request.size(), sort);
         Page<Invoice> invoicePage = invoiceRepository.findByFilters(
-                request.status(), fromDateTime, toDateTime,
+                request.status() != null ? List.of(request.status()) : Arrays.asList(InvoiceStatus.values()),
+                fromDateTime, toDateTime,
                 request.cashierId(), branchIdFilter, pageable);
 
         // Batch load cashier names

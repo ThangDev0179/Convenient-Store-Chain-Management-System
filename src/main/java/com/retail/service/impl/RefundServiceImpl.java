@@ -236,7 +236,8 @@ public class RefundServiceImpl implements RefundService {
                 Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Page<Refund> page = refundRepository.findByFilters(
-                request.status(), fromDateTime, toDateTime, branchIdFilter, pageable);
+                request.status() != null ? List.of(request.status()) : Arrays.asList(RefundStatus.values()),
+                fromDateTime, toDateTime, branchIdFilter, pageable);
 
         // Batch load invoices
         Set<Long> invoiceIds = page.map(Refund::getOriginalInvoiceId).toSet();
