@@ -42,10 +42,9 @@ public class DataInitializer implements CommandLineRunner {
             roleRepository.save(Role.builder().roleCode(RoleCode.STAFF).roleName("Nhân viên bán hàng").build());
         }
 
-        // 2. Khởi tạo Branch nếu chưa có
+        // 2. Khởi tạo Branch 1 nếu chưa có
         java.util.List<Branch> allBranches = branchRepository.findAll();
         boolean hasBR001 = allBranches.stream().anyMatch(b -> "BR001".equals(b.getBranchCode()));
-        boolean hasBR002 = allBranches.stream().anyMatch(b -> "BR002".equals(b.getBranchCode()));
 
         if (!hasBR001) {
             log.info("Creating default branch 1...");
@@ -58,22 +57,11 @@ public class DataInitializer implements CommandLineRunner {
             branchRepository.save(branch1);
         }
 
-        if (!hasBR002) {
-            log.info("Creating default branch 2...");
-            Branch branch2 = Branch.builder()
-                    .branchCode("BR002")
-                    .branchName("Chi nhánh Quận 2")
-                    .address("456 Đường Test, Quận 2")
-                    .status(BranchStatus.Active)
-                    .build();
-            branchRepository.save(branch2);
-        }
-
-        // 3. Khởi tạo tài khoản Employee nếu chưa có
+        // 3. Khởi tạo tài khoản Employee (cho Branch 1) nếu chưa có
         if (employeeRepository.count() == 0) {
             log.info("Creating default test accounts...");
 
-            Branch branch = branchRepository.findAll().get(0);
+            Branch branch1 = branchRepository.findAll().stream().filter(b -> "BR001".equals(b.getBranchCode())).findFirst().orElseThrow();
             Role roleAdmin = roleRepository.findByRoleCode(RoleCode.ADMIN).orElseThrow();
             Role roleManager = roleRepository.findByRoleCode(RoleCode.MANAGER).orElseThrow();
             Role roleStaff = roleRepository.findByRoleCode(RoleCode.STAFF).orElseThrow();
@@ -89,7 +77,7 @@ public class DataInitializer implements CommandLineRunner {
                     .email("admin@test.com")
                     .phone("0123456789")
                     .role(roleAdmin)
-                    .branch(branch)
+                    .branch(branch1)
                     .status(EmployeeStatus.Active)
                     .forceChangePassword(false)
                     .build();
@@ -103,7 +91,7 @@ public class DataInitializer implements CommandLineRunner {
                     .email("manager@test.com")
                     .phone("0123456789")
                     .role(roleManager)
-                    .branch(branch)
+                    .branch(branch1)
                     .status(EmployeeStatus.Active)
                     .forceChangePassword(false)
                     .build();
@@ -117,7 +105,7 @@ public class DataInitializer implements CommandLineRunner {
                     .email("staff@test.com")
                     .phone("0123456789")
                     .role(roleStaff)
-                    .branch(branch)
+                    .branch(branch1)
                     .status(EmployeeStatus.Active)
                     .forceChangePassword(false)
                     .build();
@@ -127,24 +115,33 @@ public class DataInitializer implements CommandLineRunner {
             employeeRepository.save(staff);
 
             log.info("3 Test accounts created successfully:");
-            log.info("Username: admin / Password: 123456 (Role: ADMIN)");
-            log.info("Username: manager / Password: 123456 (Role: MANAGER)");
-            log.info("Username: staff / Password: 123456 (Role: STAFF)");
         }
 
-        // Đảm bảo không bị vi phạm Unique Constraint ManagerId = NULL trên SQL Server
-        java.util.List<Branch> currentBranches = branchRepository.findAll();
-        Branch branch1 = currentBranches.stream().filter(b -> "BR001".equals(b.getBranchCode())).findFirst().orElse(null);
-        Branch branch2 = currentBranches.stream().filter(b -> "BR002".equals(b.getBranchCode())).findFirst().orElse(null);
-
-        if (branch1 != null && branch1.getManager() == null) {
+        // 4. Đảm bảo Branch 1 có quản lý để không bị lỗi UNIQUE NULL khi tạo Branch 2
+        Branch b1 = branchRepository.findAll().stream().filter(b -> "BR001".equals(b.getBranchCode())).findFirst().orElse(null);
+        if (b1 != null && b1.getManager() == null) {
             employeeRepository.findByUsername("manager").ifPresent(mgr -> {
-                branch1.setManager(mgr);
-                branchRepository.save(branch1);
+                b1.setManager(mgr);
+                branchRepository.save(b1);
             });
         }
 
-        if (branch2 != null && branch2.getManager() == null) {
+        // 5. Khởi tạo Branch 2
+        boolean hasBR002 = branchRepository.findAll().stream().anyMatch(b -> "BR002".equals(b.getBranchCode()));
+        if (!hasBR002) {
+            log.info("Creating default branch 2...");
+            Branch branch2 = Branch.builder()
+                    .branchCode("BR002")
+                    .branchName("Chi nhánh Quận 2")
+                    .address("456 Đường Test, Quận 2")
+                    .status(BranchStatus.Active)
+                    .build();
+            branchRepository.save(branch2); // Sẽ không lỗi vì b1 đã hết NULL
+        }
+
+        // 6. Đảm bảo Branch 2 có quản lý
+        Branch b2 = branchRepository.findAll().stream().filter(b -> "BR002".equals(b.getBranchCode())).findFirst().orElse(null);
+        if (b2 != null && b2.getManager() == null) {
             Employee mgr2 = employeeRepository.findByUsername("manager2").orElse(null);
             if (mgr2 == null) {
                 Role roleManager = roleRepository.findByRoleCode(RoleCode.MANAGER).orElseThrow();
@@ -156,14 +153,14 @@ public class DataInitializer implements CommandLineRunner {
                         .email("manager2@test.com")
                         .phone("0123456789")
                         .role(roleManager)
-                        .branch(branch2)
+                        .branch(b2)
                         .status(EmployeeStatus.Active)
                         .forceChangePassword(false)
                         .build();
                 mgr2 = employeeRepository.save(mgr2);
             }
-            branch2.setManager(mgr2);
-            branchRepository.save(branch2);
+            b2.setManager(mgr2);
+            branchRepository.save(b2);
         }
 
         // 4. Khởi tạo Sản phẩm và Tồn kho mẫu
@@ -187,11 +184,11 @@ public class DataInitializer implements CommandLineRunner {
             // Cấp tồn kho cho 2 chi nhánh
             java.util.List<Branch> branches = branchRepository.findAll();
             if (branches.size() >= 2 && inventoryRepository.count() == 0) {
-                Branch b1 = branches.get(0);
-                Branch b2 = branches.get(1);
+                Branch invB1 = branches.get(0);
+                Branch invB2 = branches.get(1);
 
                 BranchInventory inv1 = BranchInventory.builder()
-                        .branch(b1)
+                        .branch(invB1)
                         .product(product)
                         .qtyOnHand(new java.math.BigDecimal("1000.000"))
                         .qtyInTransit(java.math.BigDecimal.ZERO)
@@ -199,7 +196,7 @@ public class DataInitializer implements CommandLineRunner {
                 inventoryRepository.save(inv1);
 
                 BranchInventory inv2 = BranchInventory.builder()
-                        .branch(b2)
+                        .branch(invB2)
                         .product(product)
                         .qtyOnHand(java.math.BigDecimal.ZERO)
                         .qtyInTransit(java.math.BigDecimal.ZERO)
@@ -210,11 +207,11 @@ public class DataInitializer implements CommandLineRunner {
             java.util.List<Branch> branches = branchRepository.findAll();
             Product product = productRepository.findAll().get(0);
             if (branches.size() >= 2) {
-                Branch b1 = branches.get(0);
-                Branch b2 = branches.get(1);
+                Branch invB1 = branches.get(0);
+                Branch invB2 = branches.get(1);
 
                 BranchInventory inv1 = BranchInventory.builder()
-                        .branch(b1)
+                        .branch(invB1)
                         .product(product)
                         .qtyOnHand(new java.math.BigDecimal("1000.000"))
                         .qtyInTransit(java.math.BigDecimal.ZERO)
@@ -222,7 +219,7 @@ public class DataInitializer implements CommandLineRunner {
                 inventoryRepository.save(inv1);
 
                 BranchInventory inv2 = BranchInventory.builder()
-                        .branch(b2)
+                        .branch(invB2)
                         .product(product)
                         .qtyOnHand(java.math.BigDecimal.ZERO)
                         .qtyInTransit(java.math.BigDecimal.ZERO)
