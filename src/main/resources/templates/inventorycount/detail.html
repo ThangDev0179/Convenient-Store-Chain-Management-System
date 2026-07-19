@@ -43,13 +43,13 @@
                     </button>
                 </form>
                 
-                <form th:if="${count.status.name() == 'Submitted'}" th:action="@{/inventory-count/{id}/approve(id=${count.inventoryCountId})}" method="post">
+                <form th:if="${count.status.name() == 'Submitted'}" sec:authorize="hasAnyRole('MANAGER', 'ADMIN')" th:action="@{/inventory-count/{id}/approve(id=${count.inventoryCountId})}" method="post">
                     <button type="submit" class="btn btn-success" onclick="return confirm('Approve and update inventory?')">
                         <i class="fa-solid fa-check-circle me-1"></i> Approve
                     </button>
                 </form>
 
-                <form th:if="${count.status.name() == 'Submitted'}" th:action="@{/inventory-count/{id}/reject(id=${count.inventoryCountId})}" method="post">
+                <form th:if="${count.status.name() == 'Submitted'}" sec:authorize="hasAnyRole('MANAGER', 'ADMIN')" th:action="@{/inventory-count/{id}/reject(id=${count.inventoryCountId})}" method="post">
                     <button type="submit" class="btn btn-danger" onclick="return confirm('Reject this count?')">
                         <i class="fa-solid fa-xmark-circle me-1"></i> Reject
                     </button>
