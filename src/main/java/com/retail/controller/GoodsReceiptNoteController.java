@@ -89,8 +89,8 @@ public class GoodsReceiptNoteController {
                 throw new ValidationException("Bạn chỉ có thể lập phiếu nhập kho cho đơn hàng thuộc chi nhánh của mình.");
             }
 
-            if (!po.getStatus().equals("Submitted") && !po.getStatus().equals("Partially_Received")) {
-                throw new ValidationException("Chỉ đơn hàng ở trạng thái Đã gửi duyệt hoặc Đang nhập kho dở dang mới được tiếp nhận.");
+            if (!po.getStatus().equals("Approved") && !po.getStatus().equals("Partially_Received")) {
+                throw new ValidationException("Chỉ đơn hàng ở trạng thái Đã phê duyệt hoặc Đang nhập kho dở dang mới được tiếp nhận.");
             }
 
             CreateGoodsReceiptNoteRequest grnRequest = new CreateGoodsReceiptNoteRequest();
