@@ -63,7 +63,7 @@
                     <small class="text-muted" th:text="${employee.fullName}">Hồ sơ</small>
                 </div>
                 <div>
-                    <a th:href="@{/manager/employees}" class="btn btn-secondary">Quay lại danh sách</a>
+                    <a th:href="@{/admin/employees}" class="btn btn-secondary">Quay lại danh sách</a>
                 </div>
             </div>
 
@@ -125,11 +125,11 @@
                         <h3 class="h6 mb-3 text-center" style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Thao tác quản lý</h3>
 
                         <!-- Standard Edit -->
-                        <a th:href="@{/manager/employees/{id}/edit(id=${employee.employeeId})}" class="btn btn-outline-light w-100" style="border-color: var(--card-border); color: var(--text-primary);">Chỉnh sửa thông tin cơ bản</a>
+                        <a th:href="@{/admin/employees/{id}/edit(id=${employee.employeeId})}" class="btn btn-outline-light w-100" style="border-color: var(--card-border); color: var(--text-primary);">Chỉnh sửa thông tin cơ bản</a>
 
                         <!-- Admin Only: Change Role -->
                         <div th:if="${currentUserRole == 'ADMIN'}" class="border-top border-secondary pt-3 mt-2">
-                            <form th:action="@{/manager/employees/{id}/change-role(id=${employee.employeeId})}" method="post">
+                            <form th:action="@{/admin/employees/{id}/change-role(id=${employee.employeeId})}" method="post">
                                 <label class="form-label" style="font-size: 0.8rem;">Đổi chức vụ nhân viên</label>
                                 <div class="input-group">
                                     <select name="roleId" class="form-select form-select-sm" style="background: rgba(15,23,42,0.8); border: 1px solid var(--card-border); color: white;">
@@ -142,7 +142,7 @@
 
                         <!-- Admin Only: Transfer Branch -->
                         <div th:if="${currentUserRole == 'ADMIN'}" class="border-top border-secondary pt-3">
-                            <form th:action="@{/manager/employees/{id}/transfer(id=${employee.employeeId})}" method="post">
+                            <form th:action="@{/admin/employees/{id}/transfer(id=${employee.employeeId})}" method="post">
                                 <label class="form-label" style="font-size: 0.8rem;">Luân chuyển chi nhánh</label>
                                 <div class="input-group">
                                     <select name="newBranchId" class="form-select form-select-sm" style="background: rgba(15,23,42,0.8); border: 1px solid var(--card-border); color: white;">

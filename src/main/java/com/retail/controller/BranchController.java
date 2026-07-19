@@ -100,6 +100,7 @@ public class BranchController {
         } catch (ValidationException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("branchRequest", request);
+            model.addAttribute("branchCode", branchService.getDetail(id).getBranchCode());
             model.addAttribute("isEdit", true);
             model.addAttribute("branchId", id);
             return "admin/branches/branch-form";

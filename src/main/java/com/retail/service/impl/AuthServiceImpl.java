@@ -10,6 +10,7 @@ import com.retail.entity.ForgotPasswordException;
 import com.retail.dto.ForgotPasswordRequest;
 import com.retail.entity.InvalidCredentialsException;
 import com.retail.dto.LoginRequest;
+import com.retail.service.EmailService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -38,6 +39,22 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private SecurityContextRepository securityContextRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    // Simple in-memory token store for password reset tokens
+    private static final java.util.Map<String, TokenInfo> resetTokenStore = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static class TokenInfo {
+        private final String email;
+        private final java.time.LocalDateTime expiry;
+
+        public TokenInfo(String email, java.time.LocalDateTime expiry) {
+            this.email = email;
+            this.expiry = expiry;
+        }
+    }
 
     @Override
     public void login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
@@ -147,10 +164,20 @@ public class AuthServiceImpl implements AuthService {
             throw new ForgotPasswordException("Email không đúng định dạng");
         }
 
-        if (!employeeRepository.existsByEmail(email)) {
-            throw new ForgotPasswordException("Email không tồn tại trong hệ thống");
-        }
+        java.util.Optional<Employee> employeeOpt = employeeRepository.findByEmail(email.trim());
 
-        System.out.println("DEBUG: Password reset link generated and simulated for email: " + email);
+        if (employeeOpt.isPresent()) {
+            // Internally: generate a password reset token, save it, and send a real email via EmailService
+            String token = java.util.UUID.randomUUID().toString();
+            resetTokenStore.put(token, new TokenInfo(email.trim(), java.time.LocalDateTime.now().plusMinutes(15)));
+            
+            emailService.sendResetToken(email.trim(), token);
+
+            // Timing-attack mitigation: perform a dummy BCrypt-cost operation on the success path
+            passwordEncoder.matches("dummyPassword", "$2a$10$ZXx6yB8B5u16f39Gz13v..6G8X2rX1r3p2G5u16f39Gz13v..6G8X");
+        } else {
+            // Timing-attack mitigation: perform a dummy BCrypt-cost operation on the non-existent path
+            passwordEncoder.matches("dummyPassword", "$2a$10$ZXx6yB8B5u16f39Gz13v..6G8X2rX1r3p2G5u16f39Gz13v..6G8X");
+        }
     }
 }
