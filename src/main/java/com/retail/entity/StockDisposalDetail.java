@@ -19,14 +19,14 @@ public class StockDisposalDetail {
     private Long disposalDetailId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "DisposalId", nullable = false)
+    @JoinColumn(name = "StockDisposalId", nullable = false)
     private StockDisposal stockDisposal;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ProductId", nullable = false)
     private Product product;
 
-    @Column(name = "QuantityDisposed", nullable = false, precision = 18, scale = 3)
+    @Column(name = "Quantity", nullable = false, precision = 18, scale = 3)
     private BigDecimal quantityDisposed;
 
     @Column(name = "UnitCost", nullable = false, precision = 18, scale = 2)
