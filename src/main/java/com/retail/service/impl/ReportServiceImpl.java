@@ -50,9 +50,9 @@ public class ReportServiceImpl implements ReportService {
             StockValueReportDto dto = new StockValueReportDto();
             dto.setBranchId((Integer) row[0]);
             dto.setBranchName((String) row[1]);
-            dto.setTotalQtyOnHand((BigDecimal) row[2]);
-            dto.setTotalQtyAvailable((BigDecimal) row[3]);
-            dto.setTotalValue((BigDecimal) row[4]);
+            dto.setTotalQtyOnHand(row[2] != null ? new BigDecimal(row[2].toString()) : BigDecimal.ZERO);
+            dto.setTotalQtyAvailable(row[3] != null ? new BigDecimal(row[3].toString()) : BigDecimal.ZERO);
+            dto.setTotalValue(row[4] != null ? new BigDecimal(row[4].toString()) : BigDecimal.ZERO);
             dtos.add(dto);
         }
         
@@ -95,8 +95,8 @@ public class ReportServiceImpl implements ReportService {
             dto.setBranchId((Integer) row[0]);
             dto.setBranchName((String) row[1]);
             dto.setSourceType((DisposalSourceType) row[2]);
-            dto.setTotalDisposedQty((BigDecimal) row[3]);
-            dto.setTotalLossValue((BigDecimal) row[4]);
+            dto.setTotalDisposedQty(row[3] != null ? new BigDecimal(row[3].toString()) : BigDecimal.ZERO);
+            dto.setTotalLossValue(row[4] != null ? new BigDecimal(row[4].toString()) : BigDecimal.ZERO);
             dtos.add(dto);
         }
         
@@ -109,17 +109,19 @@ public class ReportServiceImpl implements ReportService {
         
         // 1. Tổng giá trị tồn kho toàn hệ thống
         String stockJpql = "SELECT SUM(bi.qtyOnHand * p.standardPrice) FROM BranchInventory bi JOIN bi.product p";
-        BigDecimal totalStockValue = (BigDecimal) entityManager.createQuery(stockJpql).getSingleResult();
-        metrics.put("totalStockValue", totalStockValue != null ? totalStockValue : BigDecimal.ZERO);
+        Object rawTotalStockValue = entityManager.createQuery(stockJpql).getSingleResult();
+        BigDecimal totalStockValue = rawTotalStockValue != null ? new BigDecimal(rawTotalStockValue.toString()) : BigDecimal.ZERO;
+        metrics.put("totalStockValue", totalStockValue);
         
         // 2. Tổng giá trị thất thoát (Approved) trong tháng hiện tại
         LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         String lossJpql = "SELECT SUM(dd.quantityDisposed * dd.unitCost) FROM StockDisposalDetail dd JOIN dd.stockDisposal d " +
                           "WHERE d.status = 'Approved' AND d.approvedAt >= :startOfMonth";
-        BigDecimal totalLossValue = (BigDecimal) entityManager.createQuery(lossJpql)
+        Object rawTotalLossValue = entityManager.createQuery(lossJpql)
                                             .setParameter("startOfMonth", startOfMonth)
                                             .getSingleResult();
-        metrics.put("totalLossValue", totalLossValue != null ? totalLossValue : BigDecimal.ZERO);
+        BigDecimal totalLossValue = rawTotalLossValue != null ? new BigDecimal(rawTotalLossValue.toString()) : BigDecimal.ZERO;
+        metrics.put("totalLossValue", totalLossValue);
         
         // 3. Số lượng phiếu xuất hủy nháp (Draft)
         String draftDisposalJpql = "SELECT COUNT(d) FROM StockDisposal d WHERE d.status = 'Draft'";
