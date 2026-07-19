@@ -36,14 +36,14 @@ public class StockDisposalController {
     }
 
     @GetMapping("/create")
-    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public String showCreateForm(Model model) {
         model.addAttribute("request", new StockDisposalRequest());
         return "disposal/create";
     }
 
     @PostMapping("/create")
-    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public String createDisposal(@Valid @ModelAttribute("request") StockDisposalRequest request,
                                  BindingResult result,
                                  Authentication auth,

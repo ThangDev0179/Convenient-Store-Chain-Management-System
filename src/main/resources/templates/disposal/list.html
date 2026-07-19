@@ -15,7 +15,7 @@
             </a>
             <h2 class="mb-0"><i class="bi bi-trash3 me-2 text-danger"></i>Phiếu Xuất Hủy (Stock Disposal)</h2>
         </div>
-        <a href="/disposal/create" class="btn btn-primary" sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+        <a href="/disposal/create" class="btn btn-primary" sec:authorize="hasAnyRole('STAFF','MANAGER','ADMIN')">
             <i class="bi bi-plus-circle me-1"></i> Tạo phiếu hủy thủ công
         </a>
     </div>
