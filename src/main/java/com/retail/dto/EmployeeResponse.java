@@ -21,7 +21,6 @@ public class EmployeeResponse {
     private String roleCode;
     private Integer branchId;
     private String branchName;
-    private Boolean isBranchManager;
     private EmployeeStatus status;
     private Boolean forceChangePassword;
     private LocalDateTime createdAt;

@@ -84,10 +84,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         Role role = roleRepository.findById(request.getRoleId())
                 .orElseThrow(() -> new ValidationException("Chức vụ không tồn tại"));
 
-        boolean isManager = Boolean.TRUE.equals(request.getIsBranchManager());
-        if (isManager && employeeRepository.existsActiveBranchManager(branch.getBranchId(), EmployeeStatus.Active)) {
-            throw new BranchAlreadyHasManagerException("Chi nhánh này đã có Quản lý chi nhánh đang hoạt động.");
-        }
 
         int currentYear = LocalDate.now().getYear();
         String prefix = "NV-" + currentYear + "-";
@@ -127,10 +123,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         Employee saved = employeeRepository.save(employee);
 
-        if (isManager) {
-            branch.setManager(saved);
-            branchRepository.save(branch);
-        }
 
         emailService.sendCredentials(saved.getEmail(), saved.getUsername(), tempPassword);
 
@@ -327,7 +319,6 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .roleCode(employee.getRole().getRoleCode().name())
                 .branchId(employee.getBranch() != null ? employee.getBranch().getBranchId() : null)
                 .branchName(employee.getBranch() != null ? employee.getBranch().getBranchName() : "Không có")
-                .isBranchManager(checkIsBranchManager(employee))
                 .status(employee.getStatus())
                 .forceChangePassword(employee.getForceChangePassword())
                 .createdAt(employee.getCreatedAt())

@@ -26,6 +26,4 @@ public class CreateEmployeeRequest {
 
     @NotNull(message = "Chi nhánh làm việc không được để trống")
     private Integer branchId;
-
-    private Boolean isBranchManager;
 }
