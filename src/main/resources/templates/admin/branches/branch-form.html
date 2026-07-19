@@ -31,8 +31,6 @@
                         <input th:if="${!isEdit}" type="text" class="form-control" id="branchCode" th:field="*{branchCode}" placeholder="Ví dụ: BR001, Q1BR..." required>
                         <!-- If Editing: display read-only -->
                         <input th:if="${isEdit}" type="text" class="form-control" id="branchCode" th:value="${branchCode}" disabled>
-                        <!-- Carry original request fields if not editing -->
-                        <input th:if="${isEdit}" type="hidden" th:field="*{branchCode}" th:value="${branchCode}">
                         <small th:if="${!isEdit}" class="text-muted" style="font-size: 0.78rem;">Mã chi nhánh gồm tối đa 10 ký tự, viết liền không dấu, viết hoa tự động.</small>
                     </div>
 

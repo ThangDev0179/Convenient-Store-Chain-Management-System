@@ -47,7 +47,7 @@
                 </div>
                 <div>
                     <a th:href="@{/}" class="btn btn-secondary me-2">Quay lại Dashboard</a>
-                    <a th:href="@{/manager/employees/new}" class="btn btn-primary" style="width: auto;">Thêm nhân viên mới</a>
+                    <a th:href="@{/admin/employees/new}" class="btn btn-primary" style="width: auto;">Thêm nhân viên mới</a>
                 </div>
             </div>
 
@@ -63,7 +63,7 @@
 
             <!-- Search and Filters Form -->
             <div class="filter-bar mb-4">
-                <form th:action="@{/manager/employees}" method="get" class="row g-3">
+                <form th:action="@{/admin/employees}" method="get" class="row g-3">
                     <!-- Text search -->
                     <div class="col-md-3">
                         <input type="text" name="search" th:value="${search}" class="form-control" placeholder="Tìm theo Tên, Mã, Email...">
@@ -92,9 +92,9 @@
                     <div class="col-md-2">
                         <select name="status" class="form-select">
                             <option value="">Tất cả Trạng thái</option>
-                            <option th:each="st : ${T(com.retail.employee.EmployeeStatus).values()}"
+                            <option th:each="st : ${T(com.retail.entity.EmployeeStatus).values()}"
                                     th:value="${st}"
-                                    th:text="${st == T(com.retail.employee.EmployeeStatus).Active ? 'Đang hoạt động' : 'Bị khóa/Ngưng'}"
+                                    th:text="${st == T(com.retail.entity.EmployeeStatus).Active ? 'Đang hoạt động' : 'Bị khóa/Ngưng'}"
                                     th:selected="${st == status}"></option>
                         </select>
                     </div>
@@ -103,7 +103,7 @@
                     <!-- Submit Buttons -->
                     <div class="col-md-2 d-flex gap-1">
                         <button type="submit" class="btn btn-secondary px-3 w-50">Lọc</button>
-                        <a th:href="@{/manager/employees}" class="btn btn-outline-secondary px-3 w-50" style="border: 1px solid var(--card-border); color: var(--text-primary);">Xóa</a>
+                        <a th:href="@{/admin/employees}" class="btn btn-outline-secondary px-3 w-50" style="border: 1px solid var(--card-border); color: var(--text-primary);">Xóa</a>
                     </div>
                 </form>
             </div>
@@ -142,11 +142,11 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex gap-1 justify-content-center">
-                                        <a th:href="@{/manager/employees/{id}(id=${emp.employeeId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Xem</a>
-                                        <a th:href="@{/manager/employees/{id}/edit(id=${emp.employeeId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>
+                                        <a th:href="@{/admin/employees/{id}(id=${emp.employeeId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Xem</a>
+                                        <a th:href="@{/admin/employees/{id}/edit(id=${emp.employeeId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>
                                         
                                         <!-- Toggle Lock / Unlock -->
-                                        <form th:action="@{/manager/employees/{id}/lock(id=${emp.employeeId})}" method="post" class="d-inline">
+                                        <form th:action="@{/admin/employees/{id}/lock(id=${emp.employeeId})}" method="post" class="d-inline">
                                             <button type="submit" 
                                                     class="btn btn-sm"
                                                     th:classappend="${emp.status.name() == 'Active' ? 'btn-outline-warning' : 'btn-outline-success'}"
@@ -155,7 +155,7 @@
                                         </form>
 
                                         <!-- Reset Password -->
-                                        <form th:action="@{/manager/employees/{id}/reset-password(id=${emp.employeeId})}" 
+                                        <form th:action="@{/admin/employees/{id}/reset-password(id=${emp.employeeId})}" 
                                               method="post" 
                                               class="d-inline"
                                               onsubmit="return confirm('Bạn có chắc chắn muốn đặt lại mật khẩu của nhân viên này? Mật khẩu mới sẽ được log và gửi đến mail.');">
@@ -176,13 +176,13 @@
                     <span class="text-muted" th:text="${'Hiển thị từ ' + (currentPage * 5 + 1) + ' đến ' + ((currentPage * 5 + 5) > totalItems ? totalItems : (currentPage * 5 + 5)) + ' trên tổng số ' + totalItems + ' nhân viên'}"></span>
                     <ul class="pagination mb-0">
                         <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/manager/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${currentPage - 1}, sortBy=${sortBy}, direction=${direction})}">Trước</a>
+                            <a class="page-link" th:href="@{/admin/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${currentPage - 1}, sortBy=${sortBy}, direction=${direction})}">Trước</a>
                         </li>
                         <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i ? 'active' : ''}">
-                            <a class="page-link" th:href="@{/manager/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${i}, sortBy=${sortBy}, direction=${direction})}" th:text="${i + 1}">1</a>
+                            <a class="page-link" th:href="@{/admin/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${i}, sortBy=${sortBy}, direction=${direction})}" th:text="${i + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/manager/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${currentPage + 1}, sortBy=${sortBy}, direction=${direction})}">Sau</a>
+                            <a class="page-link" th:href="@{/admin/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${currentPage + 1}, sortBy=${sortBy}, direction=${direction})}">Sau</a>
                         </li>
                     </ul>
                 </nav>

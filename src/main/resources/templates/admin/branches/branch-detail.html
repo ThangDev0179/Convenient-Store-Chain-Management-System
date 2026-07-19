@@ -85,6 +85,10 @@
                             <span class="info-value" th:text="${branch.address != null && !branch.address.isEmpty() ? branch.address : 'Chưa thiết lập'}">Địa chỉ</span>
                         </div>
                         <div class="info-item">
+                            <span class="info-label">Quản lý chi nhánh:</span>
+                            <span class="info-value" th:text="${branch.managerName}">Chưa có quản lý</span>
+                        </div>
+                        <div class="info-item">
                             <span class="info-label">Trạng thái:</span>
                             <span>
                                 <span th:if="${branch.status.name() == 'Active'}" class="badge-active">Hoạt động</span>

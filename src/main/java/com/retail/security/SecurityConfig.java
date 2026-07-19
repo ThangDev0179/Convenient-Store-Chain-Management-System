@@ -78,6 +78,7 @@ public class SecurityConfig {
                 .requestMatchers("/admin/employees/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/admin/products", "/admin/products/detail/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/admin/products/**").hasRole("ADMIN")
+                .requestMatchers("/admin/employees/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
                 .requestMatchers("/manager/schedule/**").hasAnyRole("MANAGER", "ADMIN")

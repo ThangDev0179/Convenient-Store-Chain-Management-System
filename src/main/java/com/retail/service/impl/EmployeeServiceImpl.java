@@ -81,6 +81,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         Branch branch = branchRepository.findById(request.getBranchId())
                 .orElseThrow(() -> new ValidationException("Chi nhánh không tồn tại"));
 
+        if (branch.getStatus() == com.retail.entity.BranchStatus.Archived) {
+            throw new ValidationException("Không thể tạo nhân viên tại chi nhánh đã đóng cửa hoặc lưu trữ");
+        }
+
         Role role = roleRepository.findById(request.getRoleId())
                 .orElseThrow(() -> new ValidationException("Chức vụ không tồn tại"));
 
@@ -241,6 +245,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         Branch newBranch = branchRepository.findById(request.getNewBranchId())
                 .orElseThrow(() -> new ValidationException("Chi nhánh mới không tồn tại"));
+
+        if (newBranch.getStatus() == com.retail.entity.BranchStatus.Archived) {
+            throw new ValidationException("Không thể luân chuyển nhân viên đến chi nhánh đã đóng cửa hoặc lưu trữ");
+        }
 
         employee.setBranch(newBranch);
         employeeRepository.save(employee);

@@ -135,6 +135,7 @@ public class ProductControllerTest {
 
         Product product = Product.builder()
                 .sku("SOFT0001")
+                .barcode("SOFT0001")
                 .productName("Soft Delete Product")
                 .category(category)
                 .standardPrice(new BigDecimal("10000.00"))
@@ -166,6 +167,7 @@ public class ProductControllerTest {
 
         Product product = Product.builder()
                 .sku("RSTR0001")
+                .barcode("RSTR0001")
                 .productName("Restore Product")
                 .category(category)
                 .standardPrice(new BigDecimal("10000.00"))
@@ -196,6 +198,7 @@ public class ProductControllerTest {
 
         Product product = Product.builder()
                 .sku("NDUP0001")
+                .barcode("NDUP0001")
                 .productName("Duplicate Name Product")
                 .category(category)
                 .standardPrice(new BigDecimal("10000.00"))
