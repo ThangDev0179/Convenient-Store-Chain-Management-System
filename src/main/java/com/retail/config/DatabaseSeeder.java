@@ -26,6 +26,15 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private com.retail.repository.ProductCategoryRepository productCategoryRepository;
+
+    @Autowired
+    private com.retail.repository.ProductRepository productRepository;
+
+    @Autowired
+    private com.retail.repository.BranchInventoryRepository branchInventoryRepository;
+
     @Override
     public void run(String... args) throws Exception {
         // 1. Seed Roles if they don't exist
@@ -57,6 +66,18 @@ public class DatabaseSeeder implements CommandLineRunner {
         seedEmployee("admin", "admin123", "Người quản trị", "admin@retail.com", "0999999999", RoleCode.ADMIN, branch, "NV-2026-0001");
         seedEmployee("manager", "manager123", "Quản lý nhánh", "manager@retail.com", "0988888888", RoleCode.MANAGER, branch, "NV-2026-0002");
         seedEmployee("staff", "staff123", "Nhân viên bán lẻ", "staff@retail.com", "0977777777", RoleCode.STAFF, branch, "NV-2026-0003");
+
+        // 4. Seed Products for POS Testing
+        ProductCategory drinkCat = seedCategory("Đồ uống", "DRK");
+        ProductCategory snackCat = seedCategory("Đồ ăn vặt", "SNK");
+        
+        Product coke = seedProduct("DRK-001", "Coca Cola 330ml", drinkCat, new java.math.BigDecimal("10000"));
+        Product pepsi = seedProduct("DRK-002", "Pepsi 330ml", drinkCat, new java.math.BigDecimal("10000"));
+        Product lay = seedProduct("SNK-001", "Snack Khoai Tây Lay's", snackCat, new java.math.BigDecimal("15000"));
+
+        seedInventory(branch, coke, new java.math.BigDecimal("100"));
+        seedInventory(branch, pepsi, new java.math.BigDecimal("100"));
+        seedInventory(branch, lay, new java.math.BigDecimal("50"));
     }
 
     private void seedRole(RoleCode roleCode, String roleName) {
@@ -89,6 +110,41 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .build();
             employeeRepository.save(employee);
             System.out.println("Seeded employee: " + username + " with password: " + password);
+        }
+    }
+
+    private ProductCategory seedCategory(String name, String prefix) {
+        return productCategoryRepository.findAll().stream()
+                .filter(c -> c.getSkuPrefix().equals(prefix))
+                .findFirst()
+                .orElseGet(() -> productCategoryRepository.save(ProductCategory.builder()
+                        .categoryName(name)
+                        .skuPrefix(prefix)
+                        .build()));
+    }
+
+    private Product seedProduct(String sku, String name, ProductCategory category, java.math.BigDecimal price) {
+        return productRepository.findBySku(sku)
+                .orElseGet(() -> productRepository.save(Product.builder()
+                        .sku(sku)
+                        .productName(name)
+                        .category(category)
+                        .standardPrice(price)
+                        .status(ProductStatus.Active)
+                        .build()));
+    }
+
+    private void seedInventory(Branch branch, Product product, java.math.BigDecimal qty) {
+        BranchInventoryId id = new BranchInventoryId(branch.getBranchId(), product.getProductId());
+        if (!branchInventoryRepository.existsById(id)) {
+            branchInventoryRepository.save(BranchInventory.builder()
+                    .branch(branch)
+                    .product(product)
+                    .qtyOnHand(qty)
+                    .qtyAvailable(qty)
+                    .qtyInTransit(java.math.BigDecimal.ZERO)
+                    .updatedAt(java.time.LocalDateTime.now())
+                    .build());
         }
     }
 }
