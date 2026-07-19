@@ -114,6 +114,9 @@
             </a>
 
             <div class="sidebar-section-label">Nhân sự</div>
+            <a th:href="@{/admin/employees}" class="sidebar-link" th:classappend="${activePage == 'employees'} ? 'active'">
+                <i class="fa-solid fa-users"></i> Nhân viên
+            </a>
             <a th:href="@{/manager/schedule}" class="sidebar-link" th:classappend="${activePage == 'schedules'} ? 'active'">
                 <i class="fa-solid fa-calendar-days"></i> Lịch làm việc
             </a>
