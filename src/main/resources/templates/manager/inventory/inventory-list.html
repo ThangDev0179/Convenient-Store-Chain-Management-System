@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Báo Cáo Tồn Kho')}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('inventory')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Báo Cáo Tồn Kho')}"></div>
+        <div class="page-content">
+
+            <!-- Header -->
+            <div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 font-weight-bold page-heading">
+                        BÁO CÁO TỒN KHO THỰC TẾ
+                    </h1>
+                    <small class="text-muted">Theo dõi và quản lý mức độ tồn kho sản phẩm tại các chi nhánh</small>
+                </div>
+                <div>
+                    <a th:href="@{/manager/inventory/ledger}" class="btn btn-indigo px-4 py-2">
+                        <i class="fa-solid fa-book-open"></i> Lịch Sử Thẻ Kho (Ledger)
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filter & Search Section -->
+            <div class="card-glass mb-4">
+                <form th:action="@{/manager/inventory}" method="get" class="row g-3">
+                    <!-- If Admin, show branch dropdown filter -->
+                    <div class="col-md-3" th:if="${isAdmin}">
+                        <label class="form-label text-secondary small text-uppercase">Lọc Theo Chi Nhánh</label>
+                        <select name="branchId" class="form-select bg-dark border-secondary text-light">
+                            <option value="">-- Tất cả chi nhánh --</option>
+                            <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"
+                                    th:selected="${b.branchId == branchId}"></option>
+                        </select>
+                    </div>
+                    
+                    <div th:class="${isAdmin} ? 'col-md-6' : 'col-md-9'">
+                        <label class="form-label text-secondary small text-uppercase">Tìm Kiếm Sản Phẩm</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" name="keyword" class="form-control bg-dark border-secondary text-light" 
+                                   placeholder="Tìm theo tên sản phẩm hoặc mã SKU..." th:value="${keyword}">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100 py-2">Tìm kiếm</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Table Card -->
+            <div class="card-glass">
+                <div class="table-responsive">
+                    <table class="table-glass align-middle w-100">
+                        <thead>
+                            <tr>
+
+                                <th>Mã SKU</th>
+                                <th>Tên Sản Phẩm</th>
+                                <th>Ngành Hàng</th>
+                                <th class="text-end">Tồn Kho Vật Lý</th>
+                                <th class="text-end">Tồn Khả Dụng Bán</th>
+                                <th class="text-end">Đang Trung Chuyển</th>
+                                <th>Cập Nhật Cuối</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${inventoryPage.content}" th:classappend="${item.qtyOnHand.compareTo(5.0) < 0} ? 'low-stock'">
+
+                                <td class="font-weight-bold text-light" th:text="${item.productSku}"></td>
+                                <td>
+                                    <span class="font-weight-bold text-light" th:text="${item.productName}"></span>
+                                    <span th:if="${item.qtyOnHand.compareTo(5.0) < 0}" class="badge-status status-danger ms-2">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Sắp hết
+                                    </span>
+                                    <br>
+                                    <small class="text-muted" th:text="${item.branchName}"></small>
+                                </td>
+                                <td th:text="${item.categoryName}"></td>
+                                <td class="text-end text-light font-weight-bold" 
+                                     th:text="${item.qtyOnHandFormatted}"></td>
+                                <td class="text-end text-success font-weight-bold" 
+                                     th:text="${item.qtyAvailableFormatted}"></td>
+                                <td class="text-end text-warning font-weight-bold" 
+                                     th:text="${item.qtyInTransitFormatted}"></td>
+                                <td th:text="${item.updatedAt != null ? #temporals.format(item.updatedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(inventoryPage.content)}">
+                                <td colspan="7" class="text-center text-muted py-4">Không tìm thấy bản ghi tồn kho nào hợp lệ.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Control -->
+                <nav th:if="${inventoryPage.totalPages > 1}" class="d-flex justify-content-center mt-4">
+                    <ul class="pagination">
+                        <li class="page-item" th:classappend="${inventoryPage.first} ? 'disabled'">
+                            <a class="page-link" 
+                               th:href="@{/manager/inventory(page=${inventoryPage.number - 1}, branchId=${branchId}, keyword=${keyword})}">&laquo;</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, inventoryPage.totalPages - 1)}" 
+                            th:classappend="${i == inventoryPage.number} ? 'active'">
+                            <a class="page-link" 
+                               th:href="@{/manager/inventory(page=${i}, branchId=${branchId}, keyword=${keyword})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${inventoryPage.last} ? 'disabled'">
+                            <a class="page-link" 
+                               th:href="@{/manager/inventory(page=${inventoryPage.number + 1}, branchId=${branchId}, keyword=${keyword})}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<style>
+    .low-stock {
+        background-color: rgba(239, 68, 68, 0.15) !important;
+        color: #f87171 !important;
+    }
+</style>
+</body>
+</html>

@@ -1,221 +1,195 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý nhân viên - Hệ thống bán lẻ</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <style>
-        .dashboard-container {
-            max-width: 1200px;
-        }
-        .table {
-            color: var(--text-primary);
-        }
-        .table tbody tr {
-            border-bottom: 1px solid var(--card-border);
-            transition: background-color 0.2s ease;
-        }
-        .table tbody tr:hover {
-            background-color: rgba(255, 255, 255, 0.03);
-        }
-        .table th {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 2px solid var(--card-border);
-        }
-        .pagination .page-link {
-            background-color: rgba(15, 23, 42, 0.6);
-            border-color: var(--card-border);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
-        .pagination .page-link:hover {
-            background-color: var(--primary-glow);
-            border-color: var(--primary-glow);
-        }
-        .pagination .active .page-link {
-            background: var(--primary-gradient);
-            border-color: #6366f1;
-        }
-        .badge-manager {
-            background: rgba(245, 158, 11, 0.2);
-            border: 1px solid rgba(245, 158, 11, 0.4);
-            color: #fcd34d;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.72rem;
-            font-weight: 600;
-        }
-        .badge-locked {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #fca5a5;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-    </style>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Quản Lý Nhân Viên')}"></head>
 <body>
-    <div class="dashboard-container my-5">
-        <div class="dashboard-header">
-            <div>
-                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    QUẢN LÝ NHÂN VIÊN
-                </h1>
-                <small class="text-muted">Xem danh sách, cập nhật hồ sơ và cấp mật khẩu nhân viên</small>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('employees')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Quản Lý Nhân Viên')}"></div>
+        <div class="page-content">
+            <style>
+                .badge-manager {
+                    background: rgba(245, 158, 11, 0.2);
+                    border: 1px solid rgba(245, 158, 11, 0.4);
+                    color: #fcd34d;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    font-size: 0.72rem;
+                    font-weight: 600;
+                }
+                .badge-locked {
+                    background: rgba(239, 68, 68, 0.2);
+                    border: 1px solid rgba(239, 68, 68, 0.4);
+                    color: #fca5a5;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                }
+                .badge-active {
+                    background: rgba(34, 197, 94, 0.2);
+                    border: 1px solid rgba(34, 197, 94, 0.4);
+                    color: #86efac;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                }
+            </style>
+
+            <div class="dashboard-header">
+                <div>
+                    <h1 class="page-heading">
+                        QUẢN LÝ NHÂN VIÊN
+                    </h1>
+                    <small class="text-muted">Xem danh sách, cập nhật hồ sơ và cấp mật khẩu nhân viên</small>
+                </div>
+                <div>
+                    <a th:href="@{/}" class="btn btn-secondary me-2">Quay lại Dashboard</a>
+                    <a th:href="@{/manager/employees/new}" class="btn btn-primary" style="width: auto;">Thêm nhân viên mới</a>
+                </div>
             </div>
-            <div>
-                <a th:href="@{/}" class="btn btn-secondary me-2">Quay lại Dashboard</a>
-                <a th:href="@{/admin/employees/new}" class="btn btn-primary" style="width: auto;">Thêm nhân viên mới</a>
+
+            <!-- Notifications -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Search and Filters Form -->
+            <div class="filter-bar mb-4">
+                <form th:action="@{/manager/employees}" method="get" class="row g-3">
+                    <!-- Text search -->
+                    <div class="col-md-3">
+                        <input type="text" name="search" th:value="${search}" class="form-control" placeholder="Tìm theo Tên, Mã, Email...">
+                    </div>
+                    <!-- Branch Filter -->
+                    <div class="col-md-3">
+                        <select name="branchId" class="form-select" th:disabled="${isManagerUser}">
+                            <option value="">Tất cả Chi nhánh</option>
+                            <option th:each="br : ${branches}" 
+                                    th:value="${br.branchId}" 
+                                    th:text="${br.branchName}"
+                                    th:selected="${br.branchId == branchId}"></option>
+                        </select>
+                    </div>
+                    <!-- Role Filter -->
+                    <div class="col-md-2">
+                        <select name="roleId" class="form-select">
+                            <option value="">Tất cả Vai trò</option>
+                            <option th:each="rl : ${roles}" 
+                                    th:value="${rl.roleId}" 
+                                    th:text="${rl.roleName}"
+                                    th:selected="${rl.roleId == roleId}"></option>
+                        </select>
+                    </div>
+                    <!-- Status Filter -->
+                    <div class="col-md-2">
+                        <select name="status" class="form-select">
+                            <option value="">Tất cả Trạng thái</option>
+                            <option th:each="st : ${T(com.retail.employee.EmployeeStatus).values()}"
+                                    th:value="${st}"
+                                    th:text="${st == T(com.retail.employee.EmployeeStatus).Active ? 'Đang hoạt động' : 'Bị khóa/Ngưng'}"
+                                    th:selected="${st == status}"></option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="sortBy" th:value="${sortBy}">
+                    <input type="hidden" name="direction" th:value="${direction}">
+                    <!-- Submit Buttons -->
+                    <div class="col-md-2 d-flex gap-1">
+                        <button type="submit" class="btn btn-secondary px-3 w-50">Lọc</button>
+                        <a th:href="@{/manager/employees}" class="btn btn-outline-secondary px-3 w-50" style="border: 1px solid var(--card-border); color: var(--text-primary);">Xóa</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-glass">
+                <!-- Table Grid -->
+                <div class="table-responsive">
+                    <table class="table-glass align-middle">
+                        <thead>
+                            <tr>
+                                <th>Mã NV</th>
+                                <th>Họ và Tên</th>
+                                <th>Tên Đăng Nhập</th>
+                                <th>Email</th>
+                                <th>Điện thoại</th>
+                                <th>Chức vụ / QL</th>
+                                <th>Chi Nhánh</th>
+                                <th>Trạng Thái</th>
+                                <th class="text-center" style="width: 250px;">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="emp : ${employees}">
+                                <td class="text-info fw-bold" th:text="${emp.employeeCode}">NV-2026-0001</td>
+                                <td>
+                                    <span th:text="${emp.fullName}">Nguyễn Văn A</span>
+                                </td>
+                                <td th:text="${emp.username}">anhnv</td>
+                                <td th:text="${emp.email}">anh@gmail.com</td>
+                                <td th:text="${emp.phone != null && !emp.phone.isEmpty() ? emp.phone : '-'}">0901234567</td>
+                                <td th:text="${emp.roleName}">Sales Staff</td>
+                                <td th:text="${emp.branchName}">Chi nhánh Quận 1</td>
+                                <td>
+                                    <span th:if="${emp.status.name() == 'Active'}" class="badge-active">Hoạt động</span>
+                                    <span th:if="${emp.status.name() == 'Inactive'}" class="badge-locked">Đã Khóa</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a th:href="@{/manager/employees/{id}(id=${emp.employeeId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Xem</a>
+                                        <a th:href="@{/manager/employees/{id}/edit(id=${emp.employeeId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>
+                                        
+                                        <!-- Toggle Lock / Unlock -->
+                                        <form th:action="@{/manager/employees/{id}/lock(id=${emp.employeeId})}" method="post" class="d-inline">
+                                            <button type="submit" 
+                                                    class="btn btn-sm"
+                                                    th:classappend="${emp.status.name() == 'Active' ? 'btn-outline-warning' : 'btn-outline-success'}"
+                                                    style="border-radius: 6px;"
+                                                    th:text="${emp.status.name() == 'Active' ? 'Khóa' : 'Kích hoạt'}">Khóa</button>
+                                        </form>
+
+                                        <!-- Reset Password -->
+                                        <form th:action="@{/manager/employees/{id}/reset-password(id=${emp.employeeId})}" 
+                                              method="post" 
+                                              class="d-inline"
+                                              onsubmit="return confirm('Bạn có chắc chắn muốn đặt lại mật khẩu của nhân viên này? Mật khẩu mới sẽ được log và gửi đến mail.');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Reset</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(employees)}">
+                                <td colspan="9" class="text-center text-muted py-4">Không tìm thấy nhân viên nào phù hợp bộ lọc.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav th:if="${totalPages > 1}" class="d-flex justify-content-between align-items-center mt-4 p-3">
+                    <span class="text-muted" th:text="${'Hiển thị từ ' + (currentPage * 5 + 1) + ' đến ' + ((currentPage * 5 + 5) > totalItems ? totalItems : (currentPage * 5 + 5)) + ' trên tổng số ' + totalItems + ' nhân viên'}"></span>
+                    <ul class="pagination mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/manager/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${currentPage - 1}, sortBy=${sortBy}, direction=${direction})}">Trước</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i ? 'active' : ''}">
+                            <a class="page-link" th:href="@{/manager/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${i}, sortBy=${sortBy}, direction=${direction})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/manager/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${currentPage + 1}, sortBy=${sortBy}, direction=${direction})}">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
-
-        <!-- Notifications -->
-        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${success}"></span>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <span th:text="${error}"></span>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <!-- Search and Filters Form -->
-        <div class="card bg-transparent border-0 mb-4">
-            <form th:action="@{/admin/employees}" method="get" class="row g-3">
-                <!-- Text search -->
-                <div class="col-md-3">
-                    <input type="text" name="search" th:value="${search}" class="form-control" placeholder="Tìm theo Tên, Mã, Email...">
-                </div>
-                <!-- Branch Filter -->
-                <div class="col-md-3">
-                    <select name="branchId" class="form-control" th:disabled="${isManagerUser}">
-                        <option value="">Tất cả Chi nhánh</option>
-                        <option th:each="br : ${branches}" 
-                                th:value="${br.branchId}" 
-                                th:text="${br.branchName}"
-                                th:selected="${br.branchId == branchId}"></option>
-                    </select>
-                </div>
-                <!-- Role Filter -->
-                <div class="col-md-2">
-                    <select name="roleId" class="form-control">
-                        <option value="">Tất cả Vai trò</option>
-                        <option th:each="rl : ${roles}" 
-                                th:value="${rl.roleId}" 
-                                th:text="${rl.roleName}"
-                                th:selected="${rl.roleId == roleId}"></option>
-                    </select>
-                </div>
-                <!-- Status Filter -->
-                <div class="col-md-2">
-                    <select name="status" class="form-control">
-                        <option value="">Tất cả Trạng thái</option>
-                        <option th:each="st : ${T(com.retail.employee.EmployeeStatus).values()}"
-                                th:value="${st}"
-                                th:text="${st == T(com.retail.employee.EmployeeStatus).Active ? 'Đang hoạt động' : 'Bị khóa/Ngưng'}"
-                                th:selected="${st == status}"></option>
-                    </select>
-                </div>
-                <input type="hidden" name="sortBy" th:value="${sortBy}">
-                <input type="hidden" name="direction" th:value="${direction}">
-                <!-- Submit Buttons -->
-                <div class="col-md-2 d-flex gap-1">
-                    <button type="submit" class="btn btn-secondary px-3 w-50">Lọc</button>
-                    <a th:href="@{/admin/employees}" class="btn btn-outline-secondary px-3 w-50" style="border: 1px solid var(--card-border); color: var(--text-primary);">Xóa</a>
-                </div>
-            </form>
-        </div>
-
-        <!-- Table Grid -->
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Mã NV</th>
-                        <th>Họ và Tên</th>
-                        <th>Tên Đăng Nhập</th>
-                        <th>Email</th>
-                        <th>Điện thoại</th>
-                        <th>Chức vụ / QL</th>
-                        <th>Chi Nhánh</th>
-                        <th>Trạng Thái</th>
-                        <th class="text-center" style="width: 250px;">Thao Tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="emp : ${employees}">
-                        <td class="text-info font-weight-bold" th:text="${emp.employeeCode}">NV-2026-0001</td>
-                        <td>
-                            <span th:text="${emp.fullName}">Nguyễn Văn A</span>
-                            <span th:if="${emp.isBranchManager}" class="badge-manager ms-1">Trưởng Nhánh</span>
-                        </td>
-                        <td th:text="${emp.username}">anhnv</td>
-                        <td th:text="${emp.email}">anh@gmail.com</td>
-                        <td th:text="${emp.phone != null && !emp.phone.isEmpty() ? emp.phone : '-'}">0901234567</td>
-                        <td th:text="${emp.roleName}">Sales Staff</td>
-                        <td th:text="${emp.branchName}">Chi nhánh Quận 1</td>
-                        <td>
-                            <span th:if="${emp.status.name() == 'Active'}" class="badge-active">Hoạt động</span>
-                            <span th:if="${emp.status.name() == 'Inactive'}" class="badge-locked">Đã Khóa</span>
-                        </td>
-                        <td class="text-center">
-                            <div class="d-flex gap-1 justify-content-center">
-                                <a th:href="@{/admin/employees/{id}(id=${emp.employeeId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Xem</a>
-                                <a th:href="@{/admin/employees/{id}/edit(id=${emp.employeeId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>
-                                
-                                <!-- Toggle Lock / Unlock -->
-                                <form th:action="@{/admin/employees/{id}/lock(id=${emp.employeeId})}" method="post" class="d-inline">
-                                    <button type="submit" 
-                                            class="btn btn-sm"
-                                            th:classappend="${emp.status.name() == 'Active' ? 'btn-outline-warning' : 'btn-outline-success'}"
-                                            style="border-radius: 6px;"
-                                            th:text="${emp.status.name() == 'Active' ? 'Khóa' : 'Kích hoạt'}">Khóa</button>
-                                </form>
-
-                                <!-- Reset Password -->
-                                <form th:action="@{/admin/employees/{id}/reset-password(id=${emp.employeeId})}" 
-                                      method="post" 
-                                      class="d-inline"
-                                      onsubmit="return confirm('Bạn có chắc chắn muốn đặt lại mật khẩu của nhân viên này? Mật khẩu mới sẽ được log và gửi đến mail.');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Reset</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(employees)}">
-                        <td colspan="9" class="text-center text-muted py-4">Không tìm thấy nhân viên nào phù hợp bộ lọc.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        <nav th:if="${totalPages > 1}" class="d-flex justify-content-between align-items-center mt-4">
-            <span class="text-muted" th:text="${'Hiển thị từ ' + (currentPage * 5 + 1) + ' đến ' + ((currentPage * 5 + 5) > totalItems ? totalItems : (currentPage * 5 + 5)) + ' trên tổng số ' + totalItems + ' nhân viên'}"></span>
-            <ul class="pagination mb-0">
-                <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
-                    <a class="page-link" th:href="@{/admin/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${currentPage - 1}, sortBy=${sortBy}, direction=${direction})}">Trước</a>
-                </li>
-                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i ? 'active' : ''}">
-                    <a class="page-link" th:href="@{/admin/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${i}, sortBy=${sortBy}, direction=${direction})}" th:text="${i + 1}">1</a>
-                </li>
-                <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
-                    <a class="page-link" th:href="@{/admin/employees(search=${search}, branchId=${branchId}, roleId=${roleId}, status=${status}, page=${currentPage + 1}, sortBy=${sortBy}, direction=${direction})}">Sau</a>
-                </li>
-            </ul>
-        </nav>
     </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

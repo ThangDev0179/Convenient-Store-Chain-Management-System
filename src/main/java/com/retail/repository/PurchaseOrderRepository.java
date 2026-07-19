@@ -15,6 +15,8 @@ import java.util.Optional;
 public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Long> {
     Optional<PurchaseOrder> findByPoCode(String poCode);
 
+    boolean existsBySupplierSupplierIdAndStatusIn(Integer supplierId, java.util.Collection<PurchaseOrderStatus> statuses);
+
     @Query("SELECT MAX(po.poCode) FROM PurchaseOrder po WHERE po.branch.branchCode = :branchCode AND po.poCode LIKE CONCAT('PO-', :branchCode, '-', :dateStr, '-%')")
     String findMaxPoCodeByBranchAndDate(@Param("branchCode") String branchCode, @Param("dateStr") String dateStr);
 
@@ -27,4 +29,7 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
                                              @Param("status") PurchaseOrderStatus status,
                                              @Param("keyword") String keyword,
                                              Pageable pageable);
+
+    @Query("SELECT COUNT(po) FROM PurchaseOrder po WHERE po.branch.branchId = :branchId AND po.status IN (:statuses)")
+    long countPendingPOs(@Param("branchId") Integer branchId, @Param("statuses") java.util.Collection<PurchaseOrderStatus> statuses);
 }

@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StockDisposalRepository extends JpaRepository<StockDisposal, Long> {
+    java.util.List<StockDisposal> findByBranchBranchIdAndCreatedAtAfter(Integer branchId, java.time.LocalDateTime startOfDay);
 }

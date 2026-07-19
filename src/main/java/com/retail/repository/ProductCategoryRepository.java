@@ -13,6 +13,11 @@ import java.util.Optional;
 @Repository
 public interface ProductCategoryRepository extends JpaRepository<ProductCategory, Integer> {
     Optional<ProductCategory> findBySkuPrefix(String skuPrefix);
+    boolean existsBySkuPrefix(String skuPrefix);
+    boolean existsBySkuPrefixAndCategoryIdNot(String skuPrefix, Integer categoryId);
+
+    boolean existsByCategoryName(String categoryName);
+    boolean existsByCategoryNameAndCategoryIdNot(String categoryName, Integer categoryId);
 
     @Query("SELECT c FROM ProductCategory c WHERE " +
            "(:keyword IS NULL OR LOWER(c.categoryName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +

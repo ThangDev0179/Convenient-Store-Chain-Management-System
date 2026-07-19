@@ -68,12 +68,13 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .securityContext(context -> context.securityContextRepository(securityContextRepository()))
-            .authenticationProvider(authenticationProvider())
+            .authenticationProvider(authenticationProvider()).csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/forgot-password", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/admin/branches/**").hasRole("ADMIN")
-                .requestMatchers("/admin/employees/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/manager/employees/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+
                 .requestMatchers("/manager/schedule/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers("/manager/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers("/staff/shift/**").hasAnyRole("STAFF", "MANAGER", "ADMIN")

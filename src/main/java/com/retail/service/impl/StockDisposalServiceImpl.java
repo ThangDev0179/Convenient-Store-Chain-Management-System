@@ -1,7 +1,6 @@
 package com.retail.service.impl;
 import com.retail.service.AuditLogService;
 import com.retail.entity.Branch;
-import com.retail.entity.BranchInventory;
 import com.retail.entity.DisposalSourceType;
 import com.retail.entity.Employee;
 import com.retail.service.InventoryTransactionService;
@@ -17,7 +16,6 @@ import com.retail.entity.StockDisposalStatus;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -39,11 +37,33 @@ public class StockDisposalServiceImpl implements StockDisposalService {
     public StockDisposal createManualDisposal(StockDisposalRequest request, Long createdByEmployeeId) {
         Branch branch = entityManager.find(Branch.class, request.getBranchId());
         if (branch == null) {
-            throw new IllegalArgumentException("Không tìm thấy chi nhánh ID: " + request.getBranchId());
+            throw new IllegalArgumentException("Chi nhánh không tồn tại");
         }
-        
+
+        // Generate DisposalCode: DSP-[Mã Chi Nhánh]-YYYYMMDD-[4 số tăng tự động]
+        java.time.LocalDate today = java.time.LocalDate.now();
+        String dateStr = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String prefix = "DSP-" + branch.getBranchCode() + "-" + dateStr + "-";
+
+        java.time.LocalDateTime startOfDay = today.atStartOfDay();
+        List<StockDisposal> todayDisposals = disposalRepository.findByBranchBranchIdAndCreatedAtAfter(request.getBranchId(), startOfDay);
+
+        int nextSeq = 1;
+        for (StockDisposal d : todayDisposals) {
+            String disposalCode = d.getDisposalCode();
+            if (disposalCode != null && disposalCode.startsWith(prefix)) {
+                try {
+                    String seqStr = disposalCode.substring(prefix.length());
+                    int seq = Integer.parseInt(seqStr);
+                    if (seq >= nextSeq) {
+                        nextSeq = seq + 1;
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        String code = prefix + String.format("%04d", nextSeq);
+
         StockDisposal disposal = new StockDisposal();
-        String code = "DSP-" + request.getBranchId() + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         disposal.setDisposalCode(code);
         disposal.setBranch(branch);
         disposal.setStatus(StockDisposalStatus.Draft);
@@ -71,21 +91,46 @@ public class StockDisposalServiceImpl implements StockDisposalService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public StockDisposal autoCreateFromLoss(Integer branchId, Long productId, BigDecimal lossQty,
                                             DisposalSourceType type, Long refId, String reason, Long employeeId) {
+        Branch branch = entityManager.find(Branch.class, branchId);
+        if (branch == null) {
+            throw new IllegalArgumentException("Chi nhánh không tồn tại");
+        }
+
+        String typePrefix = type == DisposalSourceType.TransferLoss ? "DSPL-" : "DSPC-";
+        java.time.LocalDate today = java.time.LocalDate.now();
+        String dateStr = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String prefix = typePrefix + branch.getBranchCode() + "-" + dateStr + "-";
+
+        java.time.LocalDateTime startOfDay = today.atStartOfDay();
+        List<StockDisposal> todayDisposals = disposalRepository.findByBranchBranchIdAndCreatedAtAfter(branchId, startOfDay);
+
+        int nextSeq = 1;
+        for (StockDisposal d : todayDisposals) {
+            String disposalCode = d.getDisposalCode();
+            if (disposalCode != null && disposalCode.startsWith(prefix)) {
+                try {
+                    String seqStr = disposalCode.substring(prefix.length());
+                    int seq = Integer.parseInt(seqStr);
+                    if (seq >= nextSeq) {
+                        nextSeq = seq + 1;
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        String code = prefix + String.format("%04d", nextSeq);
+
         StockDisposal disposal = new StockDisposal();
-        String prefix = type == DisposalSourceType.TransferLoss ? "DSPL-" : "DSPC-";
-        String code = prefix + branchId + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         disposal.setDisposalCode(code);
-        disposal.setBranch(entityManager.getReference(Branch.class, branchId));
-        disposal.setStatus(StockDisposalStatus.Completed);
+        disposal.setBranch(branch);
+        disposal.setStatus(StockDisposalStatus.Draft);
         disposal.setSourceType(type);
         disposal.setReferenceId(refId);
         disposal.setReason(reason);
         disposal.setCreatedBy(entityManager.getReference(Employee.class, employeeId));
-        disposal.setApprovedBy(entityManager.getReference(Employee.class, employeeId));
-        disposal.setApprovedAt(LocalDateTime.now());
+
 
         StockDisposalDetail detail = new StockDisposalDetail();
         Product product = entityManager.find(Product.class, productId);
@@ -119,15 +164,6 @@ public class StockDisposalServiceImpl implements StockDisposalService {
         // phiếu Disposal này chỉ đóng vai trò ghi nhận chi phí/Báo cáo hao hụt, không trừ kho lại nữa để tránh trừ 2 lần!
         if (disposal.getSourceType() == DisposalSourceType.Manual) {
             for (StockDisposalDetail detail : disposal.getDetails()) {
-                BranchInventory inventory = entityManager.createQuery("SELECT b FROM BranchInventory b WHERE b.branch.branchId = :branchId AND b.product.productId = :productId", BranchInventory.class)
-                        .setParameter("branchId", disposal.getBranch().getBranchId())
-                        .setParameter("productId", detail.getProduct().getProductId())
-                        .getResultStream().findFirst().orElse(null);
-
-                if (inventory == null || inventory.getQtyAvailable().compareTo(detail.getQuantityDisposed()) < 0) {
-                    throw new IllegalStateException("Sản phẩm ID " + detail.getProduct().getProductId() + " không đủ số lượng tồn khả dụng để xuất hủy.");
-                }
-
                 transactionService.recordTransaction(
                         disposal.getBranch().getBranchId(),
                         detail.getProduct().getProductId(),

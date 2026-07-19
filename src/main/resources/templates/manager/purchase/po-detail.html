@@ -1,160 +1,139 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi Tiết Đơn Đặt Hàng - Hệ thống bán lẻ</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <style>
-        .detail-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 25px;
-        }
-        .table {
-            color: var(--text-primary);
-        }
-        .table th {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-        }
-        .badge-status {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .status-Draft { background: rgba(148, 163, 184, 0.2); border: 1px solid rgba(148, 163, 184, 0.4); color: #cbd5e1; }
-        .status-Submitted { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; }
-        .status-Partially_Received { background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fde68a; }
-        .status-Received_Partial { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #a7f3d0; }
-        .status-Canceled { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; }
-        .dashboard-container {
-            width: 95%;
-            max-width: 1000px;
-        }
-    </style>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Chi Tiết Đơn Hàng')}"></head>
 <body>
-    <div class="dashboard-container">
-        <div class="dashboard-header">
-            <div>
-                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    CHI TIẾT ĐƠN ĐẶT HÀNG (PO)
-                </h1>
-                <small class="text-muted">Chi tiết sản phẩm và trạng thái của chứng từ PO</small>
-            </div>
-            <div>
-                <a th:href="@{/manager/purchase-orders}" class="btn btn-secondary px-4 py-2">
-                    <i class="fa-solid fa-arrow-left-long"></i> Quay Lại Danh Sách
-                </a>
-            </div>
-        </div>
-
-        <!-- Alerts -->
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-
-        <div class="detail-card">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <span class="info-label">Mã đơn hàng PO:</span>
-                        <span class="info-value text-info font-weight-bold" th:text="${po.poCode}">PO-CODE-XYZ</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Chi nhánh yêu cầu:</span>
-                        <span class="info-value" th:text="${po.branchName}">Chi Nhánh 1</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Nhà cung cấp:</span>
-                        <span class="info-value" th:text="${po.supplierName}">NCC A</span>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="info-item">
-                        <span class="info-label">Trạng thái hiện tại:</span>
-                        <span>
-                            <span th:class="'badge-status status-' + ${po.status}" th:text="${po.status}">Draft</span>
-                        </span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Người tạo đơn:</span>
-                        <span class="info-value" th:text="${po.createdByName}">Nguyễn Văn Lập</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Thời gian khởi tạo:</span>
-                        <span class="info-value" th:text="${#temporals.format(po.createdAt, 'dd-MM-yyyy HH:mm:ss')}">17-07-2026 12:00:00</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <h3 class="h5 mb-3 font-weight-bold text-secondary">DANH SÁCH MẶT HÀNG CẦN NHẬP</h3>
-        <div class="table-responsive mb-4">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th style="width: 50px;">#</th>
-                        <th>Mã SKU</th>
-                        <th>Tên Sản Phẩm</th>
-                        <th>Đơn Vị Tính</th>
-                        <th class="text-end">Số Lượng Đặt</th>
-                        <th class="text-end">Giá Nhập dự kiến</th>
-                        <th class="text-end">Thành Tiền</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="detail, iter : ${po.details}">
-                        <td th:text="${iter.count}">1</td>
-                        <td class="font-weight-bold text-warning" th:text="${detail.sku}">NC-0001</td>
-                        <td th:text="${detail.productName}">Coca Cola lon</td>
-                        <td th:text="${detail.uomName}">Thùng</td>
-                        <td class="text-end text-primary font-weight-bold" th:text="${#numbers.formatDecimal(detail.quantityOrdered, 1, 'DEFAULT', 0, 'DEFAULT')}">10</td>
-                        <td class="text-end" th:text="${#numbers.formatDecimal(detail.unitCost, 1, 'DEFAULT', 0, 'DEFAULT')} + 'đ'">150,000đ</td>
-                        <td class="text-end font-weight-bold text-success" th:text="${#numbers.formatDecimal(detail.lineTotal, 1, 'DEFAULT', 0, 'DEFAULT')} + 'đ'">1,500,000đ</td>
-                    </tr>
-                    <tr class="table-light-black">
-                        <td colspan="6" class="text-end font-weight-bold text-muted text-uppercase">TỔNG GIÁ TRỊ ĐƠN HÀNG:</td>
-                        <td class="text-end font-weight-bold text-danger h5 mb-0" th:text="${#numbers.formatDecimal(po.totalCost, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'">1,500,000 VNĐ</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Actions panel -->
-        <div class="d-flex justify-content-end gap-3 mt-4">
-            <!-- Create GRN if PO is in Submitted or Partially_Received state -->
-            <a th:if="${po.status == 'Submitted' or po.status == 'Partially_Received'}" 
-               th:href="@{/manager/grn/new(poId=${po.purchaseOrderId})}" 
-               class="btn btn-warning px-4 py-2" style="font-weight:600; color:#111827;">
-                <i class="fa-solid fa-truck-ramp-box"></i> Nhập Kho Thực Tế (GRN)
-            </a>
-
-            <!-- Submit order for approval if in Draft state -->
-            <form th:if="${po.status == 'Draft'}" th:action="@{/manager/purchase-orders/{id}/submit(id=${po.purchaseOrderId})}" method="post">
-                <button type="submit" class="btn btn-primary px-4 py-2" style="background: linear-gradient(90deg, #10b981 0%, #059669 100%);">
-                    <i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu Phê Duyệt PO
-                </button>
-            </form>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('po')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Chi Tiết Đơn Hàng')}"></div>
+        <div class="page-content">
             
-            <!-- Cancel order if in Draft or Submitted state -->
-            <form th:if="${po.status == 'Draft' or po.status == 'Submitted'}" th:action="@{/manager/purchase-orders/{id}/cancel(id=${po.purchaseOrderId})}" method="post">
-                <button type="submit" class="btn btn-danger px-4 py-2" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng PO này không? Hành động này sẽ chuyển trạng thái sang Canceled và không thể hoàn tác.');">
-                    <i class="fa-solid fa-ban"></i> Hủy Đơn Hàng PO
-                </button>
-            </form>
+            <div class="dashboard-header mb-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 font-weight-bold page-heading">CHI TIẾT ĐƠN ĐẶT HÀNG (PO)</h1>
+                    <small class="text-muted">Chi tiết sản phẩm và trạng thái của chứng từ PO</small>
+                </div>
+                <div>
+                    <a th:href="@{/manager/purchase-orders}" class="btn btn-secondary px-4 py-2">
+                        <i class="fa-solid fa-arrow-left-long"></i> Quay Lại Danh Sách
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <div class="card-glass mb-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="info-item mb-2">
+                            <span class="info-label font-weight-bold">Mã đơn hàng PO:</span>
+                            <span class="info-value text-info font-weight-bold" th:text="${po.poCode}">PO-CODE-XYZ</span>
+                        </div>
+                        <div class="info-item mb-2">
+                            <span class="info-label font-weight-bold">Chi nhánh yêu cầu:</span>
+                            <span class="info-value" th:text="${po.branchName}">Chi Nhánh 1</span>
+                        </div>
+                        <div class="info-item mb-2">
+                            <span class="info-label font-weight-bold">Nhà cung cấp:</span>
+                            <span class="info-value" th:text="${po.supplierName}">NCC A</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item mb-2">
+                            <span class="info-label font-weight-bold">Trạng thái hiện tại:</span>
+                            <span>
+                                <span th:class="'badge-status status-' + ${po.status}" th:text="${po.status}">Draft</span>
+                            </span>
+                        </div>
+                        <div class="info-item mb-2">
+                            <span class="info-label font-weight-bold">Người tạo đơn:</span>
+                            <span class="info-value" th:text="${po.createdByName}">Nguyễn Văn Lập</span>
+                        </div>
+                        <div class="info-item mb-2">
+                            <span class="info-label font-weight-bold">Thời gian khởi tạo:</span>
+                            <span class="info-value" th:text="${#temporals.format(po.createdAt, 'dd-MM-yyyy HH:mm:ss')}">17-07-2026 12:00:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="h5 mb-3 font-weight-bold text-secondary">DANH SÁCH MẶT HÀNG CẦN NHẬP</h3>
+            <div class="card-glass mb-4">
+                <div class="table-responsive">
+                    <table class="table-glass align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Mã SKU</th>
+                                <th>Tên Sản Phẩm</th>
+                                <th>Đơn Vị Tính</th>
+                                <th class="text-end">Số Lượng Đặt</th>
+                                <th class="text-end">Giá Nhập dự kiến</th>
+                                <th class="text-end">Thành Tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="detail, iter : ${po.details}">
+                                <td th:text="${iter.count}">1</td>
+                                <td class="font-weight-bold text-warning" th:text="${detail.sku}">NC-0001</td>
+                                <td th:text="${detail.productName}">Coca Cola lon</td>
+                                <td th:text="${detail.uomName}">Thùng</td>
+                                <td class="text-end text-primary font-weight-bold" th:text="${#numbers.formatDecimal(detail.quantityOrdered, 1, 'DEFAULT', 0, 'DEFAULT')}">10</td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(detail.unitCost, 1, 'DEFAULT', 0, 'DEFAULT')} + 'đ'">150,000đ</td>
+                                <td class="text-end font-weight-bold text-success" th:text="${#numbers.formatDecimal(detail.lineTotal, 1, 'DEFAULT', 0, 'DEFAULT')} + 'đ'">1,500,000đ</td>
+                            </tr>
+                            <tr class="table-light-black">
+                                <td colspan="6" class="text-end font-weight-bold text-muted text-uppercase">TỔNG GIÁ TRỊ ĐƠN HÀNG:</td>
+                                <td class="text-end font-weight-bold text-danger h5 mb-0" th:text="${#numbers.formatDecimal(po.totalCost, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'">1,500,000 VNĐ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Actions panel -->
+            <div class="d-flex justify-content-end gap-3 mt-4">
+                <!-- Admin approval buttons for PO when in Submitted state -->
+                <div th:if="${po.status == 'Submitted'}" class="d-flex gap-2" sec:authorize="hasRole('ADMIN')">
+                    <form th:action="@{/manager/purchase-orders/{id}/approve(id=${po.purchaseOrderId})}" method="post">
+                        <button type="submit" class="btn btn-success px-4 py-2" style="font-weight:600;">
+                            <i class="fa-solid fa-circle-check"></i> Phê Duyệt PO
+                        </button>
+                    </form>
+                    <form th:action="@{/manager/purchase-orders/{id}/reject(id=${po.purchaseOrderId})}" method="post">
+                        <button type="submit" class="btn btn-outline-danger px-4 py-2" style="font-weight:600;">
+                            <i class="fa-solid fa-circle-xmark"></i> Từ Chối PO
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Create GRN if PO is in Approved or Partially_Received state -->
+                <a th:if="${po.status == 'Approved' or po.status == 'Partially_Received'}" 
+                   th:href="@{/manager/grn/new(poId=${po.purchaseOrderId})}" 
+                   class="btn btn-warning px-4 py-2" style="font-weight:600; color:#111827;">
+                    <i class="fa-solid fa-truck-ramp-box"></i> Nhập Kho Thực Tế (GRN)
+                </a>
+
+                <!-- Submit order for approval if in Draft state -->
+                <form th:if="${po.status == 'Draft'}" th:action="@{/manager/purchase-orders/{id}/submit(id=${po.purchaseOrderId})}" method="post" sec:authorize="hasRole('MANAGER')">
+                    <button type="submit" class="btn btn-primary px-4 py-2">
+                        <i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu Phê Duyệt PO
+                    </button>
+                </form>
+                
+                <!-- Cancel order if in Draft or Submitted state -->
+                <form th:if="${po.status == 'Draft' or po.status == 'Submitted'}" th:action="@{/manager/purchase-orders/{id}/cancel(id=${po.purchaseOrderId})}" method="post" sec:authorize="hasRole('MANAGER')">
+                    <button type="submit" class="btn btn-danger px-4 py-2" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng PO này không? Hành động này sẽ chuyển trạng thái sang Canceled và không thể hoàn tác.');">
+                        <i class="fa-solid fa-ban"></i> Hủy Đơn Hàng PO
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

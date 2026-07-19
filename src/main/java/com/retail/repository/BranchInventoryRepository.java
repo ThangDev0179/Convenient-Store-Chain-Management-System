@@ -24,4 +24,6 @@ public interface BranchInventoryRepository extends JpaRepository<BranchInventory
                                           @Param("keyword") String keyword,
                                           @Param("categoryId") Integer categoryId,
                                           Pageable pageable);
-}
+
+    java.util.List<BranchInventory> findByBranchBranchId(Integer branchId);
+}

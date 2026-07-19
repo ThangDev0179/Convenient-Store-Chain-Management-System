@@ -191,6 +191,36 @@ public class PurchaseOrderController {
         return "redirect:/manager/purchase-orders/" + id;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{id}/approve")
+    public String approvePurchaseOrder(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+        try {
+            poService.approvePurchaseOrder(id, userDetails.getEmployee());
+            redirectAttributes.addFlashAttribute("success", "Đã phê duyệt đơn đặt hàng PO thành công.");
+        } catch (ValidationException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/manager/purchase-orders/" + id;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{id}/reject")
+    public String rejectPurchaseOrder(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+        try {
+            poService.rejectPurchaseOrder(id, userDetails.getEmployee());
+            redirectAttributes.addFlashAttribute("success", "Từ chối phê duyệt đơn đặt hàng PO thành công.");
+        } catch (ValidationException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/manager/purchase-orders/" + id;
+    }
+
     @PostMapping("/{id}/cancel")
     public String cancelPurchaseOrder(
             @PathVariable("id") Long id,

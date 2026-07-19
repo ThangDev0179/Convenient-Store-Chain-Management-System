@@ -1,62 +1,61 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khai báo kết ca - Hệ thống bán lẻ</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Đóng Ca')}"></head>
 <body>
-    <div class="auth-wrapper" style="max-width: 600px; margin-top: 50px;">
-        <div class="auth-card p-5">
-            <div class="auth-header text-center">
-                <h1 class="auth-title" style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KHAI BÁO KẾT CA</h1>
-                <p class="auth-subtitle">Nhập số liệu kiểm kê doanh thu và bàn giao két tiền mặt</p>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('shift')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Đóng Ca')}"></div>
+        <div class="page-content">
+            
+            <div class="form-card mx-auto" style="max-width: 600px;">
+                <div class="text-center mb-4">
+                    <h2 class="page-heading mb-2">KHAI BÁO KẾT CA</h2>
+                    <p class="text-muted">Nhập số liệu kiểm kê doanh thu và bàn giao két tiền mặt</p>
+                </div>
+
+                <!-- Error banner -->
+                <div th:if="${error}" class="alert alert-danger text-center" role="alert">
+                    <span th:text="${error}"></span>
+                </div>
+
+                <div class="alert alert-info text-center py-2" role="alert" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); color: #c7d2fe;">
+                    <small>Ca làm việc từ: <span class="fw-bold" th:text="${#temporals.format(workShift.checkInTime, 'dd/MM HH:mm')}"></span> đến <span class="fw-bold" th:text="${#temporals.format(workShift.checkOutTime, 'dd/MM HH:mm')}"></span></small>
+                </div>
+
+                <form th:action="@{/staff/shift/cash-closing}" method="post">
+                    <input type="hidden" name="workShiftId" th:value="${workShiftId}">
+
+                    <!-- Cash Counted -->
+                    <div class="mb-3">
+                        <label for="cashCounted" class="form-label">Tiền mặt kiểm đếm thực tế (VND)</label>
+                        <input type="number" step="1000" class="form-control" id="cashCounted" name="cashCounted" placeholder="Nhập số tiền mặt có trong két bàn giao..." required>
+                        <small class="text-muted" style="font-size: 0.76rem;">Bao gồm tiền mặt bán hàng phát sinh trong ca cộng với tiền quỹ ban đầu.</small>
+                    </div>
+
+                    <!-- Bank Card Amount -->
+                    <div class="mb-3">
+                        <label for="bankCardAmount" class="form-label">Doanh thu quẹt thẻ ngân hàng (VND)</label>
+                        <input type="number" step="1000" class="form-control" id="bankCardAmount" name="bankCardAmount" placeholder="Nhập doanh thu thanh toán qua POS/Thẻ..." required>
+                    </div>
+
+                    <!-- QR Transfer Amount -->
+                    <div class="mb-4">
+                        <label for="qrAmount" class="form-label">Doanh thu chuyển khoản QR Code (VND)</label>
+                        <input type="number" step="1000" class="form-control" id="qrAmount" name="qrAmount" placeholder="Nhập doanh thu QR MoMo/VietQR..." required>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-50">Hoàn thành kết ca</button>
+                        <a th:href="@{/staff/shift}" class="btn btn-secondary w-50 d-flex align-items-center justify-content-center">Quay lại</a>
+                    </div>
+                </form>
             </div>
 
-            <!-- Error banner -->
-            <div th:if="${error}" class="alert alert-danger text-center" role="alert">
-                <span th:text="${error}"></span>
-            </div>
-
-            <div class="alert alert-info text-center py-2" role="alert" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); color: #c7d2fe;">
-                <small>Ca làm việc từ: <span class="font-weight-bold" th:text="${#temporals.format(workShift.checkInTime, 'dd/MM HH:mm')}"></span> đến <span class="font-weight-bold" th:text="${#temporals.format(workShift.checkOutTime, 'dd/MM HH:mm')}"></span></small>
-            </div>
-
-            <form th:action="@{/staff/shift/cash-closing}" method="post">
-                <input type="hidden" name="workShiftId" th:value="${workShiftId}">
-
-                <!-- Cash Counted -->
-                <div class="mb-3">
-                    <label for="cashCounted" class="form-label">Tiền mặt kiểm đếm thực tế (VND)</label>
-                    <input type="number" step="1000" class="form-control" id="cashCounted" name="cashCounted" placeholder="Nhập số tiền mặt có trong két bàn giao..." required>
-                    <small class="text-muted" style="font-size: 0.76rem;">Bao gồm tiền mặt bán hàng phát sinh trong ca cộng với tiền quỹ ban đầu.</small>
-                </div>
-
-                <!-- Bank Card Amount -->
-                <div class="mb-3">
-                    <label for="bankCardAmount" class="form-label">Doanh thu quẹt thẻ ngân hàng (VND)</label>
-                    <input type="number" step="1000" class="form-control" id="bankCardAmount" name="bankCardAmount" placeholder="Nhập doanh thu thanh toán qua POS/Thẻ..." required>
-                </div>
-
-                <!-- QR Transfer Amount -->
-                <div class="mb-4">
-                    <label for="qrAmount" class="form-label">Doanh thu chuyển khoản QR Code (VND)</label>
-                    <input type="number" step="1000" class="form-control" id="qrAmount" name="qrAmount" placeholder="Nhập doanh thu QR MoMo/VietQR..." required>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-50">Hoàn thành kết ca</button>
-                    <a th:href="@{/staff/shift}" class="btn btn-secondary w-50 d-flex align-items-center justify-content-center" style="margin-top: 15px;">Quay lại</a>
-                </div>
-            </form>
         </div>
     </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

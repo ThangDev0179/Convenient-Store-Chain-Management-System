@@ -40,13 +40,40 @@ public class InventoryCountServiceImpl implements InventoryCountService {
     @Override
     @Transactional
     public InventoryCount createDraftCount(InventoryCountRequest request, Long createdByEmployeeId) {
+        Branch branch = entityManager.find(Branch.class, request.getBranchId());
+        if (branch == null) {
+            throw new IllegalArgumentException("Chi nhánh không tồn tại");
+        }
+
+        // Generate CountCode: STK-[Mã Chi Nhánh]-YYYYMMDD-[4 số tăng tự động]
+        java.time.LocalDate today = java.time.LocalDate.now();
+        String dateStr = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String prefix = "STK-" + branch.getBranchCode() + "-" + dateStr + "-";
+
+        java.time.LocalDateTime startOfDay = today.atStartOfDay();
+        List<InventoryCount> todayCounts = countRepository.findByBranchBranchIdAndCreatedAtAfter(request.getBranchId(), startOfDay);
+
+        int nextSeq = 1;
+        for (InventoryCount c : todayCounts) {
+            String countCode = c.getCountCode();
+            if (countCode != null && countCode.startsWith(prefix)) {
+                try {
+                    String seqStr = countCode.substring(prefix.length());
+                    int seq = Integer.parseInt(seqStr);
+                    if (seq >= nextSeq) {
+                        nextSeq = seq + 1;
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        String code = prefix + String.format("%04d", nextSeq);
+
         InventoryCount count = new InventoryCount();
-        String code = "STK-" + request.getBranchId() + "-"
-                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         count.setCountCode(code);
-        count.setBranch(entityManager.getReference(Branch.class, request.getBranchId()));
+        count.setBranch(branch);
         count.setStatus(InventoryCountStatus.Draft);
         count.setCreatedBy(entityManager.getReference(Employee.class, createdByEmployeeId));
+
 
         for (InventoryCountRequest.InventoryCountDetailDto detailDto : request.getDetails()) {
             InventoryCountDetail detail = new InventoryCountDetail();

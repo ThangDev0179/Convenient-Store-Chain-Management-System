@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Khuyến Mãi')}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('promotions')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Khuyến Mãi')}"></div>
+        <div class="page-content">
+
+            <!-- Header -->
+            <div class="dashboard-header mb-4">
+                <div>
+                    <h1 class="page-heading">CẤU HÌNH CHƯƠNG TRÌNH KHUYẾN MÃI</h1>
+                    <small class="text-muted">Quản lý và kích hoạt các đợt giảm giá toàn hệ thống</small>
+                </div>
+                <div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-outline-light">
+                        <i class="fa-solid fa-house"></i> Trang Chủ Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+            <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}"></div>
+
+            <div class="row">
+                <!-- Left Side: List Campaign cards -->
+                <div class="col-md-8">
+                    <div class="card-glass mb-4" th:each="p : ${promotions}">
+                        <div class="card-body-glass">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="mb-0 fw-bold text-light" th:text="${p.promotionName}">Tết Nguyên Đán 2026</h4>
+                                <div>
+                                    <span th:if="${p.status == 'Draft'}" class="badge-status status-pending">Bản nháp</span>
+                                    <span th:if="${p.status == 'Active'}" class="badge-status status-active">Đang kích hoạt</span>
+                                    <span th:if="${p.status == 'Canceled'}" class="badge-status status-inactive">Đã hủy</span>
+                                </div>
+                            </div>
+                            <small class="text-secondary d-block mb-3">
+                                Thời gian: <span class="text-info" th:text="${#temporals.format(p.startDateTime, 'dd/MM/yyyy HH:mm')}"></span> 
+                                đến <span class="text-info" th:text="${#temporals.format(p.endDateTime, 'dd/MM/yyyy HH:mm')}"></span>
+                            </small>
+
+                            <!-- Add product detail form (Draft only) -->
+                            <div th:if="${p.status == 'Draft'}" class="p-3 rounded mb-3" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--card-border);">
+                                <form th:action="@{/admin/promotions/{id}/add-detail(id=${p.promotionId})}" method="post" class="row g-2 align-items-end">
+                                    <div class="col-md-5">
+                                        <label class="form-label small text-secondary">Sản phẩm</label>
+                                        <select name="productId" class="form-select" required>
+                                            <option value="">-- Chọn sản phẩm --</option>
+                                            <option th:each="prod : ${products}" th:value="${prod.productId}" th:text="${prod.productName}"></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small text-secondary">Loại giảm giá</label>
+                                        <select name="discountType" class="form-select" required>
+                                            <option value="Percentage">Phần trăm (%)</option>
+                                            <option value="FixedAmount">Số tiền cụ thể (VNĐ)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small text-secondary">Giá trị</label>
+                                        <input type="number" name="discountValue" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus"></i> Thêm</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Items inside promotion -->
+                            <div class="table-responsive">
+                                <table class="table-glass align-middle mb-3">
+                                    <thead>
+                                        <tr>
+                                            <th>Sản Phẩm</th>
+                                            <th>SKU</th>
+                                            <th>Hình Thức Giảm Giá</th>
+                                            <th>Mức Giảm</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:if="${p.details.isEmpty()}">
+                                            <td colspan="4" class="text-center text-muted small">Chưa cấu hình sản phẩm nào.</td>
+                                        </tr>
+                                        <tr th:each="det : ${p.details}">
+                                            <td class="text-light" th:text="${det.product.productName}">Product</td>
+                                            <td th:text="${det.product.sku}">SKU</td>
+                                            <td th:text="${det.discountType == 'Percentage' ? 'Giảm phần trăm' : 'Giảm tiền mặt'}">Type</td>
+                                            <td class="fw-bold text-info" th:text="${det.discountType == 'Percentage' ? #numbers.formatDecimal(det.discountValue, 1, 0) + '%' : #numbers.formatDecimal(det.discountValue, 1, 'DEFAULT', 0, 'DEFAULT') + ' VNĐ'}">Value</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="d-flex gap-2 justify-content-end mt-3">
+                                <form th:if="${p.status == 'Draft'}" th:action="@{/admin/promotions/{id}/activate(id=${p.promotionId})}" method="post">
+                                    <button type="submit" class="btn btn-sm btn-success"><i class="fa-solid fa-circle-play"></i> Kích hoạt chiến dịch</button>
+                                </form>
+                                <form th:if="${p.status == 'Draft' || p.status == 'Active'}" th:action="@{/admin/promotions/{id}/cancel(id=${p.promotionId})}" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-ban"></i> Hủy chiến dịch</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Create campaign form -->
+                <div class="col-md-4">
+                    <div class="card-glass">
+                        <div class="card-header-glass">
+                            <h4 class="mb-0 font-weight-bold text-light"><i class="fa-solid fa-bullhorn text-purple"></i> Chiến dịch mới</h4>
+                        </div>
+                        <div class="card-body-glass">
+                            <form th:action="@{/admin/promotions/new}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Tên chương trình khuyến mãi</label>
+                                    <input type="text" name="promotionName" class="form-control" placeholder="Ví dụ: Giảm giá ngày Lễ Độc Lập" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Ngày bắt đầu</label>
+                                    <input type="datetime-local" name="startDateTime" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Ngày kết thúc</label>
+                                    <input type="datetime-local" name="endDateTime" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2 mt-2"><i class="fa-solid fa-plus-circle"></i> Lập đợt khuyến mãi</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

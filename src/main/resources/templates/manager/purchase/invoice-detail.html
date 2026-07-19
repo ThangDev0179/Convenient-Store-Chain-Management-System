@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Chi Tiết Hóa Đơn')}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('invoices')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Chi Tiết Hóa Đơn')}"></div>
+        <div class="page-content">
+            <!-- Header -->
+            <div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 font-weight-bold page-heading">CHI TIẾT HÓA ĐƠN: <span th:text="'INV-' + ${invoice.supplierInvoiceId}"></span></h1>
+                    <small class="text-muted">Đối soát giá trị hàng nhập kho và tiến hành chi trả nợ NCC</small>
+                </div>
+                <div>
+                    <a th:href="@{/manager/invoices}" class="btn btn-secondary px-4 py-2">
+                        <i class="fa-solid fa-arrow-left"></i> Quay Lại
+                    </a>
+                </div>
+            </div>
+
+            <!-- Notification Alerts -->
+            <div th:if="${success}" class="alert alert-success text-center" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger text-center" th:text="${error}"></div>
+
+            <!-- Metadata Section -->
+            <div class="card-glass mb-4">
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="info-label text-secondary small text-uppercase mb-1">Mã Phiếu Nhập GRN</div>
+                        <div class="info-value">
+                            <a th:href="@{/manager/grn/{id}(id=${invoice.grnId})}" 
+                               class="text-indigo" th:text="${invoice.grnCode}" style="text-decoration:none;"></a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-label text-secondary small text-uppercase mb-1">Nhà Cung Cấp</div>
+                        <div class="info-value text-light" th:text="${invoice.supplierName}"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-label text-secondary small text-uppercase mb-1">Ngày Phát Hành</div>
+                        <div class="info-value text-light" th:text="${#temporals.format(invoice.issuedAt, 'dd/MM/yyyy HH:mm')}"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-label text-secondary small text-uppercase mb-1">Trạng Thái Hóa Đơn</div>
+                        <div>
+                            <span th:if="${invoice.status == 'Draft'}" class="badge-status status-Draft">
+                                <i class="fa-solid fa-file-lines"></i> Nháp (Chờ Duyệt)
+                            </span>
+                            <span th:if="${invoice.status == 'Approved'}" class="badge-status status-Approved">
+                                <i class="fa-solid fa-thumbs-up"></i> Đã Duyệt
+                            </span>
+                            <span th:if="${invoice.status == 'Unpaid'}" class="badge-status status-Unpaid">
+                                <i class="fa-solid fa-circle-exclamation"></i> Chưa Thanh Toán
+                            </span>
+                            <span th:if="${invoice.status == 'Partially_Paid'}" class="badge-status status-Partially_Paid">
+                                <i class="fa-solid fa-hourglass-half"></i> Thanh Toán Một Phần
+                            </span>
+                            <span th:if="${invoice.status == 'Paid'}" class="badge-status status-Paid">
+                                <i class="fa-solid fa-circle-check"></i> Đã Trả Hết
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3" th:if="${invoice.approvedByName != null}">
+                        <div class="info-label text-secondary small text-uppercase mb-1">Người Duyệt</div>
+                        <div class="info-value text-secondary" th:text="${invoice.approvedByName}"></div>
+                    </div>
+                    <div class="col-md-3" th:if="${invoice.approvedAt != null}">
+                        <div class="info-label text-secondary small text-uppercase mb-1">Ngày Duyệt</div>
+                        <div class="info-value text-secondary" th:text="${#temporals.format(invoice.approvedAt, 'dd/MM/yyyy HH:mm')}"></div>
+                    </div>
+
+                    <div class="col-md-6 text-md-end">
+                        <div class="info-label text-secondary small text-uppercase mb-1">Tổng Công Nợ Hóa Đơn</div>
+                        <div class="h2 mb-0 font-weight-bold text-indigo" 
+                             th:text="${#numbers.formatDecimal(invoice.amount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></div>
+                        <small class="text-muted d-block mt-1" 
+                               th:text="'Đã trả: ' + ${#numbers.formatDecimal(invoice.amountPaid, 0, 'COMMA', 0, 'POINT')} + 'đ | Còn nợ: ' + ${#numbers.formatDecimal(invoice.amount - invoice.amountPaid, 0, 'COMMA', 0, 'POINT')} + 'đ'"></small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="card-glass mb-4 d-flex gap-3 justify-content-end align-items-center">
+                <!-- Approve Invoice Form -->
+                <form th:if="${invoice.status == 'Draft'}" 
+                      th:action="@{/manager/invoices/{id}/approve(id=${invoice.supplierInvoiceId})}" method="post">
+                    <button type="submit" class="btn btn-primary px-5 py-3">
+                        <i class="fa-solid fa-check-double"></i> Phê Duyệt Hóa Đơn
+                    </button>
+                </form>
+
+                <!-- Pay Invoice Form -->
+                <a sec:authorize="hasRole('ADMIN')"
+                   th:if="${invoice.status == 'Approved' or invoice.status == 'Unpaid' or invoice.status == 'Partially_Paid'}" 
+                   th:href="@{/manager/payments/new(invoiceId=${invoice.supplierInvoiceId})}" 
+                   class="btn btn-success px-5 py-3" style="font-weight:600;">
+                    <i class="fa-solid fa-money-bill-wave"></i> Lập Phiếu Chi Thanh Toán
+                </a>
+            </div>
+
+            <!-- Payment History List -->
+            <div class="card-glass">
+                <h3 class="h5 mb-4 font-weight-bold text-secondary text-uppercase" style="letter-spacing:1px;">Lịch Sử Các Đợt Thanh Toán Chi Tiền</h3>
+                <div class="table-responsive">
+                    <table class="table-glass align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Mã Phiếu Chi</th>
+                                <th>Ngày Chi</th>
+                                <th>Người Chi</th>
+                                <th>Phương Thức</th>
+                                <th class="text-end">Số Tiền Đã Chi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${payments}">
+                                <td class="font-weight-bold text-light" th:text="'PAY-' + ${p.supplierPaymentId}"></td>
+                                <td th:text="${#temporals.format(p.paidAt, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td th:text="${p.paidByName}"></td>
+                                <td>
+                                    <span class="badge bg-secondary px-3 py-2" th:text="${p.paymentMethod}"></span>
+                                </td>
+                                <td class="text-end text-success font-weight-bold" 
+                                    th:text="${#numbers.formatDecimal(p.amountPaid, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(payments)}">
+                                <td colspan="5" class="text-center text-muted py-4">Chưa có giao dịch chi tiền nào được thực hiện cho hóa đơn này.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

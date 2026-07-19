@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit ? 'Chỉnh sửa sản phẩm' : 'Thêm mới sản phẩm'} + ' - Hệ thống bán lẻ'">Form sản phẩm</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .auth-body-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 0;
+        }
+    </style>
+</head>
+<body class="auth-body-container">
+    <div class="auth-wrapper" style="max-width: 700px; width: 100%; padding: 0 20px;">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title" th:text="${isEdit ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}">Thêm sản phẩm</h1>
+                <p class="auth-subtitle" th:text="${isEdit ? 'Cập nhật thông tin chi tiết sản phẩm' : 'Nhập thông tin để tạo mới sản phẩm gốc trong hệ thống'}">Mô tả</p>
+            </div>
+
+            <!-- General error message alert -->
+            <div th:if="${error}" class="alert alert-danger text-center" role="alert">
+                <span th:text="${error}">Dữ liệu nhập vào không hợp lệ</span>
+            </div>
+
+            <form th:action="${isEdit} ? @{/admin/products/edit/{id}(id=${productId})} : @{/admin/products/create}" 
+                  th:object="${product}" 
+                  method="post">
+                
+                <!-- SKU (Only visible and read-only on Edit mode) -->
+                <div th:if="${isEdit}" class="mb-3">
+                    <label class="form-label text-muted">Mã SKU hệ thống</label>
+                    <input type="text" class="form-control" th:value="${sku}" readonly style="background-color: rgba(255, 255, 255, 0.05); color: var(--text-secondary);">
+                </div>
+
+                <!-- Product Name -->
+                <div class="mb-3">
+                    <label for="productName" class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="productName" 
+                           th:field="*{productName}" 
+                           th:classappend="${#fields.hasErrors('productName')} ? 'is-invalid' : ''" 
+                           placeholder="Ví dụ: Coca-Cola Lon 320ml, Mì Hảo Hảo Tôm Chua Cay..." 
+                           required>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('productName')}" th:errors="*{productName}">Tên sản phẩm không hợp lệ</div>
+                </div>
+
+                <!-- Barcode -->
+                <div class="mb-3">
+                    <label for="barcode" class="form-label">Mã vạch (Barcode) <span class="text-muted">(Duy nhất trong hệ thống)</span></label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="barcode" 
+                           th:field="*{barcode}" 
+                           th:classappend="${#fields.hasErrors('barcode')} ? 'is-invalid' : ''" 
+                           placeholder="Nhập mã vạch sản phẩm (EAN-13, v.v...)">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('barcode')}" th:errors="*{barcode}">Mã vạch trùng lặp hoặc không hợp lệ</div>
+                </div>
+
+                <div class="row">
+                    <!-- Category ID Selector -->
+                    <div class="col-md-6 mb-3">
+                        <label for="categoryId" class="form-label">Ngành hàng <span class="text-danger">*</span></label>
+                        <select id="categoryId" 
+                                class="form-select" 
+                                th:field="*{categoryId}"
+                                th:classappend="${#fields.hasErrors('categoryId')} ? 'is-invalid' : ''"
+                                required>
+                            <option value="">-- Chọn ngành hàng --</option>
+                            <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}">Vui lòng chọn ngành hàng</div>
+                    </div>
+
+                    <!-- Standard Price -->
+                    <div class="col-md-6 mb-3">
+                        <label for="standardPrice" class="form-label">Giá bán tiêu chuẩn (đ) <span class="text-danger">*</span></label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="standardPrice" 
+                               th:field="*{standardPrice}" 
+                               th:classappend="${#fields.hasErrors('standardPrice')} ? 'is-invalid' : ''" 
+                               min="0" 
+                               onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                               placeholder="0"
+                               required>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('standardPrice')}" th:errors="*{standardPrice}">Giá bán không hợp lệ</div>
+                    </div>
+                </div>
+
+                <!-- Default Supplier Selector -->
+                <div class="mb-3">
+                    <label for="defaultSupplierId" class="form-label">Nhà cung cấp mặc định</label>
+                    <select id="defaultSupplierId" 
+                            class="form-select" 
+                            th:field="*{defaultSupplierId}">
+                        <option value="">-- Chọn nhà cung cấp --</option>
+                        <option th:each="sup : ${suppliers}" th:value="${sup.supplierId}" th:text="${sup.supplierName}"></option>
+                    </select>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <label for="description" class="form-label">Mô tả sản phẩm</label>
+                    <textarea class="form-control" 
+                              id="description" 
+                              th:field="*{description}" 
+                              rows="3" 
+                              placeholder="Nhập mô tả chi tiết về sản phẩm, quy cách đóng gói, hướng dẫn bảo quản..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a th:href="@{/admin/products}" class="btn btn-secondary w-50">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary w-50" th:text="${isEdit ? 'Cập nhật' : 'Thêm mới'}">Thêm mới</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

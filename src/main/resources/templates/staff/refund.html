@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Hoàn Trả')}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('refund')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Hoàn Trả')}"></div>
+        <div class="page-content">
+            <style>
+                .refund-item-list {
+                    background: rgba(3, 7, 18, 0.3);
+                    border: 1px solid var(--card-border);
+                    border-radius: 12px;
+                    padding: 15px;
+                }
+            </style>
+
+            <!-- Header -->
+            <div class="dashboard-header mb-4">
+                <div>
+                    <h1 class="page-heading">YÊU CẦU ĐỔI TRẢ HOÀN TIỀN</h1>
+                    <small class="text-muted">Quản lý và giải quyết đổi trả hàng cho khách hàng trong 7 ngày</small>
+                </div>
+                <div>
+                    <a th:href="@{/staff/pos}" class="btn btn-outline-light me-2">
+                        <i class="fa-solid fa-cart-shopping"></i> Quay lại POS Bán Hàng
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+            <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}"></div>
+
+            <div class="row">
+                <!-- Left Side: Start return / Add items -->
+                <div class="col-md-7">
+                    <!-- If NO active refund session -->
+                    <div th:if="${refund == null}" class="card-glass mb-4">
+                        <div class="card-header-glass">
+                            <h4 class="mb-0 fw-bold text-light"><i class="fa-solid fa-receipt text-danger"></i> Chọn hóa đơn gốc đổi trả</h4>
+                        </div>
+                        <div class="card-body-glass">
+                            <form th:action="@{/staff/refund/new}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Mã hóa đơn thanh toán gốc</label>
+                                    <select name="originalInvoiceId" class="form-select" required>
+                                        <option value="">-- Chọn hóa đơn gốc (Paid) --</option>
+                                        <option th:each="inv : ${invoices}" th:value="${inv.invoiceId}" th:text="${inv.invoiceCode} + ' (Tổng: ' + ${#numbers.formatDecimal(inv.totalAmount, 1, 0)} + ' VNĐ)'"></option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Tên khách hàng</label>
+                                    <input type="text" name="customerName" class="form-control" placeholder="Nhập tên khách..." required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Số điện thoại khách hàng</label>
+                                    <input type="text" name="customerPhone" class="form-control" placeholder="Nhập số điện thoại..." required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Lý do đổi trả</label>
+                                    <textarea name="reason" class="form-control" rows="3" placeholder="Lý do đổi trả hàng..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-danger w-100 py-2"><i class="fa-solid fa-plus"></i> Khởi tạo phiếu đổi trả</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- If active refund session, allow adding items -->
+                    <div th:if="${refund != null}" class="card-glass mb-4">
+                        <div class="card-header-glass">
+                            <h4 class="mb-0 fw-bold text-light"><i class="fa-solid fa-box-open text-danger"></i> Thêm sản phẩm đổi trả</h4>
+                        </div>
+                        <div class="card-body-glass">
+                            <form th:action="@{/staff/refund/{id}/add-item(id=${refund.refundId})}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Chọn sản phẩm từ hóa đơn gốc</label>
+                                    <select name="productId" class="form-select" required>
+                                        <option value="">-- Chọn sản phẩm --</option>
+                                        <option th:each="det : ${originalInvoice.details}" th:value="${det.product.productId}" th:text="${det.product.productName} + ' (Mua: ' + ${#numbers.formatDecimal(det.quantity, 1, 0)} + ')'"></option>
+                                    </select>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Số lượng trả</label>
+                                        <input type="number" name="quantity" class="form-control" min="1" step="1" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Phân loại hàng thu hồi</label>
+                                        <select name="conditionType" class="form-select" required>
+                                            <option value="Resalable">Hàng nguyên vẹn (Tái bán)</option>
+                                            <option value="Damaged">Hàng lỗi/hỏng (Hao hụt)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-danger w-100 py-2"><i class="fa-solid fa-plus-circle"></i> Thêm vào danh sách trả</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Return basket & approve -->
+                <div class="col-md-5">
+                    <div th:if="${refund != null}" class="card-glass mb-4">
+                        <div class="card-body-glass">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="mb-0 fw-bold text-light"><i class="fa-solid fa-list-check text-purple"></i> Phiếu đổi trả</h4>
+                                <span class="badge-status status-inactive" th:text="${refund.refundCode}">REF-001</span>
+                            </div>
+
+                            <div class="refund-item-list mb-3">
+                                <div th:if="${refund.details.isEmpty()}" class="text-center py-4 text-secondary">
+                                    Chưa có sản phẩm nào được chọn đổi trả.
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2" th:each="d : ${refund.details}">
+                                    <div>
+                                        <div class="text-light fw-bold" th:text="${d.product.productName}">Product</div>
+                                        <small class="text-muted" th:text="'Số lượng: ' + ${#numbers.formatDecimal(d.quantity, 1, 0)} + ' | Phân loại: ' + ${d.conditionType == 'Resalable' ? 'Nguyên vẹn' : 'Lỗi/hỏng'}"></small>
+                                    </div>
+                                    <div class="fw-bold text-danger" th:text="${#numbers.formatDecimal(d.quantity * d.unitRefundAmount, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'"></div>
+                                </div>
+                            </div>
+
+                            <div class="p-3 mb-4 rounded" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);">
+                                <small class="text-secondary text-uppercase d-block mb-1">Tổng tiền hoàn trả</small>
+                                <h3 class="mb-0 font-weight-bold text-danger" th:text="${#numbers.formatDecimal(refund.totalRefundAmount, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'">0 VNĐ</h3>
+                            </div>
+
+                            <!-- Approve refund action form -->
+                            <form th:action="@{/staff/refund/{id}/approve(id=${refund.refundId})}" method="post">
+                                <!-- Manager approval section required if total >= 200,000 VNĐ -->
+                                <div th:if="${refund.status == 'Pending_Approval'}" class="mb-3 p-3 rounded" style="background: rgba(15,23,42,0.6); border: 1px solid var(--card-border);">
+                                    <div class="text-warning small mb-2"><i class="fa-solid fa-lock"></i> Số tiền hoàn trả từ 200.000 VNĐ trở lên bắt buộc phải có Quản lý duyệt:</div>
+                                    <div class="mb-2">
+                                        <label class="form-label text-secondary">Chọn Quản lý cửa hàng</label>
+                                        <select name="managerEmployeeId" class="form-select" required>
+                                            <option value="">-- Chọn Quản lý --</option>
+                                            <option th:each="m : ${managers}" th:value="${m.employeeId}" th:text="${m.fullName}"></option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="form-label text-secondary">Nhập mã PIN của Quản lý</label>
+                                        <input type="password" name="managerPinOverride" class="form-control" placeholder="Mã PIN 4-6 số" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2">
+                                    <i class="fa-solid fa-circle-check"></i> Xác nhận hoàn tất đổi trả
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

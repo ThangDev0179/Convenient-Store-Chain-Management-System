@@ -28,6 +28,22 @@ public class BranchServiceImpl implements BranchService {
     @Autowired
     private BranchRepository branchRepository;
 
+    @Autowired
+    private com.retail.repository.EmployeeRepository employeeRepository;
+
+    @Autowired
+    private com.retail.repository.BranchInventoryRepository branchInventoryRepository;
+
+    @Autowired
+    private com.retail.repository.StockTransferRepository stockTransferRepository;
+
+    @Autowired
+    private com.retail.repository.GoodsReceiptNoteRepository goodsReceiptNoteRepository;
+
+    @Autowired
+    private com.retail.repository.PurchaseOrderRepository purchaseOrderRepository;
+
+
     @Override
     public BranchResponse create(CreateBranchRequest request) {
         if (request.getBranchCode() == null || request.getBranchCode().trim().isEmpty()) {
@@ -126,11 +142,43 @@ public class BranchServiceImpl implements BranchService {
             throw new ValidationException("Không thể đóng cửa một chi nhánh đã được lưu trữ");
         }
 
+        // 1. Check for active In_Transit StockTransfers
+        long activeTransfers = stockTransferRepository.countActiveTransfers(branchId);
+        if (activeTransfers > 0) {
+            throw new BranchHasActiveDataException("Không thể đóng cửa vì vẫn có phiếu điều chuyển kho đang giao (In_Transit) liên quan đến chi nhánh này.");
+        }
+
+        // 2. Check for active/pending POs
+        java.util.List<com.retail.entity.PurchaseOrderStatus> pendingStatuses = java.util.Arrays.asList(
+                com.retail.entity.PurchaseOrderStatus.Draft,
+                com.retail.entity.PurchaseOrderStatus.Submitted,
+                com.retail.entity.PurchaseOrderStatus.Partially_Received
+        );
+        long pendingPOs = purchaseOrderRepository.countPendingPOs(branchId, pendingStatuses);
+        if (pendingPOs > 0) {
+            throw new BranchHasActiveDataException("Không thể đóng cửa vì vẫn có đơn đặt hàng (PO) chưa hoàn thành liên quan đến chi nhánh này.");
+        }
+
+        // 3. Freeze data: set all Active Employees to Inactive
+        java.util.List<com.retail.entity.Employee> employees = employeeRepository.findByBranchBranchIdAndStatus(branchId, com.retail.entity.EmployeeStatus.Active);
+        for (com.retail.entity.Employee employee : employees) {
+            employee.setStatus(com.retail.entity.EmployeeStatus.Inactive);
+            employeeRepository.save(employee);
+        }
+
+        // 4. Freeze data: set all BranchInventory available quantity to 0
+        java.util.List<com.retail.entity.BranchInventory> inventories = branchInventoryRepository.findByBranchBranchId(branchId);
+        for (com.retail.entity.BranchInventory inventory : inventories) {
+            inventory.setQtyAvailable(java.math.BigDecimal.ZERO);
+            branchInventoryRepository.save(inventory);
+        }
+
         // Close maps to Archive because database status CHECK constraint only allows N'Active' and N'Archived'
         branch.setStatus(BranchStatus.Archived);
         branch.setArchivedAt(LocalDateTime.now());
         branchRepository.save(branch);
     }
+
 
     @Override
     public void reopen(Integer branchId) {

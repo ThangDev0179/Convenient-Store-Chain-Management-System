@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Giá Chi Nhánh')}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('price-request')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Giá Chi Nhánh')}"></div>
+        <div class="page-content">
+
+            <!-- Header -->
+            <div class="dashboard-header mb-4">
+                <div>
+                    <h1 class="page-heading">QUẢN LÝ GIÁ BÁN ĐẶC THÙ CHI NHÁNH</h1>
+                    <small class="text-muted">Đề xuất và phê duyệt giá bán đặc thù riêng cho từng chi nhánh</small>
+                </div>
+                <div>
+                    <a th:href="@{/manager/dashboard}" class="btn btn-outline-light">
+                        <i class="fa-solid fa-house"></i> Trang Chủ Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+            <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}"></div>
+
+            <div class="row">
+                <!-- Left Side: List proposals -->
+                <div class="col-md-8">
+                    <div class="card-glass mb-4">
+                        <div class="card-header-glass">
+                            <h4 class="mb-0 font-weight-bold text-light"><i class="fa-solid fa-list-ul text-indigo"></i> Danh sách Đề xuất thay đổi giá</h4>
+                        </div>
+                        <div class="card-body-glass">
+                            <div class="table-responsive">
+                                <table class="table-glass align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Sản Phẩm</th>
+                                            <th>Giá chuẩn</th>
+                                            <th>Giá đề xuất</th>
+                                            <th>Trạng Thái</th>
+                                            <th>Người Đề Xuất</th>
+                                            <th>Hành Động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:if="${requests.isEmpty()}">
+                                            <td colspan="6" class="text-center py-4 text-secondary">Không có đề xuất thay đổi giá nào.</td>
+                                        </tr>
+                                        <tr th:each="r : ${requests}">
+                                            <td>
+                                                <div class="fw-bold text-light" th:text="${r.product.productName}">Product</div>
+                                                <small class="text-muted" th:text="${r.product.sku}"></small>
+                                            </td>
+                                            <td th:text="${#numbers.formatDecimal(r.standardPriceSnapshot, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'">10,000 VNĐ</td>
+                                            <td class="fw-bold text-indigo" th:text="${#numbers.formatDecimal(r.proposedPrice, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'">12,000 VNĐ</td>
+                                            <td>
+                                                <span th:if="${r.status == 'Pending'}" class="badge-status status-pending">Chờ duyệt</span>
+                                                <span th:if="${r.status == 'Approved'}" class="badge-status status-active">Đã duyệt</span>
+                                                <span th:if="${r.status == 'Rejected'}" class="badge-status status-inactive">Từ chối</span>
+                                            </td>
+                                            <td th:text="${r.requestedBy.fullName}">Manager</td>
+                                            <td>
+                                                <!-- Actions allowed for ADMIN to approve/reject -->
+                                                <div th:if="${r.status == 'Pending'}" sec:authorize="hasRole('ADMIN')" class="d-flex gap-1">
+                                                    <form th:action="@{/manager/prices/{id}/approve(id=${r.priceRequestId})}" method="post">
+                                                        <button type="submit" class="btn btn-sm btn-success"><i class="fa-solid fa-check"></i> Duyệt</button>
+                                                    </form>
+                                                    <form th:action="@{/manager/prices/{id}/reject(id=${r.priceRequestId})}" method="post">
+                                                        <button type="submit" class="btn btn-sm btn-danger"><i class="fa-solid fa-times"></i> Hủy</button>
+                                                    </form>
+                                                </div>
+                                                <span th:if="${r.status != 'Pending'}" class="text-muted small">N/A</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Submit Proposal Form (accessible to Manager/Admin) -->
+                <div class="col-md-4">
+                    <div class="card-glass">
+                        <div class="card-header-glass">
+                            <h4 class="mb-0 font-weight-bold text-light"><i class="fa-solid fa-paper-plane text-purple"></i> Tạo đề xuất mới</h4>
+                        </div>
+                        <div class="card-body-glass">
+                            <form th:action="@{/manager/prices/new}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Chọn sản phẩm</label>
+                                    <select name="productId" class="form-select" required>
+                                        <option value="">-- Chọn sản phẩm --</option>
+                                        <option th:each="p : ${products}" th:value="${p.productId}" th:text="${p.productName} + ' (Giá chuẩn: ' + ${#numbers.formatDecimal(p.standardPrice, 1, 0)} + ' VNĐ)'"></option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Giá đề xuất riêng (VNĐ)</label>
+                                    <input type="number" name="proposedPrice" class="form-control" placeholder="Ví dụ: 12000" min="0" step="1" required>
+                                    <small class="text-warning d-block mt-2"><i class="fa-solid fa-circle-exclamation"></i> Chênh lệch không được vượt quá 20% so với giá bán tiêu chuẩn gốc.</small>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2 mt-2"><i class="fa-solid fa-paper-plane"></i> Gửi đề xuất thay đổi giá</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

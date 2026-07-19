@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSpecificationExecutor<Employee> {
     Optional<Employee> findByUsername(String username);
     boolean existsByUsername(String username);
+    boolean existsByEmployeeCode(String employeeCode);
     boolean existsByEmail(String email);
     boolean existsByEmailAndEmployeeIdNot(String email, Long employeeId);
     Optional<Employee> findByEmail(String email);
@@ -27,4 +28,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
 
     @Query("SELECT MAX(e.employeeCode) FROM Employee e WHERE e.employeeCode LIKE :prefix%")
     String findMaxEmployeeCodeWithPrefix(@Param("prefix") String prefix);
-}
+
+    java.util.List<Employee> findByBranchBranchIdAndStatus(Integer branchId, EmployeeStatus status);
+}
