@@ -61,11 +61,12 @@ public class DataInitializer implements CommandLineRunner {
 
             // Admin account
             Employee admin = Employee.builder()
-                    .employeeCode("EMP-ADMIN")
+                    .employeeCode("NV-2026-9999")
                     .username("admin")
                     .passwordHash(defaultPassword)
                     .fullName("Test Admin")
                     .email("admin@test.com")
+                    .phone("0123456789")
                     .role(roleAdmin)
                     .branch(branch)
                     .status(EmployeeStatus.Active)
@@ -74,11 +75,12 @@ public class DataInitializer implements CommandLineRunner {
 
             // Manager account
             Employee manager = Employee.builder()
-                    .employeeCode("EMP-MANAGER")
+                    .employeeCode("NV-2026-9998")
                     .username("manager")
                     .passwordHash(defaultPassword)
                     .fullName("Test Manager")
                     .email("manager@test.com")
+                    .phone("0123456789")
                     .role(roleManager)
                     .branch(branch)
                     .status(EmployeeStatus.Active)
@@ -87,11 +89,12 @@ public class DataInitializer implements CommandLineRunner {
 
             // Staff account
             Employee staff = Employee.builder()
-                    .employeeCode("EMP-STAFF")
+                    .employeeCode("NV-2026-9997")
                     .username("staff")
                     .passwordHash(defaultPassword)
                     .fullName("Test Staff")
                     .email("staff@test.com")
+                    .phone("0123456789")
                     .role(roleStaff)
                     .branch(branch)
                     .status(EmployeeStatus.Active)
