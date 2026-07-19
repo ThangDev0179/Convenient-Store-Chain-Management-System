@@ -127,6 +127,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         return productRepository.findBySku(sku)
                 .orElseGet(() -> productRepository.save(Product.builder()
                         .sku(sku)
+                        .barcode(sku)
                         .productName(name)
                         .category(category)
                         .standardPrice(price)

@@ -231,7 +231,7 @@ public class BranchServiceImpl implements BranchService {
                 .createdAt(branch.getCreatedAt())
                 .archivedAt(branch.getArchivedAt())
                 .managerId(branch.getManager() != null ? branch.getManager().getEmployeeId() : null)
-                .managerName(branch.getManager() != null ? branch.getManager().getFullName() : null)
+                .managerName(branch.getManager() != null ? branch.getManager().getFullName() : "Chưa có quản lý")
                 .build();
     }
 }

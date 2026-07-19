@@ -70,9 +70,9 @@
                     <div class="col-md-3">
                         <select name="status" class="form-select">
                             <option value="">Tất cả Trạng thái</option>
-                            <option th:each="st : ${T(com.retail.branch.BranchStatus).values()}"
+                            <option th:each="st : ${T(com.retail.entity.BranchStatus).values()}"
                                     th:value="${st}"
-                                    th:text="${st == T(com.retail.branch.BranchStatus).Active ? 'Đang Hoạt Động (Active)' : 'Đã Lưu Trữ (Archived)'}"
+                                    th:text="${st == T(com.retail.entity.BranchStatus).Active ? 'Đang Hoạt Động (Active)' : 'Đã Lưu Trữ (Archived)'}"
                                     th:selected="${st == status}"></option>
                         </select>
                     </div>

@@ -67,7 +67,7 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public String handleForgotPassword(@ModelAttribute ForgotPasswordRequest forgotPasswordRequest, Model model) {
         authService.processForgotPassword(forgotPasswordRequest);
-        model.addAttribute("success", "Yêu cầu đặt lại mật khẩu thành công. Vui lòng kiểm tra email của bạn để lấy lại mật khẩu!");
+        model.addAttribute("success", "Nếu email này tồn tại trong hệ thống, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.");
         model.addAttribute("forgotPasswordRequest", new ForgotPasswordRequest());
         return "forgot-password";
     }
