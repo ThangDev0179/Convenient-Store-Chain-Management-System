@@ -37,7 +37,7 @@ public class StockDisposal {
     @Column(name = "SourceType", nullable = false, length = 20)
     private DisposalSourceType sourceType;
 
-    @Column(name = "RelatedTransferId")
+    @Column(name = "ReferenceId")
     private Long referenceId;
 
     @Column(name = "Reason", length = 500)
