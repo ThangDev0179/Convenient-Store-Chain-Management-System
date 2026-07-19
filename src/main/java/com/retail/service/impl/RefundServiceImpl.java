@@ -16,7 +16,7 @@ import com.retail.entity.*;
 import com.retail.mapper.RefundMapper;
 import com.retail.repository.RefundDetailRepository;
 import com.retail.repository.RefundRepository;
-import com.retail.repository.RefundSpecification;
+// RefundSpecification removed — replaced by @Query JPQL in RefundRepository
 import com.retail.service.RefundService;
 import com.retail.validator.RefundValidator;
 import com.retail.repository.BranchRepository;
@@ -26,7 +26,7 @@ import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
+// Specification API removed (HSF302: không có bài demo trong slide Chapter04)
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -215,12 +215,15 @@ public class RefundServiceImpl implements RefundService {
         boolean isStaff = !hasRole("MANAGER") && !hasRole("ADMIN");
         Integer branchIdFilter = isStaff ? resolveCurrentEmployee().getBranch().getBranchId() : request.branchId();
 
-        Specification<Refund> spec = RefundSpecification.buildFilter(
-                request.status(), request.fromDate(), request.toDate(), branchIdFilter);
+        // HSF302 Mục 3: dùng @Query JPQL (findByFilters) thay Specification API
+        LocalDateTime fromDateTime = request.fromDate() != null ? request.fromDate().atStartOfDay() : null;
+        LocalDateTime toDateTime = request.toDate() != null ? request.toDate().plusDays(1).atStartOfDay() : null;
+
         Pageable pageable = PageRequest.of(request.page(), request.size(),
                 Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        Page<Refund> page = refundRepository.findAll(spec, pageable);
+        Page<Refund> page = refundRepository.findByFilters(
+                request.status(), fromDateTime, toDateTime, branchIdFilter, pageable);
 
         // Batch load invoices
         Set<Long> invoiceIds = page.map(Refund::getOriginalInvoiceId).toSet();

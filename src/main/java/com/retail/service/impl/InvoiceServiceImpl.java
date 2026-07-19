@@ -23,7 +23,7 @@ import com.retail.entity.InvoiceStatus;
 import com.retail.mapper.InvoiceMapper;
 import com.retail.repository.InvoiceDetailRepository;
 import com.retail.repository.InvoiceRepository;
-import com.retail.repository.InvoiceSpecification;
+// InvoiceSpecification removed — replaced by @Query JPQL in InvoiceRepository
 import com.retail.service.InvoiceService;
 import com.retail.repository.BranchRepository;
 import com.retail.repository.EmployeeRepository;
@@ -32,7 +32,7 @@ import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
+// Specification API removed (HSF302: không có bài demo trong slide Chapter04)
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -324,13 +324,16 @@ public class InvoiceServiceImpl implements InvoiceService {
         boolean isStaff = !hasRole("MANAGER") && !hasRole("ADMIN");
         Integer branchIdFilter = isStaff ? currentEmployee.getBranch().getBranchId() : null;
 
-        Specification<Invoice> spec = InvoiceSpecification.buildFilter(
-                request.status(), request.fromDate(), request.toDate(),
-                request.cashierId(), branchIdFilter);
+        // HSF302 Mục 3: dùng @Query JPQL (findByFilters) thay Specification API
+        // Tham số null → bỏ qua filter (pattern đã học Chapter04)
+        LocalDateTime fromDateTime = request.fromDate() != null ? request.fromDate().atStartOfDay() : null;
+        LocalDateTime toDateTime = request.toDate() != null ? request.toDate().plusDays(1).atStartOfDay() : null;
 
         Sort sort = parseSort(request.sort());
         Pageable pageable = PageRequest.of(request.page(), request.size(), sort);
-        Page<Invoice> invoicePage = invoiceRepository.findAll(spec, pageable);
+        Page<Invoice> invoicePage = invoiceRepository.findByFilters(
+                request.status(), fromDateTime, toDateTime,
+                request.cashierId(), branchIdFilter, pageable);
 
         // Batch load cashier names
         Set<Long> cashierIds = invoicePage.map(Invoice::getCashierId).toSet();
