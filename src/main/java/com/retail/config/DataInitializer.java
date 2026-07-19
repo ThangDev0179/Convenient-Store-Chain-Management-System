@@ -4,6 +4,9 @@ import com.retail.entity.*;
 import com.retail.repository.BranchRepository;
 import com.retail.repository.EmployeeRepository;
 import com.retail.repository.RoleRepository;
+import com.retail.repository.ProductCategoryRepository;
+import com.retail.repository.ProductRepository;
+import com.retail.repository.BranchInventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -21,6 +24,9 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final BranchRepository branchRepository;
     private final EmployeeRepository employeeRepository;
+    private final ProductCategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
+    private final BranchInventoryRepository inventoryRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -38,14 +44,22 @@ public class DataInitializer implements CommandLineRunner {
 
         // 2. Khởi tạo Branch nếu chưa có
         if (branchRepository.count() == 0) {
-            log.info("Creating default branch...");
-            Branch branch = Branch.builder()
+            log.info("Creating default branches...");
+            Branch branch1 = Branch.builder()
                     .branchCode("BR001")
                     .branchName("Chi nhánh Trung tâm")
                     .address("123 Đường Test, Quận 1")
                     .status(BranchStatus.Active)
                     .build();
-            branchRepository.save(branch);
+            branchRepository.save(branch1);
+
+            Branch branch2 = Branch.builder()
+                    .branchCode("BR002")
+                    .branchName("Chi nhánh Quận 2")
+                    .address("456 Đường Test, Quận 2")
+                    .status(BranchStatus.Active)
+                    .build();
+            branchRepository.save(branch2);
         }
 
         // 3. Khởi tạo tài khoản Employee nếu chưa có
@@ -109,6 +123,48 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Username: admin / Password: 123456 (Role: ADMIN)");
             log.info("Username: manager / Password: 123456 (Role: MANAGER)");
             log.info("Username: staff / Password: 123456 (Role: STAFF)");
+        }
+
+        // 4. Khởi tạo Sản phẩm và Tồn kho mẫu
+        if (productRepository.count() == 0) {
+            log.info("Creating default products and inventory...");
+            ProductCategory category = ProductCategory.builder()
+                    .categoryName("Nước giải khát")
+                    .skuPrefix("DRK")
+                    .build();
+            categoryRepository.save(category);
+
+            Product product = Product.builder()
+                    .sku("DRK-0001")
+                    .productName("Coca Cola 330ml")
+                    .category(category)
+                    .standardPrice(new java.math.BigDecimal("10000.00"))
+                    .status(ProductStatus.Active)
+                    .build();
+            productRepository.save(product);
+
+            // Cấp tồn kho cho 2 chi nhánh
+            java.util.List<Branch> branches = branchRepository.findAll();
+            if (branches.size() >= 2) {
+                Branch b1 = branches.get(0);
+                Branch b2 = branches.get(1);
+
+                BranchInventory inv1 = BranchInventory.builder()
+                        .branch(b1)
+                        .product(product)
+                        .qtyOnHand(new java.math.BigDecimal("1000.000"))
+                        .qtyInTransit(java.math.BigDecimal.ZERO)
+                        .build();
+                inventoryRepository.save(inv1);
+
+                BranchInventory inv2 = BranchInventory.builder()
+                        .branch(b2)
+                        .product(product)
+                        .qtyOnHand(java.math.BigDecimal.ZERO)
+                        .qtyInTransit(java.math.BigDecimal.ZERO)
+                        .build();
+                inventoryRepository.save(inv2);
+            }
         }
     }
 }
