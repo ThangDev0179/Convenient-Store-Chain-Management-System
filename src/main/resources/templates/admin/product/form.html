@@ -54,17 +54,6 @@
                     <div class="invalid-feedback" th:if="${#fields.hasErrors('productName')}" th:errors="*{productName}">Tên sản phẩm không hợp lệ</div>
                 </div>
 
-                <!-- Barcode -->
-                <div class="mb-3">
-                    <label for="barcode" class="form-label">Mã vạch (Barcode) <span class="text-muted">(Duy nhất trong hệ thống)</span></label>
-                    <input type="text" 
-                           class="form-control" 
-                           id="barcode" 
-                           th:field="*{barcode}" 
-                           th:classappend="${#fields.hasErrors('barcode')} ? 'is-invalid' : ''" 
-                           placeholder="Nhập mã vạch sản phẩm (EAN-13, v.v...)">
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('barcode')}" th:errors="*{barcode}">Mã vạch trùng lặp hoặc không hợp lệ</div>
-                </div>
 
                 <div class="row">
                     <!-- Category ID Selector -->
@@ -108,15 +97,6 @@
                     </select>
                 </div>
 
-                <!-- Description -->
-                <div class="mb-4">
-                    <label for="description" class="form-label">Mô tả sản phẩm</label>
-                    <textarea class="form-control" 
-                              id="description" 
-                              th:field="*{description}" 
-                              rows="3" 
-                              placeholder="Nhập mô tả chi tiết về sản phẩm, quy cách đóng gói, hướng dẫn bảo quản..."></textarea>
-                </div>
 
                 <div class="d-flex gap-2">
                     <a th:href="@{/admin/products}" class="btn btn-secondary w-50">Hủy bỏ</a>

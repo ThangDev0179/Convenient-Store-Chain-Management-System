@@ -19,10 +19,6 @@ public class ProductRequest {
     @Size(max = 150, message = "Tên sản phẩm không quá 150 ký tự")
     private String productName;
 
-    private String barcode;
-
-    private String description;
-
     @NotNull(message = "Danh mục không được để trống")
     private Integer categoryId;
 

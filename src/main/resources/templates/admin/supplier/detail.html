@@ -77,24 +77,9 @@
             </div>
 
             <div class="row">
-                <div class="col-md-6 detail-item">
-                    <div class="detail-label">Người tạo</div>
-                    <div class="detail-value" th:text="${supplier.createdBy != null ? supplier.createdBy : 'Hệ thống'}">system</div>
-                </div>
-                <div class="col-md-6 detail-item">
+                <div class="col-12 detail-item">
                     <div class="detail-label">Thời gian tạo</div>
                     <div class="detail-value" th:text="${supplier.createdAt != null ? #temporals.format(supplier.createdAt, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}">N/A</div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 detail-item">
-                    <div class="detail-label">Người cập nhật cuối</div>
-                    <div class="detail-value" th:text="${supplier.updatedBy != null ? supplier.updatedBy : 'Chưa cập nhật'}">N/A</div>
-                </div>
-                <div class="col-md-6 detail-item">
-                    <div class="detail-label">Thời gian cập nhật</div>
-                    <div class="detail-value" th:text="${supplier.updatedAt != null ? #temporals.format(supplier.updatedAt, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}">N/A</div>
                 </div>
             </div>
 

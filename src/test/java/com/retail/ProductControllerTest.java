@@ -74,7 +74,6 @@ public class ProductControllerTest {
         // 2. Create Product
         mockMvc.perform(post("/admin/products/create")
                         .param("productName", "JUnit Test Product")
-                        .param("barcode", "8930000000001")
                         .param("categoryId", String.valueOf(category.getCategoryId()))
                         .param("standardPrice", "15000.00")
                         .with(csrf()))
@@ -82,19 +81,10 @@ public class ProductControllerTest {
                 .andExpect(redirectedUrl("/admin/products"));
 
         // Verify SKU generated with Prefix
-        Product product = productRepository.findByBarcode("8930000000001").orElseThrow();
+        Product product = productRepository.findAll().stream()
+                .filter(p -> p.getProductName().equals("JUnit Test Product"))
+                .findFirst().orElseThrow();
         org.junit.jupiter.api.Assertions.assertEquals("JUP0001", product.getSku());
-
-        // 3. Try to create duplicate barcode
-        mockMvc.perform(post("/admin/products/create")
-                        .param("productName", "Another Product")
-                        .param("barcode", "8930000000001") // Duplicate barcode
-                        .param("categoryId", String.valueOf(category.getCategoryId()))
-                        .param("standardPrice", "20000.00")
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(view().name("admin/product/form"))
-                .andExpect(model().hasErrors());
     }
 
     @Test

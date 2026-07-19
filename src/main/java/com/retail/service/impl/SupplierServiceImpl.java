@@ -166,9 +166,6 @@ public class SupplierServiceImpl implements SupplierService {
                 .address(supplier.getAddress())
                 .status(supplier.getStatus())
                 .createdAt(supplier.getCreatedAt())
-                .updatedAt(supplier.getUpdatedAt())
-                .createdBy(supplier.getCreatedBy())
-                .updatedBy(supplier.getUpdatedBy())
                 .build();
     }
 }

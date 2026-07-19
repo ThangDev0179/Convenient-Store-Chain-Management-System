@@ -112,8 +112,7 @@ public class ProductController {
         } catch (ValidationException e) {
             if (e.getMessage().contains("Tên sản phẩm")) {
                 bindingResult.rejectValue("productName", "duplicate", e.getMessage());
-            } else if (e.getMessage().contains("Mã vạch") || e.getMessage().contains("barcode")) {
-                bindingResult.rejectValue("barcode", "duplicate", e.getMessage());
+
             } else if (e.getMessage().contains("Danh mục")) {
                 bindingResult.rejectValue("categoryId", "invalid", e.getMessage());
             } else {
@@ -136,8 +135,7 @@ public class ProductController {
             ProductResponse detail = productService.getDetail(id);
             ProductRequest request = ProductRequest.builder()
                     .productName(detail.getProductName())
-                    .barcode(detail.getBarcode())
-                    .description(detail.getDescription())
+
                     .categoryId(detail.getCategoryId())
                     .standardPrice(detail.getStandardPrice())
                     .defaultSupplierId(detail.getDefaultSupplierId())
@@ -182,8 +180,7 @@ public class ProductController {
         } catch (ValidationException e) {
             if (e.getMessage().contains("Tên sản phẩm")) {
                 bindingResult.rejectValue("productName", "duplicate", e.getMessage());
-            } else if (e.getMessage().contains("Mã vạch") || e.getMessage().contains("barcode")) {
-                bindingResult.rejectValue("barcode", "duplicate", e.getMessage());
+
             } else {
                 model.addAttribute("error", e.getMessage());
             }

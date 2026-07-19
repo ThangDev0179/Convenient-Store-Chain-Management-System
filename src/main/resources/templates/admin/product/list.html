@@ -123,7 +123,7 @@
                     <tr>
                         <th style="width: 120px;">Mã SKU</th>
                         <th>Tên sản phẩm</th>
-                        <th>Mã vạch (Barcode)</th>
+
                         <th>Ngành hàng</th>
                         <th>Giá bán lẻ</th>
                         <th>Nhà cung cấp</th>
@@ -135,7 +135,7 @@
                     <tr th:each="p : ${products}">
                         <td class="text-info font-weight-bold" th:text="${p.sku}">SKU001</td>
                         <td th:text="${p.productName}" class="font-weight-bold">Tên sản phẩm</td>
-                        <td th:text="${p.barcode != null ? p.barcode : '-'}">Barcode</td>
+
                         <td th:text="${p.categoryName}">Ngành hàng</td>
                         <td th:text="${#numbers.formatDecimal(p.standardPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">10,000 đ</td>
                         <td th:text="${p.defaultSupplierName != null ? p.defaultSupplierName : '-'}">Nhà cung cấp</td>
