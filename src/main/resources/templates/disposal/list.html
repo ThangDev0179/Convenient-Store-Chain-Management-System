@@ -61,7 +61,7 @@
                                           th:text="${d.status}">
                                     </span>
                                 </td>
-                                <td th:text="${d.reason != null ? d.reason : '-'}"></td>
+                                <td class="text-truncate" style="max-width: 200px;" th:title="${d.reason != null ? d.reason : '-'}" th:text="${d.reason != null ? d.reason : '-'}"></td>
                                 <td th:text="${d.createdBy.fullName}"></td>
                                 <td th:text="${#temporals.format(d.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
                                 <td>

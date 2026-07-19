@@ -1,73 +1,79 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Báo Cáo Tổn Thất</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Báo Cáo Hao Hụt')}"></head>
 <body>
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-graph-down-arrow text-danger me-2"></i>Báo Cáo Hao Hụt & Tổn Thất</h2>
-        <a href="/report/dashboard" class="btn btn-outline-secondary">
-            <i class="bi bi-speedometer2 me-1"></i> Dashboard
-        </a>
-    </div>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('manager-dashboard')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Báo Cáo Hao Hụt')}"></div>
+        <div class="page-content">
 
-    <!-- Lọc -->
-    <div class="card mb-3 shadow-sm">
-        <div class="card-body bg-light">
-            <form th:action="@{/report/loss}" method="get" class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label">Từ ngày</label>
-                    <input type="date" name="startDate" class="form-control" th:value="${startDate}">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Đến ngày</label>
-                    <input type="date" name="endDate" class="form-control" th:value="${endDate}">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i>Lọc</button>
-                </div>
-                <div class="col-md-2">
-                    <a href="/report/loss" class="btn btn-outline-secondary w-100">Xóa bộ lọc</a>
-                </div>
-            </form>
-        </div>
-    </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fa-solid fa-chart-line text-danger me-2"></i>Báo Cáo Hao Hụt & Tổn Thất</h2>
+                <a href="/report/dashboard" class="btn btn-secondary">
+                    <i class="fa-solid fa-gauge-high me-1"></i> Dashboard
+                </a>
+            </div>
 
-    <!-- Bảng -->
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-danger">
-                    <tr>
-                        <th>Chi nhánh</th>
-                        <th>Nguồn Hao Hụt</th>
-                        <th class="text-end">Tổng SL Hủy/Mất</th>
-                        <th class="text-end">Giá Trị Tổn Thất (VNĐ)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:if="${#lists.isEmpty(report)}">
-                        <td colspan="4" class="text-center py-4 text-muted">Không phát sinh hao hụt trong kỳ</td>
-                    </tr>
-                    <tr th:each="r : ${report}">
-                        <td class="fw-bold" th:text="${r.branchName + ' (' + r.branchId + ')'}"></td>
-                        <td>
-                            <span th:class="${'badge ' + 
-                                (r.sourceType.name() == 'Manual' ? 'bg-primary' : 
-                                (r.sourceType.name() == 'TransferLoss' ? 'bg-warning text-dark' : 'bg-info text-dark'))}"
-                                  th:text="${r.sourceType}">
-                            </span>
-                        </td>
-                        <td class="text-end" th:text="${#numbers.formatDecimal(r.totalDisposedQty, 0, 'COMMA', 3, 'POINT')}"></td>
-                        <td class="text-end text-danger fw-bold" th:text="${#numbers.formatDecimal(r.totalLossValue, 0, 'COMMA', 0, 'POINT')}"></td>
-                    </tr>
-                </tbody>
-            </table>
+            <!-- Lọc -->
+            <div class="card-glass mb-4 shadow-sm">
+                <div class="card-body-glass">
+                    <form th:action="@{/report/loss}" method="get" class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label text-light">Từ ngày</label>
+                            <input type="date" name="startDate" class="form-control" th:value="${startDate}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-light">Đến ngày</label>
+                            <input type="date" name="endDate" class="form-control" th:value="${endDate}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-filter me-1"></i>Lọc</button>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="/report/loss" class="btn btn-outline-secondary w-100 text-light">Xóa bộ lọc</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bảng -->
+            <div class="card-glass shadow-sm">
+                <div class="card-body-glass p-0">
+                    <table class="table-glass w-100 mb-0">
+                        <thead>
+                            <tr>
+                                <th>Chi nhánh</th>
+                                <th>Nguồn Hao Hụt</th>
+                                <th class="text-end">Tổng SL Hủy/Mất</th>
+                                <th class="text-end">Giá Trị Tổn Thất (VNĐ)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(report)}">
+                                <td colspan="4" class="text-center py-4 text-muted">Không phát sinh hao hụt trong kỳ</td>
+                            </tr>
+                            <tr th:each="r : ${report}">
+                                <td class="fw-bold" th:text="${r.branchName + ' (' + r.branchId + ')'}"></td>
+                                <td>
+                                    <span th:class="${'badge-status ' + 
+                                        (r.sourceType.name() == 'Manual' ? 'status-primary' : 
+                                        (r.sourceType.name() == 'TransferLoss' ? 'status-warning' : 'status-info'))}"
+                                          th:text="${r.sourceType}">
+                                    </span>
+                                </td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(r.totalDisposedQty, 0, 'COMMA', 0, 'POINT')}"></td>
+                                <td class="text-end text-danger fw-bold" th:text="${#numbers.formatDecimal(r.totalLossValue, 0, 'COMMA', 0, 'POINT')}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

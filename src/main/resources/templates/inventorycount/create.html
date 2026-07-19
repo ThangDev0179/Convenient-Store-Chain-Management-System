@@ -15,23 +15,69 @@
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-            <div class="card-glass p-4" style="max-width: 600px;">
-                <form th:action="@{/inventory-count/create}" th:object="${request}" method="post">
-                    <div class="mb-4">
+            <form th:action="@{/inventory-count/create}" th:object="${request}" method="post">
+                <div class="card-glass p-4 mb-4" style="max-width: 600px;">
+                    <div class="mb-3">
                         <label class="form-label text-secondary small text-uppercase">Branch ID</label>
                         <input type="number" th:field="*{branchId}" class="form-control" required/>
                     </div>
-                    <!-- Detail fields would go here, simplified for stubbing -->
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save me-1"></i> Save Draft</button>
-                        <a href="/inventory-count" class="btn btn-secondary">Hủy</a>
+                </div>
+
+                <div class="card-glass mb-4">
+                    <div class="card-header-glass fw-bold d-flex justify-content-between align-items-center">
+                        Danh sách sản phẩm kiểm kê
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">
+                            <i class="fa-solid fa-plus"></i> Thêm sản phẩm
+                        </button>
                     </div>
-                </form>
-            </div>
+                    <div class="table-responsive">
+                        <table class="table-glass w-100 mb-0" id="detailTable">
+                            <thead>
+                                <tr>
+                                    <th>Product ID</th>
+                                    <th>Số lượng thực tế (Actual Qty)</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailBody">
+                                <tr>
+                                    <td><input type="number" name="details[0].productId" class="form-control" placeholder="ID sản phẩm" required/></td>
+                                    <td><input type="number" name="details[0].actualQty" step="0.001" class="form-control" placeholder="Số lượng thực tế" required/></td>
+                                    <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)"><i class="fa-solid fa-trash"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save me-1"></i> Save Draft</button>
+                    <a href="/inventory-count" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
 
         </div>
     </div>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+    let rowIndex = 1;
+    function addRow() {
+        const tbody = document.getElementById('detailBody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="number" name="details[${rowIndex}].productId" class="form-control" placeholder="ID sản phẩm" required/></td>
+            <td><input type="number" name="details[${rowIndex}].actualQty" step="0.001" class="form-control" placeholder="Số lượng thực tế" required/></td>
+            <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)"><i class="fa-solid fa-trash"></i></button></td>
+        `;
+        tbody.appendChild(row);
+        rowIndex++;
+    }
+    function removeRow(btn) {
+        const row = btn.closest('tr');
+        const tbody = document.getElementById('detailBody');
+        if (tbody.rows.length > 1) row.remove();
+    }
+</script>
 </body>
 </html>
