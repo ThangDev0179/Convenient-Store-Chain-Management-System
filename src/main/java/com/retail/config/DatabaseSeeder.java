@@ -43,7 +43,12 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .address("123 Đường chính, Hà Nội")
                     .status(BranchStatus.Active)
                     .build();
-            branch = branchRepository.save(branch);
+            try {
+                branch = branchRepository.save(branch);
+            } catch (Exception e) {
+                // If it fails due to UNIQUE constraint on ManagerId = NULL, just pick the first available branch
+                branch = branchRepository.findAll().stream().findFirst().orElseThrow();
+            }
         } else {
             branch = existingBranch.get();
         }
