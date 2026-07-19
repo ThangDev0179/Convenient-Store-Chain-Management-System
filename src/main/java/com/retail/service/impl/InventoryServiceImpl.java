@@ -61,7 +61,7 @@ public class InventoryServiceImpl implements InventoryService {
         boolean isNegative = qty.compareTo(BigDecimal.ZERO) < 0;
 
         for (ProductUOM uom : sortedUoms) {
-            BigDecimal rate = uom.getConversionRate();
+            BigDecimal rate = BigDecimal.valueOf(uom.getConversionRate());
             if (rate.compareTo(BigDecimal.ONE) > 0) {
                 BigDecimal[] divideAndRemainder = remaining.divideAndRemainder(rate);
                 BigDecimal quotient = divideAndRemainder[0];

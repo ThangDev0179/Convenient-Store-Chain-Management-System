@@ -1,326 +1,328 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${isEdit ? 'Chỉnh sửa sản phẩm' : 'Thêm mới sản phẩm'} + ' - Hệ thống bán lẻ'">Form sản phẩm</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <style>
-        .auth-body-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 40px 0;
-        }
-        .table-dark {
-            --bs-table-bg: rgba(15, 23, 42, 0.6);
-            --bs-table-border-color: var(--card-border);
-        }
-    </style>
-</head>
-<body class="auth-body-container">
-    <div class="auth-wrapper" style="max-width: 950px; width: 100%; padding: 0 20px;">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1 class="auth-title" th:text="${isEdit ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}">Thêm sản phẩm</h1>
-                <p class="auth-subtitle" th:text="${isEdit ? 'Cập nhật thông tin chi tiết sản phẩm và các đơn vị tính quy đổi' : 'Nhập thông tin sản phẩm gốc kèm danh sách đơn vị quy đổi'}">Mô tả</p>
-            </div>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${isEdit ? 'Chỉnh sửa sản phẩm' : 'Thêm mới sản phẩm'})}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('products')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar(${isEdit ? 'Chỉnh sửa sản phẩm' : 'Thêm mới sản phẩm'})}"></div>
+        <div class="page-content">
+            <style>
+                .auth-card {
+                    background: rgba(17, 24, 39, 0.55);
+                    border: 1px solid var(--card-border);
+                    border-radius: 20px;
+                    padding: 40px;
+                    backdrop-filter: blur(16px);
+                    color: var(--text-primary);
+                }
+                .auth-header {
+                    margin-bottom: 30px;
+                }
+                .table-dark {
+                    --bs-table-bg: rgba(15, 23, 42, 0.6);
+                    --bs-table-border-color: var(--card-border);
+                }
+            </style>
 
-            <!-- General error message alert -->
-            <div th:if="${error}" class="alert alert-danger text-center" role="alert">
-                <span th:text="${error}">Dữ liệu nhập vào không hợp lệ</span>
-            </div>
-
-            <form th:action="${isEdit} ? @{/admin/products/edit/{id}(id=${productId})} : @{/admin/products/create}" 
-                  th:object="${product}" 
-                  method="post">
-                
-                <!-- SKU (Only visible and read-only on Edit mode) -->
-                <div th:if="${isEdit}" class="mb-3">
-                    <label class="form-label text-muted">Mã SKU hệ thống</label>
-                    <input type="text" class="form-control" th:value="${sku}" readonly style="background-color: rgba(255, 255, 255, 0.05); color: var(--text-secondary);">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1 class="h3 font-weight-bold mb-1" style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" th:text="${isEdit ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}">Thêm sản phẩm</h1>
+                    <p class="text-muted mb-0" th:text="${isEdit ? 'Cập nhật thông tin chi tiết sản phẩm và các đơn vị tính quy đổi' : 'Nhập thông tin sản phẩm gốc kèm danh sách đơn vị quy đổi'}">Mô tả</p>
                 </div>
 
-                <div class="row">
-                    <!-- Product Name -->
-                    <div class="col-md-6 mb-3">
-                        <label for="productName" class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
-                        <input type="text" 
-                               class="form-control" 
-                               id="productName" 
-                               th:field="*{productName}" 
-                               th:classappend="${#fields.hasErrors('productName')} ? 'is-invalid' : ''" 
-                               placeholder="Ví dụ: Coca-Cola Lon 320ml, Mì Hảo Hảo..." 
-                               required>
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('productName')}" th:errors="*{productName}">Tên sản phẩm không hợp lệ</div>
-                    </div>
-
-                    <!-- Barcode -->
-                    <div class="col-md-6 mb-3">
-                        <label for="barcode" class="form-label">Mã vạch chính (Barcode) <span class="text-muted">(Duy nhất)</span></label>
-                        <input type="text" 
-                               class="form-control" 
-                               id="barcode" 
-                               th:field="*{barcode}" 
-                               th:classappend="${#fields.hasErrors('barcode')} ? 'is-invalid' : ''" 
-                               placeholder="Nhập mã vạch sản phẩm gốc">
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('barcode')}" th:errors="*{barcode}">Mã vạch trùng lặp hoặc không hợp lệ</div>
-                    </div>
+                <!-- General error message alert -->
+                <div th:if="${error}" class="alert alert-danger text-center" role="alert">
+                    <span th:text="${error}">Dữ liệu nhập vào không hợp lệ</span>
                 </div>
 
-                <div class="row">
-                    <!-- Category ID Selector -->
-                    <div class="col-md-6 mb-3">
-                        <label for="categoryId" class="form-label">Ngành hàng <span class="text-danger">*</span></label>
-                        <select id="categoryId" 
+                <form th:action="${isEdit} ? @{/admin/products/edit/{id}(id=${productId})} : @{/admin/products/create}" 
+                      th:object="${product}" 
+                      method="post">
+                    
+                    <!-- SKU (Only visible and read-only on Edit mode) -->
+                    <div th:if="${isEdit}" class="mb-3">
+                        <label class="form-label text-muted">Mã SKU hệ thống</label>
+                        <input type="text" class="form-control" th:value="${sku}" readonly style="background-color: rgba(255, 255, 255, 0.05); color: var(--text-secondary);">
+                    </div>
+
+                    <div class="row">
+                        <!-- Product Name -->
+                        <div class="col-md-6 mb-3">
+                            <label for="productName" class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="productName" 
+                                   th:field="*{productName}" 
+                                   th:classappend="${#fields.hasErrors('productName')} ? 'is-invalid' : ''" 
+                                   placeholder="Ví dụ: Coca-Cola Lon 320ml, Mì Hảo Hảo..." 
+                                   required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('productName')}" th:errors="*{productName}">Tên sản phẩm không hợp lệ</div>
+                        </div>
+
+                        <!-- Barcode -->
+                        <div class="col-md-6 mb-3">
+                            <label for="barcode" class="form-label">Mã vạch chính (Barcode) <span class="text-muted">(Duy nhất)</span></label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="barcode" 
+                                   th:field="*{barcode}" 
+                                   th:classappend="${#fields.hasErrors('barcode')} ? 'is-invalid' : ''" 
+                                   placeholder="Nhập mã vạch sản phẩm gốc">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('barcode')}" th:errors="*{barcode}">Mã vạch trùng lặp hoặc không hợp lệ</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Category ID Selector -->
+                        <div class="col-md-6 mb-3">
+                            <label for="categoryId" class="form-label">Ngành hàng <span class="text-danger">*</span></label>
+                            <select id="categoryId" 
+                                    class="form-select" 
+                                    th:field="*{categoryId}"
+                                    th:classappend="${#fields.hasErrors('categoryId')} ? 'is-invalid' : ''"
+                                    required>
+                                <option value="">-- Chọn ngành hàng --</option>
+                                <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}">Vui lòng chọn ngành hàng</div>
+                        </div>
+
+                        <!-- Standard Price -->
+                        <div class="col-md-6 mb-3">
+                            <label for="standardPrice" class="form-label">Giá bán tiêu chuẩn (đ) <span class="text-danger">*</span></label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="standardPrice" 
+                                   th:field="*{standardPrice}" 
+                                   th:classappend="${#fields.hasErrors('standardPrice')} ? 'is-invalid' : ''" 
+                                   min="0" 
+                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                                   placeholder="0"
+                                   required>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('standardPrice')}" th:errors="*{standardPrice}">Giá bán không hợp lệ</div>
+                        </div>
+                    </div>
+
+                    <!-- Default Supplier Selector -->
+                    <div class="mb-3">
+                        <label for="defaultSupplierId" class="form-label">Nhà cung cấp mặc định</label>
+                        <select id="defaultSupplierId" 
                                 class="form-select" 
-                                th:field="*{categoryId}"
-                                th:classappend="${#fields.hasErrors('categoryId')} ? 'is-invalid' : ''"
-                                required>
-                            <option value="">-- Chọn ngành hàng --</option>
-                            <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}"></option>
+                                th:field="*{defaultSupplierId}">
+                            <option value="">-- Chọn nhà cung cấp --</option>
+                            <option th:each="sup : ${suppliers}" th:value="${sup.supplierId}" th:text="${sup.supplierName}"></option>
                         </select>
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}">Vui lòng chọn ngành hàng</div>
                     </div>
 
-                    <!-- Standard Price -->
-                    <div class="col-md-6 mb-3">
-                        <label for="standardPrice" class="form-label">Giá bán tiêu chuẩn (đ) <span class="text-danger">*</span></label>
-                        <input type="number" 
-                               class="form-control" 
-                               id="standardPrice" 
-                               th:field="*{standardPrice}" 
-                               th:classappend="${#fields.hasErrors('standardPrice')} ? 'is-invalid' : ''" 
-                               min="0" 
-                               onkeypress="return event.charCode >= 48 && event.charCode <= 57"
-                               placeholder="0"
-                               required>
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('standardPrice')}" th:errors="*{standardPrice}">Giá bán không hợp lệ</div>
-                    </div>
-                </div>
-
-                <!-- Default Supplier Selector -->
-                <div class="mb-3">
-                    <label for="defaultSupplierId" class="form-label">Nhà cung cấp mặc định</label>
-                    <select id="defaultSupplierId" 
-                            class="form-select" 
-                            th:field="*{defaultSupplierId}">
-                        <option value="">-- Chọn nhà cung cấp --</option>
-                        <option th:each="sup : ${suppliers}" th:value="${sup.supplierId}" th:text="${sup.supplierName}"></option>
-                    </select>
-                </div>
-
-                <!-- Description -->
-                <div class="mb-3">
-                    <label for="description" class="form-label">Mô tả sản phẩm</label>
-                    <textarea class="form-control" 
-                              id="description" 
-                              th:field="*{description}" 
-                              rows="2" 
-                              placeholder="Mô tả sản phẩm..."></textarea>
-                </div>
-
-                <!-- UOM Section -->
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label font-weight-bold mb-0">DANH SÁCH ĐƠN VỊ TÍNH (UOM) <span class="text-danger">*</span></label>
-                        <button type="button" class="btn btn-sm btn-outline-info" id="add-uom-btn" style="width: auto;">Thêm Đơn vị quy đổi</button>
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Mô tả sản phẩm</label>
+                        <textarea class="form-control" 
+                                  id="description" 
+                                  th:field="*{description}" 
+                                  rows="2" 
+                                  placeholder="Mô tả sản phẩm..."></textarea>
                     </div>
 
-                    <!-- Validation error on the list itself -->
-                    <div th:if="${#fields.hasErrors('uoms')}" class="alert alert-danger p-2 mb-2 fs-6">
-                        <ul class="mb-0 ps-3">
-                            <li th:each="err : ${#fields.errors('uoms')}" th:text="${err}">Lỗi đơn vị tính</li>
-                        </ul>
+                    <!-- UOM Section -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label font-weight-bold mb-0">DANH SÁCH ĐƠN VỊ TÍNH (UOM) <span class="text-danger">*</span></label>
+                            <button type="button" class="btn btn-sm btn-outline-info" id="add-uom-btn" style="width: auto;">Thêm Đơn vị quy đổi</button>
+                        </div>
+
+                        <!-- Validation error on the list itself -->
+                        <div th:if="${#fields.hasErrors('uoms')}" class="alert alert-danger p-2 mb-2 fs-6">
+                            <ul class="mb-0 ps-3">
+                                <li th:each="err : ${#fields.errors('uoms')}" th:text="${err}">Lỗi đơn vị tính</li>
+                            </ul>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-dark align-middle" id="uoms-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tên Đơn vị <span class="text-danger">*</span></th>
+                                        <th class="text-center" style="width: 100px;">Base Unit</th>
+                                        <th style="width: 130px;">Tỷ lệ quy đổi <span class="text-danger">*</span></th>
+                                        <th>Mã vạch (Barcode)</th>
+                                        <th style="width: 150px;">Giá bán (đ) <span class="text-danger">*</span></th>
+                                        <th style="width: 130px;">Trạng thái</th>
+                                        <th class="text-center" style="width: 60px;">Xóa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="uoms-tbody">
+                                    <tr th:each="uom, stat : *{uoms}" th:id="'uom-row-' + ${stat.index}">
+                                        <td>
+                                            <input type="hidden" th:field="*{uoms[__${stat.index}__].id}">
+                                            <input type="text" 
+                                                   th:field="*{uoms[__${stat.index}__].uomName}" 
+                                                   class="form-control form-control-sm" 
+                                                   placeholder="Ví dụ: Lon, Chai..." 
+                                                   required>
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" 
+                                                   class="form-check-input base-unit-chk" 
+                                                   th:checked="${uom.isBaseUnit}"
+                                                   disabled>
+                                            <input type="hidden" 
+                                                   th:name="'uoms[' + ${stat.index} + '].isBaseUnit'" 
+                                                   th:value="${uom.isBaseUnit}">
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   th:field="*{uoms[__${stat.index}__].conversionRate}" 
+                                                   class="form-control form-control-sm conversion-rate-input" 
+                                                   min="1" 
+                                                   th:readonly="${stat.index == 0}" 
+                                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57" 
+                                                   placeholder="1"
+                                                   required>
+                                        </td>
+                                        <td>
+                                            <input type="text" 
+                                                   th:field="*{uoms[__${stat.index}__].barcode}" 
+                                                   class="form-control form-control-sm" 
+                                                   placeholder="Mã vạch đơn vị">
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   th:field="*{uoms[__${stat.index}__].standardPrice}" 
+                                                   class="form-control form-control-sm" 
+                                                   min="0" 
+                                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57" 
+                                                   placeholder="0" 
+                                                   required>
+                                        </td>
+                                        <td>
+                                            <select th:field="*{uoms[__${stat.index}__].status}" class="form-select form-select-sm">
+                                                <option value="ACTIVE">ACTIVE</option>
+                                                <option value="INACTIVE">INACTIVE</option>
+                                            </select>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger remove-uom-btn" 
+                                                    th:disabled="${stat.index == 0}" 
+                                                    th:onclick="'removeRow(' + ${stat.index} + ')'">X</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-dark align-middle" id="uoms-table">
-                            <thead>
-                                <tr>
-                                    <th>Tên Đơn vị <span class="text-danger">*</span></th>
-                                    <th class="text-center" style="width: 100px;">Base Unit</th>
-                                    <th style="width: 130px;">Tỷ lệ quy đổi <span class="text-danger">*</span></th>
-                                    <th>Mã vạch (Barcode)</th>
-                                    <th style="width: 150px;">Giá bán (đ) <span class="text-danger">*</span></th>
-                                    <th style="width: 130px;">Trạng thái</th>
-                                    <th class="text-center" style="width: 60px;">Xóa</th>
-                                </tr>
-                            </thead>
-                            <tbody id="uoms-tbody">
-                                <tr th:each="uom, stat : *{uoms}" th:id="'uom-row-' + ${stat.index}">
-                                    <td>
-                                        <input type="hidden" th:field="*{uoms[__${stat.index}__].id}">
-                                        <input type="text" 
-                                               th:field="*{uoms[__${stat.index}__].uomName}" 
-                                               class="form-control form-control-sm" 
-                                               placeholder="Ví dụ: Lon, Chai..." 
-                                               required>
-                                    </td>
-                                    <td class="text-center">
-                                        <input type="checkbox" 
-                                               class="form-check-input base-unit-chk" 
-                                               th:checked="${uom.isBaseUnit}"
-                                               disabled>
-                                        <input type="hidden" 
-                                               th:name="'uoms[' + ${stat.index} + '].isBaseUnit'" 
-                                               th:value="${uom.isBaseUnit}">
-                                    </td>
-                                    <td>
-                                        <input type="number" 
-                                               th:field="*{uoms[__${stat.index}__].conversionRate}" 
-                                               class="form-control form-control-sm conversion-rate-input" 
-                                               min="1" 
-                                               th:readonly="${stat.index == 0}" 
-                                               onkeypress="return event.charCode >= 48 && event.charCode <= 57" 
-                                               placeholder="1"
-                                               required>
-                                    </td>
-                                    <td>
-                                        <input type="text" 
-                                               th:field="*{uoms[__${stat.index}__].barcode}" 
-                                               class="form-control form-control-sm" 
-                                               placeholder="Mã vạch đơn vị">
-                                    </td>
-                                    <td>
-                                        <input type="number" 
-                                               th:field="*{uoms[__${stat.index}__].standardPrice}" 
-                                               class="form-control form-control-sm" 
-                                               min="0" 
-                                               onkeypress="return event.charCode >= 48 && event.charCode <= 57" 
-                                               placeholder="0" 
-                                               required>
-                                    </td>
-                                    <td>
-                                        <select th:field="*{uoms[__${stat.index}__].status}" class="form-select form-select-sm">
-                                            <option value="ACTIVE">ACTIVE</option>
-                                            <option value="INACTIVE">INACTIVE</option>
-                                        </select>
-                                    </td>
-                                    <td class="text-center">
-                                        <button type="button" 
-                                                class="btn btn-sm btn-outline-danger remove-uom-btn" 
-                                                th:disabled="${stat.index == 0}" 
-                                                th:onclick="'removeRow(' + ${stat.index} + ')'">X</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/admin/products}" class="btn btn-secondary w-50">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-primary w-50" th:text="${isEdit ? 'Cập nhật' : 'Thêm mới'}">Thêm mới</button>
                     </div>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <a th:href="@{/admin/products}" class="btn btn-secondary w-50">Hủy bỏ</a>
-                    <button type="submit" class="btn btn-primary w-50" th:text="${isEdit ? 'Cập nhật' : 'Thêm mới'}">Thêm mới</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-    
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Vanilla JS Dynamic Rows Management -->
-    <script>
-        document.getElementById('add-uom-btn').addEventListener('click', function() {
-            const tbody = document.getElementById('uoms-tbody');
-            const nextIndex = tbody.children.length;
-            
-            const tr = document.createElement('tr');
-            tr.id = 'uom-row-' + nextIndex;
-            
-            tr.innerHTML = `
-                <td>
-                    <input type="text" name="uoms[${nextIndex}].uomName" class="form-control form-control-sm" placeholder="Ví dụ: Thùng, Hộp..." required>
-                </td>
-                <td class="text-center">
-                    <input type="checkbox" class="form-check-input base-unit-chk" disabled>
-                    <input type="hidden" name="uoms[${nextIndex}].isBaseUnit" value="false">
-                </td>
-                <td>
-                    <input type="number" name="uoms[${nextIndex}].conversionRate" class="form-control form-control-sm conversion-rate-input" min="2" onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="Tỉ lệ > 1" required>
-                </td>
-                <td>
-                    <input type="text" name="uoms[${nextIndex}].barcode" class="form-control form-control-sm" placeholder="Mã vạch đơn vị">
-                </td>
-                <td>
-                    <input type="number" name="uoms[${nextIndex}].standardPrice" class="form-control form-control-sm" min="0" onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="0" required>
-                </td>
-                <td>
-                    <select name="uoms[${nextIndex}].status" class="form-select form-select-sm">
-                        <option value="ACTIVE">ACTIVE</option>
-                        <option value="INACTIVE">INACTIVE</option>
-                    </select>
-                </td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline-danger remove-uom-btn" onclick="removeRow(${nextIndex})">X</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 
-        function removeRow(index) {
-            const tr = document.getElementById('uom-row-' + index);
-            if (tr) {
-                tr.remove();
-                reindexRows();
-            }
+<!-- Vanilla JS Dynamic Rows Management -->
+<script>
+    document.getElementById('add-uom-btn').addEventListener('click', function() {
+        const tbody = document.getElementById('uoms-tbody');
+        const nextIndex = tbody.children.length;
+        
+        const tr = document.createElement('tr');
+        tr.id = 'uom-row-' + nextIndex;
+        
+        tr.innerHTML = `
+            <td>
+                <input type="text" name="uoms[\${nextIndex}].uomName" class="form-control form-control-sm" placeholder="Ví dụ: Thùng, Hộp..." required>
+            </td>
+            <td class="text-center">
+                <input type="checkbox" class="form-check-input base-unit-chk" disabled>
+                <input type="hidden" name="uoms[\${nextIndex}].isBaseUnit" value="false">
+            </td>
+            <td>
+                <input type="number" name="uoms[\${nextIndex}].conversionRate" class="form-control form-control-sm conversion-rate-input" min="2" onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="Tỉ lệ > 1" required>
+            </td>
+            <td>
+                <input type="text" name="uoms[\${nextIndex}].barcode" class="form-control form-control-sm" placeholder="Mã vạch đơn vị">
+            </td>
+            <td>
+                <input type="number" name="uoms[\${nextIndex}].standardPrice" class="form-control form-control-sm" min="0" onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="0" required>
+            </td>
+            <td>
+                <select name="uoms[\${nextIndex}].status" class="form-select form-select-sm">
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="INACTIVE">INACTIVE</option>
+                </select>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-uom-btn" onclick="removeRow(\${nextIndex})">X</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    function removeRow(index) {
+        const tr = document.getElementById('uom-row-' + index);
+        if (tr) {
+            tr.remove();
+            reindexRows();
         }
+    }
 
-        function reindexRows() {
-            const tbody = document.getElementById('uoms-tbody');
-            const rows = tbody.querySelectorAll('tr');
+    function reindexRows() {
+        const tbody = document.getElementById('uoms-tbody');
+        const rows = tbody.querySelectorAll('tr');
+        
+        rows.forEach((row, index) => {
+            row.id = 'uom-row-' + index;
             
-            rows.forEach((row, index) => {
-                row.id = 'uom-row-' + index;
+            // Update names of inputs
+            row.querySelectorAll('input, select, button').forEach(el => {
+                if (el.name) {
+                    el.name = el.name.replace(/uoms\[\d+\]/, 'uoms[' + index + ']');
+                }
+                if (el.id) {
+                    el.id = el.id.replace(/uoms\d+\./, 'uoms' + index + '.');
+                }
                 
-                // Update names of inputs
-                row.querySelectorAll('input, select, button').forEach(el => {
-                    if (el.name) {
-                        el.name = el.name.replace(/uoms\[\d+\]/, 'uoms[' + index + ']');
+                // Specific locks for Row 0 (Base Unit)
+                if (index === 0) {
+                    if (el.classCheck === 'base-unit-chk' || el.classList.contains('base-unit-chk')) {
+                        el.checked = true;
                     }
-                    if (el.id) {
-                        el.id = el.id.replace(/uoms\d+\./, 'uoms' + index + '.');
+                    if (el.type === 'hidden' && el.name.endsWith('.isBaseUnit')) {
+                        el.value = 'true';
                     }
-                    
-                    // Specific locks for Row 0 (Base Unit)
-                    if (index === 0) {
-                        if (el.classList.contains('base-unit-chk')) {
-                            el.checked = true;
-                        }
-                        if (el.type === 'hidden' && el.name.endsWith('.isBaseUnit')) {
-                            el.value = 'true';
-                        }
-                        if (el.classList.contains('conversion-rate-input')) {
-                            el.readOnly = true;
-                            el.value = 1;
-                        }
-                        if (el.classList.contains('remove-uom-btn')) {
-                            el.disabled = true;
-                            el.removeAttribute('onclick');
-                        }
-                    } else {
-                        if (el.classList.contains('base-unit-chk')) {
-                            el.checked = false;
-                        }
-                        if (el.type === 'hidden' && el.name.endsWith('.isBaseUnit')) {
-                            el.value = 'false';
-                        }
-                        if (el.classList.contains('conversion-rate-input')) {
-                            el.readOnly = false;
-                        }
-                        if (el.classList.contains('remove-uom-btn')) {
-                            el.disabled = false;
-                            el.setAttribute('onclick', 'removeRow(' + index + ')');
-                        }
+                    if (el.classList.contains('conversion-rate-input')) {
+                        el.readOnly = true;
+                        el.value = 1;
                     }
-                });
+                    if (el.classList.contains('remove-uom-btn')) {
+                        el.disabled = true;
+                        el.removeAttribute('onclick');
+                    }
+                } else {
+                    if (el.classCheck === 'base-unit-chk' || el.classList.contains('base-unit-chk')) {
+                        el.checked = false;
+                    }
+                    if (el.type === 'hidden' && el.name.endsWith('.isBaseUnit')) {
+                        el.value = 'false';
+                    }
+                    if (el.classList.contains('conversion-rate-input')) {
+                        el.readOnly = false;
+                    }
+                    if (el.classList.contains('remove-uom-btn')) {
+                        el.disabled = false;
+                        el.setAttribute('onclick', 'removeRow(' + index + ')');
+                    }
+                }
             });
-        }
-    </script>
+        });
+    }
+</script>
 </body>
 </html>

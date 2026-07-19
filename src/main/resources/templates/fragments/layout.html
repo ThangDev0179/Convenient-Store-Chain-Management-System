@@ -74,6 +74,11 @@
                 <i class="fa-solid fa-gauge-high"></i> Dashboard
             </a>
 
+            <div class="sidebar-section-label">Quản lý hệ thống</div>
+            <a th:href="@{/admin/products}" class="sidebar-link" th:classappend="${activePage == 'products'} ? 'active'">
+                <i class="fa-solid fa-box-open"></i> Sản phẩm
+            </a>
+
             <div class="sidebar-section-label">Mua hàng & Kho</div>
             <a th:href="@{/manager/purchase-orders}" class="sidebar-link" th:classappend="${activePage == 'po'} ? 'active'">
                 <i class="fa-solid fa-file-invoice"></i> Đơn đặt hàng

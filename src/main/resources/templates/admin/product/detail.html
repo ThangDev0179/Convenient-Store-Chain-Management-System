@@ -1,162 +1,161 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi tiết sản phẩm - Hệ thống bán lẻ</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <style>
-        .detail-card {
-            background: rgba(17, 24, 39, 0.55);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            padding: 40px;
-            backdrop-filter: blur(16px);
-            color: var(--text-primary);
-        }
-        .detail-item {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 15px 0;
-        }
-        .detail-label {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .detail-value {
-            font-weight: 600;
-        }
-        .table-dark {
-            --bs-table-bg: rgba(15, 23, 42, 0.6);
-            --bs-table-border-color: var(--card-border);
-        }
-    </style>
-</head>
-<body class="d-flex align-items-center justify-content-center" style="min-height: 100vh; padding: 40px 0;">
-    <div class="container" style="max-width: 850px;">
-        <div class="detail-card">
-            <div class="mb-4 d-flex justify-content-between align-items-start">
-                <div>
-                    <h1 class="h3 font-weight-bold mb-1" style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                        CHI TIẾT SẢN PHẨM
-                    </h1>
-                    <p class="text-muted mb-0">Xem thông tin sản phẩm gốc và nhật ký vận hành</p>
-                </div>
-                <div>
-                    <span th:if="${product.status.name() == 'Active'}" class="badge bg-success px-3 py-2 fs-6">Đang bán</span>
-                    <span th:if="${product.status.name() == 'Inactive'}" class="badge bg-danger px-3 py-2 fs-6">Ngừng bán</span>
-                </div>
-            </div>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Chi tiết sản phẩm')}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('products')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Chi tiết sản phẩm')}"></div>
+        <div class="page-content">
+            <style>
+                .detail-card {
+                    background: rgba(17, 24, 39, 0.55);
+                    border: 1px solid var(--card-border);
+                    border-radius: 20px;
+                    padding: 40px;
+                    backdrop-filter: blur(16px);
+                    color: var(--text-primary);
+                }
+                .detail-item {
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                    padding: 15px 0;
+                }
+                .detail-label {
+                    color: var(--text-secondary);
+                    font-size: 0.85rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+                .detail-value {
+                    font-weight: 600;
+                }
+                .table-dark {
+                    --bs-table-bg: rgba(15, 23, 42, 0.6);
+                    --bs-table-border-color: var(--card-border);
+                }
+            </style>
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="row">
-                        <div class="col-md-6 detail-item">
-                            <div class="detail-label">Mã SKU</div>
-                            <div class="detail-value text-info fs-5" th:text="${product.sku}">SKU-0001</div>
-                        </div>
-                        <div class="col-md-6 detail-item">
-                            <div class="detail-label">Mã vạch (Barcode)</div>
-                            <div class="detail-value fs-5" th:text="${product.barcode != null ? product.barcode : 'N/A'}">Barcode</div>
-                        </div>
+            <div class="detail-card">
+                <div class="mb-4 d-flex justify-content-between align-items-start">
+                    <div>
+                        <h1 class="h3 font-weight-bold mb-1" style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            CHI TIẾT SẢN PHẨM
+                        </h1>
+                        <p class="text-muted mb-0">Xem thông tin sản phẩm gốc và nhật ký vận hành</p>
                     </div>
-
-                    <div class="detail-item">
-                        <div class="detail-label">Tên sản phẩm</div>
-                        <div class="detail-value fs-4" th:text="${product.productName}">Tên sản phẩm</div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 detail-item">
-                            <div class="detail-label">Danh mục ngành hàng</div>
-                            <div class="detail-value" th:text="${product.categoryName}">Ngành hàng</div>
-                        </div>
-                        <div class="col-md-6 detail-item">
-                            <div class="detail-label">Giá bán tiêu chuẩn</div>
-                            <div class="detail-value text-warning fs-5" th:text="${#numbers.formatDecimal(product.standardPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">10,000 đ</div>
-                        </div>
-                    </div>
-
-                    <div class="detail-item">
-                        <div class="detail-label">Nhà cung cấp mặc định</div>
-                        <div class="detail-value" th:text="${product.defaultSupplierName != null ? product.defaultSupplierName : 'Chưa chỉ định'}">Nhà cung cấp</div>
+                    <div>
+                        <span th:if="${product.status.name() == 'Active'}" class="badge bg-success px-3 py-2 fs-6">Đang bán</span>
+                        <span th:if="${product.status.name() == 'Inactive'}" class="badge bg-danger px-3 py-2 fs-6">Ngừng bán</span>
                     </div>
                 </div>
-            </div>
 
-            <div class="detail-item">
-                <div class="detail-label">Mô tả sản phẩm</div>
-                <div class="detail-value font-weight-normal text-muted" th:text="${product.description != null ? product.description : 'Không có mô tả cho sản phẩm này.'}">Mô tả</div>
-            </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-md-6 detail-item">
+                                <div class="detail-label">Mã SKU</div>
+                                <div class="detail-value text-info fs-5" th:text="${product.sku}">SKU-0001</div>
+                            </div>
+                            <div class="col-md-6 detail-item">
+                                <div class="detail-label">Mã vạch (Barcode)</div>
+                                <div class="detail-value fs-5" th:text="${product.barcode != null ? product.barcode : 'N/A'}">Barcode</div>
+                            </div>
+                        </div>
 
-            <!-- UOM List -->
-            <div class="mt-4 mb-2">
-                <div class="detail-label mb-2">Danh sách đơn vị tính (UOM)</div>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-dark align-middle">
-                        <thead>
-                            <tr>
-                                <th>Tên Đơn vị</th>
-                                <th class="text-center" style="width: 120px;">Đơn vị cơ sở</th>
-                                <th class="text-center" style="width: 130px;">Tỷ lệ quy đổi</th>
-                                <th>Mã vạch (Barcode)</th>
-                                <th>Giá bán tiêu chuẩn</th>
-                                <th style="width: 120px;">Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="u : ${product.uoms}">
-                                <td th:text="${u.uomName}" class="font-weight-bold text-info">Lon</td>
-                                <td class="text-center">
-                                    <span th:if="${u.isBaseUnit}" class="badge bg-success">Cơ sở (Base)</span>
-                                    <span th:if="${!u.isBaseUnit}" class="text-muted">-</span>
-                                </td>
-                                <td class="text-center font-weight-bold" th:text="${u.conversionRate}">1</td>
-                                <td th:text="${u.barcode != null ? u.barcode : '-'}">-</td>
-                                <td th:text="${#numbers.formatDecimal(u.standardPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">10,000 đ</td>
-                                <td th:text="${u.status}">ACTIVE</td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(product.uoms)}">
-                                <td colspan="6" class="text-center text-muted">Chưa cấu hình đơn vị tính cho sản phẩm này.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Tên sản phẩm</div>
+                            <div class="detail-value fs-4" th:text="${product.productName}">Tên sản phẩm</div>
+                        </div>
 
-            <!-- Audit Trail -->
-            <div class="row mt-3">
-                <div class="col-md-6 detail-item">
-                    <div class="detail-label">Người tạo</div>
-                    <div class="detail-value" th:text="${product.createdBy != null ? product.createdBy : 'Hệ thống'}">system</div>
-                </div>
-                <div class="col-md-6 detail-item">
-                    <div class="detail-label">Thời gian tạo</div>
-                    <div class="detail-value" th:text="${product.createdAt != null ? #temporals.format(product.createdAt, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}">N/A</div>
-                </div>
-            </div>
+                        <div class="row">
+                            <div class="col-md-6 detail-item">
+                                <div class="detail-label">Danh mục ngành hàng</div>
+                                <div class="detail-value" th:text="${product.categoryName}">Ngành hàng</div>
+                            </div>
+                            <div class="col-md-6 detail-item">
+                                <div class="detail-label">Giá bán tiêu chuẩn</div>
+                                <div class="detail-value text-warning fs-5" th:text="${#numbers.formatDecimal(product.standardPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">10,000 đ</div>
+                            </div>
+                        </div>
 
-            <div class="row">
-                <div class="col-md-6 detail-item">
-                    <div class="detail-label">Người cập nhật cuối</div>
-                    <div class="detail-value" th:text="${product.updatedBy != null ? product.updatedBy : 'Chưa cập nhật'}">N/A</div>
+                        <div class="detail-item">
+                            <div class="detail-label">Nhà cung cấp mặc định</div>
+                            <div class="detail-value" th:text="${product.defaultSupplierName != null ? product.defaultSupplierName : 'Chưa chỉ định'}">Nhà cung cấp</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6 detail-item">
-                    <div class="detail-label">Thời gian cập nhật</div>
-                    <div class="detail-value" th:text="${product.updatedAt != null ? #temporals.format(product.updatedAt, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}">N/A</div>
-                </div>
-            </div>
 
-            <div class="mt-4">
-                <a th:href="@{/admin/products}" class="btn btn-secondary w-100">Quay lại danh sách</a>
+                <div class="detail-item">
+                    <div class="detail-label">Mô tả sản phẩm</div>
+                    <div class="detail-value font-weight-normal text-muted" th:text="${product.description != null ? product.description : 'Không có mô tả cho sản phẩm này.'}">Mô tả</div>
+                </div>
+
+                <!-- UOM List -->
+                <div class="mt-4 mb-2">
+                    <div class="detail-label mb-2">Danh sách đơn vị tính (UOM)</div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-dark align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Tên Đơn vị</th>
+                                    <th class="text-center" style="width: 120px;">Đơn vị cơ sở</th>
+                                    <th class="text-center" style="width: 130px;">Tỷ lệ quy đổi</th>
+                                    <th>Mã vạch (Barcode)</th>
+                                    <th>Giá bán tiêu chuẩn</th>
+                                    <th style="width: 120px;">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="u : ${product.uoms}">
+                                    <td th:text="${u.uomName}" class="font-weight-bold text-info">Lon</td>
+                                    <td class="text-center">
+                                        <span th:if="${u.isBaseUnit}" class="badge bg-success">Cơ sở (Base)</span>
+                                        <span th:if="${!u.isBaseUnit}" class="text-muted">-</span>
+                                    </td>
+                                    <td class="text-center font-weight-bold" th:text="${u.conversionRate}">1</td>
+                                    <td th:text="${u.barcode != null ? u.barcode : '-'}">-</td>
+                                    <td th:text="${#numbers.formatDecimal(u.standardPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">10,000 đ</td>
+                                    <td th:text="${u.status}">ACTIVE</td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(product.uoms)}">
+                                    <td colspan="6" class="text-center text-muted py-4">Chưa cấu hình đơn vị tính cho sản phẩm này.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Audit Trail -->
+                <div class="row mt-3">
+                    <div class="col-md-6 detail-item">
+                        <div class="detail-label">Người tạo</div>
+                        <div class="detail-value" th:text="${product.createdBy != null ? product.createdBy : 'Hệ thống'}">system</div>
+                    </div>
+                    <div class="col-md-6 detail-item">
+                        <div class="detail-label">Thời gian tạo</div>
+                        <div class="detail-value" th:text="${product.createdAt != null ? #temporals.format(product.createdAt, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}">N/A</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 detail-item">
+                        <div class="detail-label">Người cập nhật cuối</div>
+                        <div class="detail-value" th:text="${product.updatedBy != null ? product.updatedBy : 'Chưa cập nhật'}">N/A</div>
+                    </div>
+                    <div class="col-md-6 detail-item">
+                        <div class="detail-label">Thời gian cập nhật</div>
+                        <div class="detail-value" th:text="${product.updatedAt != null ? #temporals.format(product.updatedAt, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}">N/A</div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a th:href="@{/admin/products}" class="btn btn-secondary w-100">Quay lại danh sách</a>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>
