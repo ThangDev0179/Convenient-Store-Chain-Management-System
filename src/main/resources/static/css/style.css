@@ -62,6 +62,19 @@
     --transition-fast: 0.15s ease;
     --transition-base: 0.25s ease;
     --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Bootstrap Core Variable Overrides to Prevent Black Text and Light Backgrounds */
+    --bs-body-bg: #0c0e1a;
+    --bs-body-color: #f1f5f9;
+    --bs-card-bg: rgba(17, 20, 39, 0.65);
+    --bs-card-color: #f1f5f9;
+    --bs-modal-bg: #111427;
+    --bs-modal-color: #f1f5f9;
+    --bs-border-color: rgba(255, 255, 255, 0.06);
+    --bs-heading-color: #e2e8f0;
+    --bs-tertiary-color: #64748b;
+    --bs-secondary-color: #94a3b8;
+    --bs-secondary-bg: rgba(17, 20, 39, 0.65);
 }
 
 /* ========================================
@@ -1257,17 +1270,41 @@ a:hover {
     border-radius: var(--radius-lg);
     padding: 28px;
 }
-
 /* ========================================
    MISC OVERRIDES for Bootstrap compat
    ======================================== */
 .table { color: var(--text-primary); --bs-table-bg: transparent; }
-.table > :not(caption) > * > * { background-color: transparent; color: var(--text-primary); border-bottom-color: rgba(255,255,255,0.03); }
-.modal-content { background: var(--bg-sidebar); border: 1px solid var(--border-subtle); color: var(--text-primary); }
-.modal-header { border-bottom-color: var(--border-subtle); }
-.modal-footer { border-top-color: var(--border-subtle); }
-.card { background: var(--bg-card); border-color: var(--border-subtle); color: var(--text-primary); }
-.card-header { background: rgba(255,255,255,0.02); border-bottom-color: var(--border-subtle); color: var(--text-primary); }
-.list-group-item { background: transparent; border-color: var(--border-subtle); color: var(--text-primary); }
-.container, .container-fluid { color: var(--text-primary); }
-.table-bordered > :not(caption) > * > * { border-color: var(--border-subtle); }
+.table > :not(caption) > * > * { background-color: transparent; color: var(--text-primary) !important; border-bottom-color: rgba(255,255,255,0.03); }
+.modal-content { background: var(--bg-sidebar) !important; border: 1px solid var(--border-subtle) !important; color: var(--text-primary) !important; }
+.modal-header { border-bottom-color: var(--border-subtle) !important; }
+.modal-footer { border-top-color: var(--border-subtle) !important; }
+.card { background: var(--bg-card) !important; border-color: var(--border-subtle) !important; color: var(--text-primary) !important; }
+.card-header { background: rgba(255,255,255,0.02) !important; border-bottom-color: var(--border-subtle) !important; color: var(--text-primary) !important; }
+.list-group-item { background: transparent !important; border-color: var(--border-subtle) !important; color: var(--text-primary) !important; }
+.container, .container-fluid { color: var(--text-primary) !important; }
+.table-bordered > :not(caption) > * > * { border-color: var(--border-subtle) !important; }
+
+/* Global Override to Prevent Bootstrap from rendering text as black */
+.text-dark:not(.btn-warning):not(.btn-info):not(.badge) {
+    color: var(--text-primary) !important;
+}
+.text-black {
+    color: var(--text-primary) !important;
+}
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+textarea.form-control {
+    background: var(--bg-input) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-input) !important;
+}
+
+option {
+    background-color: var(--bg-sidebar) !important;
+    color: var(--text-primary) !important;
+}
