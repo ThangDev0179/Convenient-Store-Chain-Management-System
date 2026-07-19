@@ -74,16 +74,16 @@
                             <span class="fw-medium" th:text="${detail.product.productName}"></span><br/>
                             <small class="text-muted">ID: <span th:text="${detail.product.productId}"></span></small>
                         </td>
-                        <td class="text-center" th:text="${detail.systemQty}"></td>
-                        <td class="text-center fw-bold" th:text="${detail.actualQty}"></td>
+                        <td class="text-center" th:text="${detail.systemQty.stripTrailingZeros().toPlainString()}"></td>
+                        <td class="text-center fw-bold" th:text="${detail.actualQty.stripTrailingZeros().toPlainString()}"></td>
                         <td class="text-center fw-bold">
                             <span th:if="${detail.actualQty.subtract(detail.systemQty).compareTo(T(java.math.BigDecimal).ZERO) < 0}" 
                                   class="text-danger">
-                                <i class="bi bi-arrow-down"></i> [[${detail.actualQty.subtract(detail.systemQty)}]]
+                                <i class="bi bi-arrow-down"></i> [[${detail.actualQty.subtract(detail.systemQty).stripTrailingZeros().toPlainString()}]]
                             </span>
                             <span th:if="${detail.actualQty.subtract(detail.systemQty).compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
                                   class="text-success">
-                                <i class="bi bi-arrow-up"></i> +[[${detail.actualQty.subtract(detail.systemQty)}]]
+                                <i class="bi bi-arrow-up"></i> +[[${detail.actualQty.subtract(detail.systemQty).stripTrailingZeros().toPlainString()}]]
                             </span>
                             <span th:if="${detail.actualQty.subtract(detail.systemQty).compareTo(T(java.math.BigDecimal).ZERO) == 0}" 
                                   class="text-secondary">0</span>
