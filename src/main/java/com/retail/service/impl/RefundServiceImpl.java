@@ -100,15 +100,21 @@ public class RefundServiceImpl implements RefundService {
         Map<Long, InvoiceDetail> soldMap = invoice.getDetails().stream()
                 .collect(Collectors.toMap(InvoiceDetail::getProductId, d -> d));
 
-        List<RefundDetail> details = request.items().stream().map(item -> {
+        // BUG FIX: Prevent duplicate products in the same refund request to avoid double-processing
+        Set<Long> processedIds = new HashSet<>();
+        List<RefundDetail> details = new ArrayList<>();
+        for (var item : request.items()) {
+            if (!processedIds.add(item.productId())) {
+                throw new BusinessRuleViolationException("DUPLICATE_PRODUCT", "Duplicate product ID in refund request: " + item.productId());
+            }
             InvoiceDetail soldDetail = soldMap.get(item.productId());
-            return RefundDetail.builder()
+            details.add(RefundDetail.builder()
                     .productId(item.productId())
                     .quantity(item.quantity())
                     .conditionType(item.conditionType())
                     .unitRefundAmount(soldDetail.getUnitPrice())
-                    .build();
-        }).collect(Collectors.toList());
+                    .build());
+        }
 
         BigDecimal total = details.stream()
                 .map(d -> d.getUnitRefundAmount().multiply(d.getQuantity()))
@@ -283,7 +289,11 @@ public class RefundServiceImpl implements RefundService {
             refund.setApprovedBy(resolveCurrentEmployee().getEmployeeId());
         }
 
-        for (RefundDetail detail : refund.getDetails()) {
+        // BUG FIX: Sort details by productId to prevent database deadlocks on concurrent transactions
+        List<RefundDetail> sortedDetails = new ArrayList<>(refund.getDetails());
+        sortedDetails.sort(Comparator.comparing(RefundDetail::getProductId));
+
+        for (RefundDetail detail : sortedDetails) {
             BranchInventoryId invKey = new BranchInventoryId(refund.getBranchId(), detail.getProductId());
             BranchInventory inventory = entityManager.find(
                     BranchInventory.class, invKey, LockModeType.PESSIMISTIC_WRITE);

@@ -153,6 +153,10 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @Transactional
     public InvoiceResponse addItem(Long invoiceId, AddInvoiceItemRequest request) {
+        if (request.quantity() == null || request.quantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessRuleViolationException("INVALID_QUANTITY", "Quantity must be greater than zero");
+        }
+
         Invoice invoice = loadEditableInvoice(invoiceId);
         Product product = productRepo.findById(request.productId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product", request.productId()));
@@ -191,6 +195,10 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     @Transactional
     public InvoiceResponse updateItem(Long invoiceId, Long detailId, UpdateInvoiceItemRequest request) {
+        if (request.quantity() == null || request.quantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessRuleViolationException("INVALID_QUANTITY", "Quantity must be greater than zero");
+        }
+
         Invoice invoice = loadEditableInvoice(invoiceId);
         InvoiceDetail detail = invoice.getDetails().stream()
                 .filter(d -> d.getInvoiceDetailId().equals(detailId))
@@ -254,7 +262,11 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoice.setPaidAt(now);
 
         // Rule #1: Stock check and update with single PESSIMISTIC_WRITE lock
-        for (InvoiceDetail detail : invoice.getDetails()) {
+        // BUG FIX: Sort details by productId to prevent database deadlocks on concurrent transactions
+        List<InvoiceDetail> sortedDetails = new ArrayList<>(invoice.getDetails());
+        sortedDetails.sort(Comparator.comparing(InvoiceDetail::getProductId));
+
+        for (InvoiceDetail detail : sortedDetails) {
             BranchInventoryId invKey = new BranchInventoryId(invoice.getBranchId(), detail.getProductId());
             BranchInventory inventory = entityManager.find(
                     BranchInventory.class, invKey, LockModeType.PESSIMISTIC_WRITE);
