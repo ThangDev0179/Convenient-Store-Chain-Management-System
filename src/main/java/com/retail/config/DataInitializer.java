@@ -132,6 +132,40 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Username: staff / Password: 123456 (Role: STAFF)");
         }
 
+        // Đảm bảo không bị vi phạm Unique Constraint ManagerId = NULL trên SQL Server
+        java.util.List<Branch> currentBranches = branchRepository.findAll();
+        Branch branch1 = currentBranches.stream().filter(b -> "BR001".equals(b.getBranchCode())).findFirst().orElse(null);
+        Branch branch2 = currentBranches.stream().filter(b -> "BR002".equals(b.getBranchCode())).findFirst().orElse(null);
+
+        if (branch1 != null && branch1.getManager() == null) {
+            employeeRepository.findByUsername("manager").ifPresent(mgr -> {
+                branch1.setManager(mgr);
+                branchRepository.save(branch1);
+            });
+        }
+
+        if (branch2 != null && branch2.getManager() == null) {
+            Employee mgr2 = employeeRepository.findByUsername("manager2").orElse(null);
+            if (mgr2 == null) {
+                Role roleManager = roleRepository.findByRoleCode(RoleCode.MANAGER).orElseThrow();
+                mgr2 = Employee.builder()
+                        .employeeCode("NV-2026-9996")
+                        .username("manager2")
+                        .passwordHash(passwordEncoder.encode("123456"))
+                        .fullName("Test Manager 2")
+                        .email("manager2@test.com")
+                        .phone("0123456789")
+                        .role(roleManager)
+                        .branch(branch2)
+                        .status(EmployeeStatus.Active)
+                        .forceChangePassword(false)
+                        .build();
+                mgr2 = employeeRepository.save(mgr2);
+            }
+            branch2.setManager(mgr2);
+            branchRepository.save(branch2);
+        }
+
         // 4. Khởi tạo Sản phẩm và Tồn kho mẫu
         if (productRepository.count() == 0) {
             log.info("Creating default products and inventory...");
