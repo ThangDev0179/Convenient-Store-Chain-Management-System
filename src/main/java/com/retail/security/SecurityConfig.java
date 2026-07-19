@@ -18,6 +18,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -78,6 +79,10 @@ public class SecurityConfig {
                 .requestMatchers("/manager/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers("/staff/shift/**").hasAnyRole("STAFF", "MANAGER", "ADMIN")
                 .requestMatchers("/staff/**").hasAnyRole("STAFF", "MANAGER", "ADMIN")
+                // POS Module: all authenticated roles; fine-grained access via @PreAuthorize
+                .requestMatchers("/pos/**").hasAnyRole("STAFF", "MANAGER", "ADMIN")
+                // Refund Module: approve/reject endpoints also guard by @PreAuthorize(MANAGER/ADMIN)
+                .requestMatchers("/refunds/**").hasAnyRole("STAFF", "MANAGER", "ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
