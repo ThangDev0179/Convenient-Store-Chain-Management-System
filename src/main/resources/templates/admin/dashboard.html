@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ thống Quản lý Bán lẻ - Admin Dashboard</title>
+    <title>Hß╗ç thß╗æng Quß║ún l├╜ B├ín lß║╗ - Admin Dashboard</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
@@ -204,7 +204,7 @@
             <div>
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <span class="d-inline-block" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 10px #10b981;"></span>
-                    <small class="text-secondary text-uppercase font-weight-bold" style="font-size: 0.72rem; letter-spacing: 0.05em;">Hệ thống Trung tâm Connected</small>
+                    <small class="text-secondary text-uppercase font-weight-bold" style="font-size: 0.72rem; letter-spacing: 0.05em;">Hß╗ç thß╗æng Trung t├óm Connected</small>
                 </div>
                 <h1 class="h3 mb-0 font-weight-bold" style="font-family: 'Outfit', sans-serif; font-weight: 800; background: linear-gradient(135deg, #a5b4fc 0%, #e0a7ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                     Convenience Store Chain Control
@@ -217,12 +217,12 @@
                         A
                     </div>
                     <div class="text-start">
-                        <small class="text-secondary block" style="font-size: 0.78rem;">Chào mừng,</small>
-                        <strong class="d-block" style="font-size: 0.9rem;" th:text="${employee != null ? employee.fullName : 'Quản trị viên'}">Admin</strong>
+                        <small class="text-secondary block" style="font-size: 0.78rem;">Ch├áo mß╗½ng,</small>
+                        <strong class="d-block" style="font-size: 0.9rem;" th:text="${employee != null ? employee.fullName : 'Quß║ún trß╗ï vi├¬n'}">Admin</strong>
                     </div>
                 </div>
                 <form th:action="@{/logout}" method="post" class="d-inline">
-                    <button type="submit" class="btn btn-secondary py-2 px-3" style="border-radius: 10px; font-size: 0.85rem;">Đăng xuất</button>
+                    <button type="submit" class="btn btn-secondary py-2 px-3" style="border-radius: 10px; font-size: 0.85rem;">─É─âng xuß║Ñt</button>
                 </form>
             </div>
         </div>
@@ -232,7 +232,7 @@
             <!-- Active Stores -->
             <div class="metric-tile tile-branch">
                 <div class="metric-info">
-                    <span class="metric-title-lbl">Chi nhánh hoạt động</span>
+                    <span class="metric-title-lbl">Chi nh├ính hoß║ít ─æß╗Öng</span>
                     <span class="metric-value" th:text="${stats.totalBranches}">1</span>
                 </div>
                 <div class="metric-icon-wrapper">
@@ -246,7 +246,7 @@
             <!-- Active Staff -->
             <div class="metric-tile tile-staff">
                 <div class="metric-info">
-                    <span class="metric-title-lbl">Nhân viên hệ thống</span>
+                    <span class="metric-title-lbl">Nh├ón vi├¬n hß╗ç thß╗æng</span>
                     <span class="metric-value" th:text="${stats.totalEmployees}">2</span>
                 </div>
                 <div class="metric-icon-wrapper">
@@ -260,7 +260,7 @@
             <!-- Live Shifts -->
             <div class="metric-tile tile-shifts">
                 <div class="metric-info">
-                    <span class="metric-title-lbl">Ca trực đang mở</span>
+                    <span class="metric-title-lbl">Ca trß╗▒c ─æang mß╗ƒ</span>
                     <span class="metric-value" th:text="${stats.openShiftsCount}">0</span>
                 </div>
                 <div class="metric-icon-wrapper">
@@ -274,8 +274,8 @@
             <!-- Daily Revenue -->
             <div class="metric-tile tile-revenue">
                 <div class="metric-info">
-                    <span class="metric-title-lbl">Doanh thu hôm nay</span>
-                    <span class="metric-value" th:text="${#numbers.formatDecimal(stats.todayRevenue, 1, 'DEFAULT', 0, 'DEFAULT') + ' đ'}">0 đ</span>
+                    <span class="metric-title-lbl">Doanh thu h├┤m nay</span>
+                    <span class="metric-value" th:text="${#numbers.formatDecimal(stats.todayRevenue, 1, 'DEFAULT', 0, 'DEFAULT') + ' ─æ'}">0 ─æ</span>
                 </div>
                 <div class="metric-icon-wrapper">
                     <!-- Revenue/Coin SVG Icon -->
@@ -291,7 +291,7 @@
             <div class="col-lg-8">
                 <!-- Operations Panel -->
                 <div class="mb-4">
-                    <h2 class="h6 text-secondary mb-3 text-uppercase font-weight-bold" style="letter-spacing: 0.05em;">Lối tắt Vận hành Cửa hàng</h2>
+                    <h2 class="h6 text-secondary mb-3 text-uppercase font-weight-bold" style="letter-spacing: 0.05em;">Lß╗æi tß║»t Vß║¡n h├ánh Cß╗¡a h├áng</h2>
                     <div class="ops-button-grid">
                         
                         <!-- Checkin POS -->
@@ -301,7 +301,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                 </svg>
                             </div>
-                            <span class="ops-tile-text">Bán hàng POS & Bàn giao</span>
+                            <span class="ops-tile-text">B├ín h├áng POS & B├án giao</span>
                         </a>
 
                         <!-- Schedule Management -->
@@ -311,7 +311,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             </div>
-                            <span class="ops-tile-text">Phân lịch Ca làm việc</span>
+                            <span class="ops-tile-text">Ph├ón lß╗ïch Ca l├ám viß╗çc</span>
                         </a>
 
                         <!-- Cash Reconciliation -->
@@ -321,7 +321,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                                 </svg>
                             </div>
-                            <span class="ops-tile-text">Đối soát Ca & Tiền két</span>
+                            <span class="ops-tile-text">─Éß╗æi so├ít Ca & Tiß╗ün k├⌐t</span>
                         </a>
 
                         <!-- Branch Manager -->
@@ -331,7 +331,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
                             </div>
-                            <span class="ops-tile-text">Quản lý Chi nhánh</span>
+                            <span class="ops-tile-text">Quß║ún l├╜ Chi nh├ính</span>
                         </a>
 
                         <!-- Employee Manager -->
@@ -341,7 +341,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
                             </div>
-                            <span class="ops-tile-text">Danh sách Nhân sự</span>
+                            <span class="ops-tile-text">Danh s├ích Nh├ón sß╗▒</span>
                         </a>
 
                         <!-- Stock Transfer -->
@@ -351,7 +351,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                 </svg>
                             </div>
-                            <span class="ops-tile-text">Điều chuyển kho</span>
+                            <span class="ops-tile-text">─Éiß╗üu chuyß╗ân kho</span>
                         </a>
 
                         <!-- Stock Disposal -->
@@ -361,7 +361,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                             </div>
-                            <span class="ops-tile-text">Xuất hủy hàng</span>
+                            <span class="ops-tile-text">Xuß║Ñt hß╗ºy h├áng</span>
                         </a>
 
                         <!-- Inventory & Loss Reports -->
@@ -371,7 +371,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                 </svg>
                             </div>
-                            <span class="ops-tile-text">Báo cáo Kho & Hao hụt</span>
+                            <span class="ops-tile-text">B├ío c├ío Kho & Hao hß╗Ñt</span>
                         </a>
 
                         <!-- Settings / Profile -->
@@ -381,7 +381,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                                 </svg>
                             </div>
-                            <span class="ops-tile-text">Đổi Mật khẩu bảo mật</span>
+                            <span class="ops-tile-text">─Éß╗òi Mß║¡t khß║⌐u bß║úo mß║¡t</span>
                         </a>
                     </div>
                 </div>
@@ -389,7 +389,7 @@
                 <!-- Branch Sales Comparison Chart -->
                 <div class="chart-card-wrapper">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h2 class="h6 text-secondary mb-0 text-uppercase font-weight-bold" style="letter-spacing: 0.05em;">So sánh doanh số chi nhánh hôm nay</h2>
+                        <h2 class="h6 text-secondary mb-0 text-uppercase font-weight-bold" style="letter-spacing: 0.05em;">So s├ính doanh sß╗æ chi nh├ính h├┤m nay</h2>
                         <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-2 py-1" style="font-size: 0.72rem;">Live data</span>
                     </div>
                     <div style="position: relative; height: 260px; width: 100%;">
@@ -408,7 +408,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                        Log vận hành Live
+                        Log vß║¡n h├ánh Live
                     </h3>
                     <div class="d-flex flex-column">
                         <div th:each="note, iterStat : ${stats.recentNotifications}" 
@@ -424,16 +424,16 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </span>
-                            <span th:text="${note}">Thông báo vận hành</span>
+                            <span th:text="${note}">Th├┤ng b├ío vß║¡n h├ánh</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Admin Profile Details plate -->
                 <div class="dashboard-user-info p-4">
-                    <h3 class="h6 text-secondary mb-3 text-uppercase font-weight-bold" style="letter-spacing: 0.05em;">Hồ sơ Vận hành viên</h3>
+                    <h3 class="h6 text-secondary mb-3 text-uppercase font-weight-bold" style="letter-spacing: 0.05em;">Hß╗ô s╞í Vß║¡n h├ánh vi├¬n</h3>
                     <div class="info-item border-0 py-1">
-                        <span class="info-label">Mã số:</span>
+                        <span class="info-label">M├ú sß╗æ:</span>
                         <span class="info-value text-info" th:text="${employee != null ? employee.employeeCode : 'N/A'}">NV-2026-0001</span>
                     </div>
                     <div class="info-item border-0 py-1">
@@ -441,14 +441,14 @@
                         <span class="info-value" th:text="${employee != null ? employee.username : 'N/A'}">admin</span>
                     </div>
                     <div class="info-item border-0 py-1">
-                        <span class="info-label">Nhóm quyền:</span>
+                        <span class="info-label">Nh├│m quyß╗ün:</span>
                         <span>
                             <span class="badge-role" th:text="${employee != null ? employee.role.roleName : 'Administrator'}">ADMIN</span>
                         </span>
                     </div>
                     <div class="info-item border-0 py-1">
-                        <span class="info-label">Cửa hàng:</span>
-                        <span class="info-value" th:text="${employee != null && employee.branch != null ? employee.branch.branchName : 'Tổng bộ điều hành'}">HQ</span>
+                        <span class="info-label">Cß╗¡a h├áng:</span>
+                        <span class="info-value" th:text="${employee != null && employee.branch != null ? employee.branch.branchName : 'Tß╗òng bß╗Ö ─æiß╗üu h├ánh'}">HQ</span>
                     </div>
                 </div>
             </div>
@@ -468,9 +468,9 @@
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Quận 1 - Đinh Tiên Hoàng', 'Quận 3 - Nguyễn Thị Minh Khai', 'Bình Thạnh - Điện Biên Phủ', 'Thủ Đức - Võ Văn Ngân', 'Gò Vấp - Quang Trung'],
+                    labels: ['Quß║¡n 1 - ─Éinh Ti├¬n Ho├áng', 'Quß║¡n 3 - Nguyß╗àn Thß╗ï Minh Khai', 'B├¼nh Thß║ính - ─Éiß╗çn Bi├¬n Phß╗º', 'Thß╗º ─Éß╗⌐c - V├╡ V─ân Ng├ón', 'G├▓ Vß║Ñp - Quang Trung'],
                     datasets: [{
-                        label: 'Doanh số hôm nay (VND)',
+                        label: 'Doanh sß╗æ h├┤m nay (VND)',
                         data: [12500000, 8900000, 16200000, 4800000, 9500000],
                         backgroundColor: chartGlow,
                         borderColor: '#6366f1',
@@ -530,7 +530,7 @@
                             callbacks: {
                                 label: function(context) {
                                     let val = context.raw;
-                                    return 'Doanh thu: ' + val.toLocaleString('vi-VN') + ' đ';
+                                    return 'Doanh thu: ' + val.toLocaleString('vi-VN') + ' ─æ';
                                 }
                             }
                         }
