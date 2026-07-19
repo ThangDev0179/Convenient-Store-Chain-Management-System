@@ -24,7 +24,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Lý do hủy hàng</label>
-                    <input type="text" th:field="*{reason}" class="form-control" placeholder="Nhập lý do chi tiết"/>
+                    <input type="text" th:field="*{reason}" class="form-control" placeholder="Nhập lý do chi tiết" maxlength="200"/>
                 </div>
             </div>
         </div>
@@ -50,7 +50,7 @@
                         <tr>
                             <td><input type="number" name="details[0].productId" class="form-control" placeholder="ID" required/></td>
                             <td><input type="number" name="details[0].quantityDisposed" step="0.001" min="0.001" class="form-control" placeholder="SL" required/></td>
-                            <td><input type="text" name="details[0].note" class="form-control" placeholder="Ghi chú thêm"/></td>
+                            <td><input type="text" name="details[0].note" class="form-control" placeholder="Ghi chú thêm" maxlength="200"/></td>
                             <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)"><i class="bi bi-trash"></i></button></td>
                         </tr>
                     </tbody>
@@ -74,7 +74,7 @@
         row.innerHTML = `
             <td><input type="number" name="details[${rowIndex}].productId" class="form-control" placeholder="ID" required/></td>
             <td><input type="number" name="details[${rowIndex}].quantityDisposed" step="0.001" min="0.001" class="form-control" placeholder="SL" required/></td>
-            <td><input type="text" name="details[${rowIndex}].note" class="form-control" placeholder="Ghi chú thêm"/></td>
+            <td><input type="text" name="details[${rowIndex}].note" class="form-control" placeholder="Ghi chú thêm" maxlength="200"/></td>
             <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)"><i class="bi bi-trash"></i></button></td>
         `;
         tbody.appendChild(row);
