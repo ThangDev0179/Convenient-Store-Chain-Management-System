@@ -58,7 +58,7 @@
                     <table class="table-glass align-middle w-100">
                         <thead>
                             <tr>
-                                <th>Hình Ảnh</th>
+
                                 <th>Mã SKU</th>
                                 <th>Tên Sản Phẩm</th>
                                 <th>Ngành Hàng</th>
@@ -70,11 +70,7 @@
                         </thead>
                         <tbody>
                             <tr th:each="item : ${inventoryPage.content}" th:classappend="${item.qtyOnHand.compareTo(5.0) < 0} ? 'low-stock'">
-                                <td>
-                                    <div class="bg-dark rounded d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
-                                        <i class="fa-solid fa-box text-indigo h5 mb-0"></i>
-                                    </div>
-                                </td>
+
                                 <td class="font-weight-bold text-light" th:text="${item.productSku}"></td>
                                 <td>
                                     <span class="font-weight-bold text-light" th:text="${item.productName}"></span>
@@ -94,7 +90,7 @@
                                 <td th:text="${item.updatedAt != null ? #temporals.format(item.updatedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(inventoryPage.content)}">
-                                <td colspan="8" class="text-center text-muted py-4">Không tìm thấy bản ghi tồn kho nào hợp lệ.</td>
+                                <td colspan="7" class="text-center text-muted py-4">Không tìm thấy bản ghi tồn kho nào hợp lệ.</td>
                             </tr>
                         </tbody>
                     </table>
