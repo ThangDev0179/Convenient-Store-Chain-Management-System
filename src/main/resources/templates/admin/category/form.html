@@ -1,29 +1,21 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${isEdit ? 'Chỉnh sửa danh mục' : 'Thêm mới danh mục'} + ' - Hệ thống bán lẻ'">Form danh mục</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <style>
-        .auth-body-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 40px 0;
-        }
-    </style>
-</head>
-<body class="auth-body-container">
-    <div class="auth-wrapper" style="max-width: 650px;">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1 class="auth-title" th:text="${isEdit ? 'Chỉnh sửa ngành hàng' : 'Thêm ngành hàng mới'}">Thêm ngành hàng</h1>
-                <p class="auth-subtitle" th:text="${isEdit ? 'Cập nhật thông tin chi tiết của danh mục ngành hàng' : 'Nhập thông tin để tạo mới danh mục ngành hàng'}">Mô tả</p>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${isEdit ? 'Chỉnh sửa ngành hàng' : 'Thêm mới ngành hàng'})}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('categories')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar(${isEdit ? 'Chỉnh sửa ngành hàng' : 'Thêm mới ngành hàng'})}"></div>
+        <div class="page-content">
+            <div class="dashboard-header">
+                <div>
+                    <h1 class="page-heading" th:text="${isEdit ? 'CHỈNH SỬA NGÀNH HÀNG' : 'THÊM NGÀNH HÀNG MỚI'}">Thêm ngành hàng</h1>
+                    <small class="text-muted" th:text="${isEdit ? 'Cập nhật thông tin chi tiết của danh mục ngành hàng' : 'Nhập thông tin để tạo mới danh mục ngành hàng'}">Mô tả</small>
+                </div>
+                <div>
+                    <a th:href="@{/admin/categories}" class="btn btn-secondary">Hủy bỏ</a>
+                </div>
             </div>
 
             <!-- General error message alert -->
@@ -31,101 +23,102 @@
                 <span th:text="${error}">Dữ liệu nhập vào không hợp lệ</span>
             </div>
 
-            <form th:action="${isEdit} ? @{/admin/categories/edit/{id}(id=${categoryId})} : @{/admin/categories/create}" 
-                  th:object="${category}" 
-                  method="post">
-                
-                <!-- Category ID (disabled read-only view on Edit mode) -->
-                <div th:if="${isEdit}" class="mb-3">
-                    <label class="form-label text-muted">Mã ngành hàng</label>
-                    <input type="text" class="form-control" th:value="${'CAT-' + categoryId}" disabled>
-                </div>
+            <div class="form-card">
+                <form th:action="${isEdit} ? @{/admin/categories/edit/{id}(id=${categoryId})} : @{/admin/categories/create}" 
+                      th:object="${category}" 
+                      method="post">
+                    
+                    <!-- Category ID (disabled read-only view on Edit mode) -->
+                    <div th:if="${isEdit}" class="mb-3">
+                        <label class="form-label text-muted">Mã ngành hàng</label>
+                        <input type="text" class="form-control" th:value="${'CAT-' + categoryId}" disabled>
+                    </div>
 
-                <!-- Category Name -->
-                <div class="mb-3">
-                    <label for="categoryName" class="form-label">Tên danh mục ngành hàng <span class="text-danger">*</span></label>
-                    <input type="text" 
-                           class="form-control" 
-                           id="categoryName" 
-                           th:field="*{categoryName}" 
-                           th:classappend="${#fields.hasErrors('categoryName')} ? 'is-invalid' : ''" 
-                           placeholder="Ví dụ: Đồ uống, Thực phẩm đóng hộp..." 
-                           required>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('categoryName')}" th:errors="*{categoryName}">Tên danh mục không hợp lệ</div>
-                </div>
+                    <!-- Category Name -->
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Tên danh mục ngành hàng <span class="text-danger">*</span></label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="categoryName" 
+                               th:field="*{categoryName}" 
+                               th:classappend="${#fields.hasErrors('categoryName')} ? 'is-invalid' : ''" 
+                               placeholder="Ví dụ: Đồ uống, Thực phẩm đóng hộp..." 
+                               required>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('categoryName')}" th:errors="*{categoryName}">Tên danh mục không hợp lệ</div>
+                    </div>
 
-                <!-- SKU Prefix -->
-                <div class="mb-4">
-                    <label for="skuPrefix" class="form-label">Mã ngành hàng (Tiền tố SKU) <span class="text-danger">*</span></label>
-                    <input type="text" 
-                           class="form-control text-uppercase" 
-                           id="skuPrefix" 
-                           th:field="*{skuPrefix}" 
-                           th:classappend="${#fields.hasErrors('skuPrefix')} ? 'is-invalid' : ''" 
-                           placeholder="Ví dụ: DU, TP (Tối đa 5 ký tự in hoa/số)" 
-                           required>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('skuPrefix')}" th:errors="*{skuPrefix}">Mã ngành hàng không hợp lệ</div>
-                    <small class="text-muted d-block mt-1" style="font-size: 0.78rem;">Hệ thống tự động gợi ý mã ngành hàng bằng cách lấy các chữ cái đầu từ Tên ngành hàng. Bạn có thể sửa đổi theo ý muốn.</small>
-                </div>
+                    <!-- SKU Prefix -->
+                    <div class="mb-4">
+                        <label for="skuPrefix" class="form-label">Mã ngành hàng (Tiền tố SKU) <span class="text-danger">*</span></label>
+                        <input type="text" 
+                               class="form-control text-uppercase" 
+                               id="skuPrefix" 
+                               th:field="*{skuPrefix}" 
+                               th:classappend="${#fields.hasErrors('skuPrefix')} ? 'is-invalid' : ''" 
+                               placeholder="Ví dụ: DU, TP (Tối đa 5 ký tự in hoa/số)" 
+                               required>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('skuPrefix')}" th:errors="*{skuPrefix}">Mã ngành hàng không hợp lệ</div>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.78rem;">Hệ thống tự động gợi ý mã ngành hàng bằng cách lấy các chữ cái đầu từ Tên ngành hàng. Bạn có thể sửa đổi theo ý muốn.</small>
+                    </div>
 
-                <!-- Submit and Cancel Buttons -->
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-50" th:text="${isEdit ? 'Lưu thay đổi' : 'Tạo ngành hàng'}">Xác nhận</button>
-                    <a th:href="@{/admin/categories}" class="btn btn-secondary w-50 d-flex align-items-center justify-content-center" style="margin-top: 15px;">Hủy bỏ</a>
-                </div>
-            </form>
+                    <!-- Submit and Cancel Buttons -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" style="width: auto;" th:text="${isEdit ? 'Lưu thay đổi' : 'Tạo ngành hàng'}">Xác nhận</button>
+                        <a th:href="@{/admin/categories}" class="btn btn-secondary">Hủy bỏ</a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS to Suggest Sku Prefix from Category Name -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const nameField = document.getElementById('categoryName');
+        const prefixField = document.getElementById('skuPrefix');
 
-    <!-- Custom JS to Suggest Sku Prefix from Category Name -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const nameField = document.getElementById('categoryName');
-            const prefixField = document.getElementById('skuPrefix');
+        // If we are editing, mark prefix as manually edited so auto-suggest doesn't overwrite it
+        if (prefixField.value.trim().length > 0) {
+            prefixField.dataset.manual = "true";
+        }
 
-            // If we are editing, mark prefix as manually edited so auto-suggest doesn't overwrite it
-            if (prefixField.value.trim().length > 0) {
-                prefixField.dataset.manual = "true";
+        function removeAccents(str) {
+            return str.normalize('NFD')
+                      .replace(/[\u0300-\u036f]/g, '')
+                      .replace(/đ/g, 'd')
+                      .replace(/Đ/g, 'D');
+        }
+
+        nameField.addEventListener('input', function() {
+            if (prefixField.dataset.manual === "true") {
+                return; // Skip if user has typed manually
             }
 
-            function removeAccents(str) {
-                return str.normalize('NFD')
-                          .replace(/[\u0300-\u036f]/g, '')
-                          .replace(/đ/g, 'd')
-                          .replace(/Đ/g, 'D');
-            }
-
-            nameField.addEventListener('input', function() {
-                if (prefixField.dataset.manual === "true") {
-                    return; // Skip if user has typed manually
-                }
-
-                const name = this.value;
-                const cleanName = removeAccents(name);
-                const words = cleanName.trim().split(/\s+/);
-                
-                let initials = '';
-                for (let i = 0; i < words.length; i++) {
-                    if (words[i].length > 0) {
-                        const char = words[i].charAt(0).toUpperCase();
-                        if (/[A-Z0-9]/.test(char)) {
-                            initials += char;
-                        }
+            const name = this.value;
+            const cleanName = removeAccents(name);
+            const words = cleanName.trim().split(/\s+/);
+            
+            let initials = '';
+            for (let i = 0; i < words.length; i++) {
+                if (words[i].length > 0) {
+                    const char = words[i].charAt(0).toUpperCase();
+                    if (/[A-Z0-9]/.test(char)) {
+                        initials += char;
                     }
                 }
-                
-                // Limit to 5 characters max
-                initials = initials.substring(0, 5);
-                prefixField.value = initials;
-            });
-
-            prefixField.addEventListener('input', function() {
-                this.dataset.manual = "true"; // User typed in the prefix field manually
-            });
+            }
+            
+            // Limit to 5 characters max
+            initials = initials.substring(0, 5);
+            prefixField.value = initials;
         });
-    </script>
+
+        prefixField.addEventListener('input', function() {
+            this.dataset.manual = "true"; // User typed in the prefix field manually
+        });
+    });
+</script>
 </body>
 </html>

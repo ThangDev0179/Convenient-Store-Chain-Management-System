@@ -1,147 +1,136 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${isEdit} ? 'Chỉnh sửa Khuyến mãi' : 'Thêm Khuyến mãi mới'">Form Khuyến mãi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <style>
-        .dashboard-container { max-width: 1100px; }
-        .form-label { color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-        .form-control, .form-select { background-color: rgba(15,23,42,0.6) !important; border: 1px solid var(--card-border) !important; color: var(--text-primary) !important; }
-        .form-control:focus, .form-select:focus { box-shadow: 0 0 0 2px rgba(99,102,241,0.3) !important; border-color: #6366f1 !important; }
-        .form-control::placeholder { color: var(--text-secondary) !important; }
-        .detail-table th { color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; }
-        .detail-table td { vertical-align: middle; }
-        .invalid-feedback { display: block; }
-        .error-badge { background: rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:8px 14px; font-size:0.875rem; }
-    </style>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${isEdit ? 'Chỉnh sửa Khuyến mãi' : 'Thêm Khuyến mãi mới'})}"></head>
 <body>
-<div class="dashboard-container my-5">
-    <div class="dashboard-header mb-4">
-        <div>
-            <h1 class="h3 mb-0"
-                style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
-                th:text="${isEdit} ? 'Chỉnh sửa Khuyến mãi' : 'Thêm Khuyến mãi Mới'">Form</h1>
-            <small class="text-muted">Điền thông tin và danh sách sản phẩm áp dụng</small>
-        </div>
-        <a th:href="@{/admin/promotions}" class="btn btn-secondary">Quay lại danh sách</a>
-    </div>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('promotions')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar(${isEdit ? 'Chỉnh sửa Khuyến mãi' : 'Thêm Khuyến mãi mới'})}"></div>
+        <div class="page-content">
+            <style>
+                .error-badge { background: rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:8px 14px; font-size:0.875rem; }
+            </style>
 
-    <!-- Lỗi chi tiết sản phẩm -->
-    <div th:if="${detailError}" class="error-badge mb-3">
-        ⚠ <span th:text="${detailError}"></span>
-    </div>
-    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-
-    <form th:action="${isEdit} ? @{/admin/promotions/edit/{id}(id=${promotionId})} : @{/admin/promotions/create}"
-          method="post" th:object="${promotion}">
-
-        <div class="card mb-4" style="background:rgba(15,23,42,0.6);border:1px solid var(--card-border);border-radius:12px;">
-            <div class="card-body p-4">
-                <h6 class="text-info mb-3">📋 Thông tin chương trình</h6>
-
-                <!-- Tên khuyến mãi -->
-                <div class="mb-3">
-                    <label class="form-label">Tên chương trình khuyến mãi <span class="text-danger">*</span></label>
-                    <input type="text" th:field="*{promotionName}"
-                           class="form-control" th:classappend="${#fields.hasErrors('promotionName')} ? 'is-invalid'"
-                           placeholder="VD: Khuyến mãi hè 2025">
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('promotionName')}"
-                         th:errors="*{promotionName}"></div>
+            <div class="dashboard-header">
+                <div>
+                    <h1 class="page-heading" th:text="${isEdit ? 'CHỈNH SỬA KHUYẾN MÃI' : 'THÊM KHUYẾN MÃI MỚI'}">Thêm Khuyến mãi</h1>
+                    <small class="text-muted">Điền thông tin và danh sách sản phẩm áp dụng</small>
                 </div>
-
-                <div class="row g-3">
-                    <!-- Ngày bắt đầu -->
-                    <div class="col-md-6">
-                        <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
-                        <input type="datetime-local" th:field="*{startDateTime}"
-                               class="form-control" th:classappend="${#fields.hasErrors('startDateTime')} ? 'is-invalid'">
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('startDateTime')}"
-                             th:errors="*{startDateTime}"></div>
-                    </div>
-                    <!-- Ngày kết thúc -->
-                    <div class="col-md-6">
-                        <label class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
-                        <input type="datetime-local" th:field="*{endDateTime}"
-                               class="form-control" th:classappend="${#fields.hasErrors('endDateTime')} ? 'is-invalid'">
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('endDateTime')}"
-                             th:errors="*{endDateTime}"></div>
-                    </div>
+                <div>
+                    <a th:href="@{/admin/promotions}" class="btn btn-secondary">Hủy bỏ</a>
                 </div>
             </div>
-        </div>
 
-        <!-- Danh sách sản phẩm áp dụng -->
-        <div class="card mb-4" style="background:rgba(15,23,42,0.6);border:1px solid var(--card-border);border-radius:12px;">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="text-info mb-0">🛒 Danh sách Sản phẩm áp dụng</h6>
-                    <button type="button" id="add-detail-btn" class="btn btn-sm btn-outline-primary">+ Thêm sản phẩm</button>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table detail-table align-middle">
-                        <thead>
-                        <tr>
-                            <th style="width:40%;">Sản phẩm</th>
-                            <th style="width:20%;">Loại giảm giá</th>
-                            <th style="width:20%;">Giá trị giảm</th>
-                            <th class="text-center" style="width:10%;">Xóa</th>
-                        </tr>
-                        </thead>
-                        <tbody id="detail-tbody">
-                        <!-- Render existing rows (edit mode) -->
-                        <tr th:each="d, iter : *{details}" th:id="'detail-row-' + ${iter.index}">
-                            <td>
-                                <input type="hidden" th:name="'details[' + ${iter.index} + '].promotionDetailId'"
-                                       th:value="${d.promotionDetailId}">
-                                <select th:name="'details[' + ${iter.index} + '].productId'"
-                                        class="form-select form-select-sm" required>
-                                    <option value="">-- Chọn sản phẩm --</option>
-                                    <option th:each="prod : ${products}"
-                                            th:value="${prod.productId}"
-                                            th:text="${prod.sku + ' - ' + prod.productName}"
-                                            th:selected="${prod.productId == d.productId}"></option>
-                                </select>
-                            </td>
-                            <td>
-                                <select th:name="'details[' + ${iter.index} + '].discountType'"
-                                        class="form-select form-select-sm discount-type-select" required>
-                                    <option value="Percentage" th:selected="${d.discountType == 'Percentage'}">Phần trăm (%)</option>
-                                    <option value="FixedAmount" th:selected="${d.discountType == 'FixedAmount'}">Tiền mặt (đ)</option>
-                                </select>
-                            </td>
-                            <td>
-                                <input type="number" step="0.01" min="0.01"
-                                       th:name="'details[' + ${iter.index} + '].discountValue'"
-                                       th:value="${d.discountValue}"
-                                       class="form-control form-control-sm" placeholder="0" required>
-                            </td>
-                            <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                        th:onclick="'removeRow(' + ${iter.index} + ')'">X</button>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <small class="text-muted">* Mỗi sản phẩm chỉ được xuất hiện một lần trong chương trình.</small>
+            <!-- Lỗi chi tiết sản phẩm -->
+            <div th:if="${detailError}" class="error-badge mb-3">
+                ⚠ <span th:text="${detailError}"></span>
             </div>
-        </div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-        <!-- Nút hành động -->
-        <div class="d-flex gap-2">
-            <a th:href="@{/admin/promotions}" class="btn btn-secondary w-50">Hủy bỏ</a>
-            <button type="submit" class="btn btn-primary w-50"
-                    th:text="${isEdit} ? 'Cập nhật' : 'Tạo mới'">Tạo mới</button>
+            <form th:action="${isEdit} ? @{/admin/promotions/edit/{id}(id=${promotionId})} : @{/admin/promotions/create}"
+                  method="post" th:object="${promotion}">
+
+                <div class="form-card mb-4">
+                    <h6 class="text-info mb-3">📋 Thông tin chương trình</h6>
+
+                    <!-- Tên khuyến mãi -->
+                    <div class="mb-3">
+                        <label class="form-label">Tên chương trình khuyến mãi <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{promotionName}"
+                               class="form-control" th:classappend="${#fields.hasErrors('promotionName')} ? 'is-invalid'"
+                               placeholder="VD: Khuyến mãi hè 2025">
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('promotionName')}"
+                             th:errors="*{promotionName}"></div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Ngày bắt đầu -->
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                            <input type="datetime-local" th:field="*{startDateTime}"
+                                   class="form-control" th:classappend="${#fields.hasErrors('startDateTime')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('startDateTime')}"
+                                 th:errors="*{startDateTime}"></div>
+                        </div>
+                        <!-- Ngày kết thúc -->
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
+                            <input type="datetime-local" th:field="*{endDateTime}"
+                                   class="form-control" th:classappend="${#fields.hasErrors('endDateTime')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('endDateTime')}"
+                                 th:errors="*{endDateTime}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danh sách sản phẩm áp dụng -->
+                <div class="form-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-info mb-0">🛒 Danh sách Sản phẩm áp dụng</h6>
+                        <button type="button" id="add-detail-btn" class="btn btn-sm btn-outline-primary" style="width: auto;">+ Thêm sản phẩm</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table-glass align-middle">
+                            <thead>
+                            <tr>
+                                <th style="width:40%;">Sản phẩm</th>
+                                <th style="width:20%;">Loại giảm giá</th>
+                                <th style="width:20%;">Giá trị giảm</th>
+                                <th class="text-center" style="width:10%;">Xóa</th>
+                            </tr>
+                            </thead>
+                            <tbody id="detail-tbody">
+                            <!-- Render existing rows (edit mode) -->
+                            <tr th:each="d, iter : *{details}" th:id="'detail-row-' + ${iter.index}">
+                                <td>
+                                    <input type="hidden" th:name="'details[' + ${iter.index} + '].promotionDetailId'"
+                                           th:value="${d.promotionDetailId}">
+                                    <select th:name="'details[' + ${iter.index} + '].productId'"
+                                            class="form-select form-select-sm" required>
+                                        <option value="">-- Chọn sản phẩm --</option>
+                                        <option th:each="prod : ${products}"
+                                                th:value="${prod.productId}"
+                                                th:text="${prod.sku + ' - ' + prod.productName}"
+                                                th:selected="${prod.productId == d.productId}"></option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select th:name="'details[' + ${iter.index} + '].discountType'"
+                                            class="form-select form-select-sm discount-type-select" required>
+                                        <option value="Percentage" th:selected="${d.discountType == 'Percentage'}">Phần trăm (%)</option>
+                                        <option value="FixedAmount" th:selected="${d.discountType == 'FixedAmount'}">Tiền mặt (đ)</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" step="0.01" min="0.01"
+                                           th:name="'details[' + ${iter.index} + '].discountValue'"
+                                           th:value="${d.discountValue}"
+                                           class="form-control form-control-sm" placeholder="0" required>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            th:onclick="'removeRow(' + ${iter.index} + ')'">X</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <small class="text-muted d-block mt-2">* Mỗi sản phẩm chỉ được xuất hiện một lần trong chương trình.</small>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" style="width: auto;"
+                            th:text="${isEdit} ? 'Cập nhật' : 'Tạo mới'">Tạo mới</button>
+                    <a th:href="@{/admin/promotions}" class="btn btn-secondary">Hủy bỏ</a>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 <script th:inline="javascript">
     // Danh sách sản phẩm từ server để dùng trong JS
     const allProducts = /*[[${products}]]*/ [];

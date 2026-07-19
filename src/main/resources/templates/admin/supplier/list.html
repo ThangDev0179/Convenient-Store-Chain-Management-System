@@ -1,203 +1,162 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý nhà cung cấp - Hệ thống bán lẻ</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <style>
-        .dashboard-container {
-            max-width: 1200px;
-        }
-        .table {
-            color: var(--text-primary);
-        }
-        .table tbody tr {
-            border-bottom: 1px solid var(--card-border);
-            transition: background-color 0.2s ease;
-        }
-        .table tbody tr:hover {
-            background-color: rgba(255, 255, 255, 0.03);
-        }
-        .table th {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 2px solid var(--card-border);
-        }
-        .pagination .page-link {
-            background-color: rgba(15, 23, 42, 0.6);
-            border-color: var(--card-border);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
-        .pagination .page-link:hover {
-            background-color: var(--primary-glow);
-            border-color: var(--primary-glow);
-        }
-        .pagination .active .page-link {
-            background: var(--primary-gradient);
-            border-color: #6366f1;
-        }
-        .badge-active {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            color: #34d399;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            display: inline-block;
-            white-space: nowrap;
-        }
-        .badge-inactive {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #fca5a5;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            display: inline-block;
-            white-space: nowrap;
-        }
-    </style>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Quản lý nhà cung cấp')}"></head>
 <body>
-    <div class="dashboard-container my-5">
-        <div class="dashboard-header">
-            <div>
-                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    QUẢN LÝ NHÀ CUNG CẤP
-                </h1>
-                <small class="text-muted">Xem danh sách, thêm mới, sửa thông tin và tạm ngưng nhà cung cấp</small>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('suppliers')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Quản lý nhà cung cấp')}"></div>
+        <div class="page-content">
+            <style>
+                .badge-active {
+                    background: rgba(16, 185, 129, 0.2);
+                    border: 1px solid rgba(16, 185, 129, 0.4);
+                    color: #34d399;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    display: inline-block;
+                }
+                .badge-inactive {
+                    background: rgba(239, 68, 68, 0.2);
+                    border: 1px solid rgba(239, 68, 68, 0.4);
+                    color: #fca5a5;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    display: inline-block;
+                }
+            </style>
+
+            <div class="dashboard-header">
+                <div>
+                    <h1 class="page-heading">
+                        QUẢN LÝ NHÀ CUNG CẤP
+                    </h1>
+                    <small class="text-muted">Xem danh sách, thêm mới, sửa thông tin và tạm ngưng nhà cung cấp</small>
+                </div>
+                <div>
+                    <a th:href="@{/}" class="btn btn-secondary me-2">Quay lại Dashboard</a>
+                    <a th:href="@{/admin/suppliers/create}" class="btn btn-primary" style="width: auto;">Thêm nhà cung cấp mới</a>
+                </div>
             </div>
-            <div>
-                <a th:href="@{/}" class="btn btn-secondary me-2">Quay lại Dashboard</a>
-                <a th:href="@{/admin/suppliers/create}" class="btn btn-primary" style="width: auto;">Thêm nhà cung cấp mới</a>
+
+            <!-- Notifications -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Search and Filters Form -->
+            <div class="filter-bar mb-4">
+                <form th:action="@{/admin/suppliers}" method="get" class="row g-3">
+                    <!-- Text search -->
+                    <div class="col-md-5">
+                        <input type="text" name="search" th:value="${search}" class="form-control" placeholder="Tìm theo Tên hoặc Số điện thoại...">
+                    </div>
+                    <!-- Status Filter -->
+                    <div class="col-md-4">
+                        <select name="status" class="form-select">
+                            <option value="">Tất cả Trạng thái</option>
+                            <option th:each="st : ${T(com.retail.entity.SupplierStatus).values()}"
+                                    th:value="${st}"
+                                    th:text="${st == T(com.retail.entity.SupplierStatus).Active ? 'Đang hoạt động' : 'Ngưng hoạt động'}"
+                                    th:selected="${st == status}"></option>
+                        </select>
+                    </div>
+                    <!-- Submit Buttons -->
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-secondary px-3 w-50">Lọc</button>
+                        <a th:href="@{/admin/suppliers}" class="btn btn-outline-secondary px-3 w-50" style="border: 1px solid var(--border-subtle); color: var(--text-primary); text-decoration: none; display: flex; align-items: center; justify-content: center;">Xóa bộ lọc</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-glass">
+                <!-- Table Grid -->
+                <div class="table-responsive">
+                    <table class="table-glass align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Mã NCC</th>
+                                <th>Tên nhà cung cấp</th>
+                                <th>Số điện thoại</th>
+                                <th>Email liên hệ</th>
+                                <th>Địa chỉ</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                                <th class="text-center" style="width: 250px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="sup : ${suppliers}">
+                                <td class="text-info fw-bold" th:text="${'NCC-' + sup.supplierId}">NCC-1</td>
+                                <td th:text="${sup.supplierName}" class="fw-bold">Nhà cung cấp A</td>
+                                <td th:text="${sup.contactPhone != null ? sup.contactPhone : '-'}">0901234567</td>
+                                <td th:text="${sup.contactEmail != null ? sup.contactEmail : '-'}">email@example.com</td>
+                                <td th:text="${sup.address != null ? sup.address : '-'}">123 Đường ABC</td>
+                                <td>
+                                    <span th:if="${sup.status.name() == 'Active'}" class="badge-active">Hoạt động</span>
+                                    <span th:if="${sup.status.name() == 'Inactive'}" class="badge-inactive">Ngưng hoạt động</span>
+                                </td>
+                                <td th:text="${#temporals.format(sup.createdAt, 'dd/MM/yyyy HH:mm')}">18/07/2026</td>
+                                <td class="text-center">
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a th:href="@{/admin/suppliers/detail/{id}(id=${sup.supplierId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Chi tiết</a>
+                                        <a th:href="@{/admin/suppliers/edit/{id}(id=${sup.supplierId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--border-subtle);">Sửa</a>
+                                        
+                                        <!-- Soft Delete Action -->
+                                        <form th:if="${sup.status.name() == 'Active'}" th:action="@{/admin/suppliers/delete/{id}(id=${sup.supplierId})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn ngưng hoạt động nhà cung cấp này?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Xóa</button>
+                                        </form>
+                                        
+                                        <!-- Restore Action -->
+                                        <form th:if="${sup.status.name() == 'Inactive'}" th:action="@{/admin/suppliers/restore/{id}(id=${sup.supplierId})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn khôi phục hoạt động cho nhà cung cấp này?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius: 6px;">Khôi phục</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(suppliers)}">
+                                <td colspan="8" class="text-center text-muted py-4">Không tìm thấy nhà cung cấp nào phù hợp bộ lọc.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav th:if="${totalPages > 1}" class="d-flex justify-content-between align-items-center mt-4 p-3">
+                    <span class="text-muted" th:text="${totalItems == 0 ? 'Hiển thị 0 nhà cung cấp' : 'Hiển thị từ ' + (currentPage * size + 1) + ' đến ' + ((currentPage * size + size) > totalItems ? totalItems : (currentPage * size + size)) + ' trên tổng số ' + totalItems + ' nhà cung cấp'}"></span>
+                    <ul class="pagination mb-0">
+                        <!-- Button Before -->
+                        <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/suppliers(search=${search}, status=${status}, page=${currentPage - 1})}">Trước</a>
+                        </li>
+                        
+                        <!-- Page Numbers -->
+                        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item" th:classappend="${currentPage == i ? 'active' : ''}">
+                            <a class="page-link" th:href="@{/admin/suppliers(search=${search}, status=${status}, page=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        
+                        <!-- Button After -->
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/admin/suppliers(search=${search}, status=${status}, page=${currentPage + 1})}">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
-
-        <!-- Notifications -->
-        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${success}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <!-- Search and Filters Form -->
-        <div class="card bg-transparent border-0 mb-4">
-            <form th:action="@{/admin/suppliers}" method="get" class="row g-3">
-                <!-- Text search -->
-                <div class="col-md-5">
-                    <input type="text" name="search" th:value="${search}" class="form-control" placeholder="Tìm theo Tên hoặc Số điện thoại...">
-                </div>
-                <!-- Status Filter -->
-                <div class="col-md-4">
-                    <select name="status" class="form-control">
-                        <option value="">Tất cả Trạng thái</option>
-                        <option th:each="st : ${T(com.retail.entity.SupplierStatus).values()}"
-                                th:value="${st}"
-                                th:text="${st == T(com.retail.entity.SupplierStatus).Active ? 'Đang hoạt động' : 'Ngưng hoạt động'}"
-                                th:selected="${st == status}"></option>
-                    </select>
-                </div>
-                <!-- Submit Buttons -->
-                <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-secondary px-3 w-50">Lọc</button>
-                    <a th:href="@{/admin/suppliers}" class="btn btn-outline-secondary px-3 w-50" style="border: 1px solid var(--card-border); color: var(--text-primary); text-decoration: none; display: flex; align-items: center; justify-content: center;">Xóa bộ lọc</a>
-                </div>
-            </form>
-        </div>
-
-        <!-- Table Grid -->
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th style="width: 80px; white-space: nowrap;">Mã NCC</th>
-                        <th>Tên nhà cung cấp</th>
-                        <th style="white-space: nowrap;">Số điện thoại</th>
-                        <th style="white-space: nowrap;">Email liên hệ</th>
-                        <th>Địa chỉ</th>
-                        <th style="white-space: nowrap;">Trạng thái</th>
-                        <th style="white-space: nowrap;">Ngày tạo</th>
-                        <th class="text-center" style="width: 250px; white-space: nowrap;">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="sup : ${suppliers}">
-                        <td class="text-info font-weight-bold" style="white-space: nowrap;" th:text="${'NCC-' + sup.supplierId}">NCC-1</td>
-                        <td th:text="${sup.supplierName}" class="font-weight-bold">Nhà cung cấp A</td>
-                        <td style="white-space: nowrap;" th:text="${sup.contactPhone != null ? sup.contactPhone : '-'}">0901234567</td>
-                        <td style="white-space: nowrap;" th:text="${sup.contactEmail != null ? sup.contactEmail : '-'}">email@example.com</td>
-                        <td th:text="${sup.address != null ? sup.address : '-'}">123 Đường ABC</td>
-                        <td style="white-space: nowrap;">
-                            <span th:if="${sup.status.name() == 'Active'}" class="badge-active">Hoạt động</span>
-                            <span th:if="${sup.status.name() == 'Inactive'}" class="badge-inactive">Ngưng hoạt động</span>
-                        </td>
-                        <td style="white-space: nowrap;" th:text="${#temporals.format(sup.createdAt, 'dd/MM/yyyy HH:mm')}">18/07/2026</td>
-                        <td class="text-center" style="white-space: nowrap;">
-                            <div class="d-flex gap-1 justify-content-center">
-                                <a th:href="@{/admin/suppliers/detail/{id}(id=${sup.supplierId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Chi tiết</a>
-                                <a th:href="@{/admin/suppliers/edit/{id}(id=${sup.supplierId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>
-                                
-                                <!-- Soft Delete Action -->
-                                <form th:if="${sup.status.name() == 'Active'}" th:action="@{/admin/suppliers/delete/{id}(id=${sup.supplierId})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn ngưng hoạt động nhà cung cấp này?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Xóa</button>
-                                </form>
-                                
-                                <!-- Restore Action -->
-                                <form th:if="${sup.status.name() == 'Inactive'}" th:action="@{/admin/suppliers/restore/{id}(id=${sup.supplierId})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn khôi phục hoạt động cho nhà cung cấp này?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius: 6px;">Khôi phục</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(suppliers)}">
-                        <td colspan="8" class="text-center text-muted py-4">Không tìm thấy nhà cung cấp nào phù hợp bộ lọc.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        <nav class="d-flex justify-content-between align-items-center mt-4">
-            <span class="text-muted" th:text="${totalItems == 0 ? 'Hiển thị 0 nhà cung cấp' : 'Hiển thị từ ' + (currentPage * size + 1) + ' đến ' + ((currentPage * size + size) > totalItems ? totalItems : (currentPage * size + size)) + ' trên tổng số ' + totalItems + ' nhà cung cấp'}"></span>
-            <ul class="pagination mb-0">
-                <!-- Button Before -->
-                <li class="page-item" th:classappend="${currentPage == 0 || totalPages <= 1 ? 'disabled' : ''}">
-                    <a class="page-link" th:href="@{/admin/suppliers(search=${search}, status=${status}, page=${currentPage - 1})}">Trước</a>
-                </li>
-                
-                <!-- Page Numbers when pages exist -->
-                <li th:if="${totalPages > 0}" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" class="page-item" th:classappend="${currentPage == i ? 'active' : ''}">
-                    <a class="page-link" th:href="@{/admin/suppliers(search=${search}, status=${status}, page=${i})}" th:text="${i + 1}">1</a>
-                </li>
-                
-                <!-- Page Number when empty -->
-                <li th:if="${totalPages == 0}" class="page-item active disabled">
-                    <span class="page-link">1</span>
-                </li>
-                
-                <!-- Button After -->
-                <li class="page-item" th:classappend="${currentPage == (totalPages > 0 ? totalPages - 1 : 0) || totalPages <= 1 ? 'disabled' : ''}">
-                    <a class="page-link" th:href="@{/admin/suppliers(search=${search}, status=${status}, page=${currentPage + 1})}">Sau</a>
-                </li>
-            </ul>
-        </nav>
     </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>
