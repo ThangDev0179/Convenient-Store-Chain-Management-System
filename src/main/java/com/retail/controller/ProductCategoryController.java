@@ -1,9 +1,9 @@
 package com.retail.controller;
 
-import com.retail.dto.CategoryRequest;
-import com.retail.dto.CategoryResponse;
+import com.retail.dto.ProductCategoryRequest;
+import com.retail.dto.ProductCategoryResponse;
 import com.retail.exception.ValidationException;
-import com.retail.service.CategoryService;
+import com.retail.service.ProductCategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
@@ -23,7 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ProductCategoryController {
 
     @Autowired
-    private CategoryService categoryService;
+    private ProductCategoryService categoryService;
 
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -38,7 +38,7 @@ public class ProductCategoryController {
             Model model) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "categoryId"));
-        Page<CategoryResponse> categoryPage = categoryService.list(search, pageable);
+        Page<ProductCategoryResponse> categoryPage = categoryService.list(search, pageable);
 
         model.addAttribute("categories", categoryPage.getContent());
         model.addAttribute("currentPage", page);
@@ -52,14 +52,14 @@ public class ProductCategoryController {
 
     @GetMapping("/create")
     public String showCreateForm(Model model) {
-        model.addAttribute("category", new CategoryRequest());
+        model.addAttribute("category", new ProductCategoryRequest());
         model.addAttribute("isEdit", false);
         return "admin/category/form";
     }
 
     @PostMapping("/create")
     public String createCategory(
-            @Valid @ModelAttribute("category") CategoryRequest request,
+            @Valid @ModelAttribute("category") ProductCategoryRequest request,
             BindingResult bindingResult,
             Model model,
             RedirectAttributes redirectAttributes) {
@@ -76,11 +76,28 @@ public class ProductCategoryController {
         } catch (ValidationException e) {
             if (e.getMessage().contains("SKU")) {
                 bindingResult.rejectValue("skuPrefix", "duplicate", e.getMessage());
+            } else if (e.getMessage().contains("danh mục") || e.getMessage().contains("Tên")) {
+                bindingResult.rejectValue("categoryName", "duplicate", e.getMessage());
             } else {
                 model.addAttribute("error", e.getMessage());
             }
             model.addAttribute("isEdit", false);
             return "admin/category/form";
+        }
+    }
+
+    @GetMapping("/detail/{id}")
+    public String showDetail(
+            @PathVariable("id") Integer id,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+        try {
+            ProductCategoryResponse detail = categoryService.getDetail(id);
+            model.addAttribute("category", detail);
+            return "admin/category/detail";
+        } catch (ValidationException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/categories";
         }
     }
 
@@ -91,8 +108,8 @@ public class ProductCategoryController {
             RedirectAttributes redirectAttributes) {
 
         try {
-            CategoryResponse detail = categoryService.getDetail(id);
-            CategoryRequest request = CategoryRequest.builder()
+            ProductCategoryResponse detail = categoryService.getDetail(id);
+            ProductCategoryRequest request = ProductCategoryRequest.builder()
                     .categoryName(detail.getCategoryName())
                     .skuPrefix(detail.getSkuPrefix())
                     .build();
@@ -110,7 +127,7 @@ public class ProductCategoryController {
     @PostMapping("/edit/{id}")
     public String updateCategory(
             @PathVariable("id") Integer id,
-            @Valid @ModelAttribute("category") CategoryRequest request,
+            @Valid @ModelAttribute("category") ProductCategoryRequest request,
             BindingResult bindingResult,
             Model model,
             RedirectAttributes redirectAttributes) {
@@ -128,6 +145,8 @@ public class ProductCategoryController {
         } catch (ValidationException e) {
             if (e.getMessage().contains("SKU")) {
                 bindingResult.rejectValue("skuPrefix", "duplicate", e.getMessage());
+            } else if (e.getMessage().contains("danh mục") || e.getMessage().contains("Tên")) {
+                bindingResult.rejectValue("categoryName", "duplicate", e.getMessage());
             } else {
                 model.addAttribute("error", e.getMessage());
             }

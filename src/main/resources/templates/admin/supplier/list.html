@@ -134,13 +134,14 @@
                         <td th:text="${#temporals.format(sup.createdAt, 'dd/MM/yyyy HH:mm')}">18/07/2026</td>
                         <td class="text-center">
                             <div class="d-flex gap-1 justify-content-center">
+                                <a th:href="@{/admin/suppliers/detail/{id}(id=${sup.supplierId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Chi tiết</a>
                                 <a th:href="@{/admin/suppliers/edit/{id}(id=${sup.supplierId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>
                                 
                                 <!-- Soft Delete Action -->
                                 <form th:if="${sup.status.name() == 'Active'}" th:action="@{/admin/suppliers/delete/{id}(id=${sup.supplierId})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn ngưng hoạt động nhà cung cấp này?');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Xóa</button>
                                 </form>
-
+                                
                                 <!-- Restore Action -->
                                 <form th:if="${sup.status.name() == 'Inactive'}" th:action="@{/admin/suppliers/restore/{id}(id=${sup.supplierId})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn khôi phục hoạt động cho nhà cung cấp này?');">
                                     <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius: 6px;">Khôi phục</button>

@@ -92,6 +92,22 @@ public class ProductCategoryControllerTest {
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
+    public void testGetCategoryDetail() throws Exception {
+        // Setup - Create a category
+        ProductCategory category = ProductCategory.builder()
+                .categoryName("Detail Test Category")
+                .skuPrefix("DETL")
+                .build();
+        category = categoryRepository.saveAndFlush(category);
+
+        mockMvc.perform(get("/admin/categories/detail/{id}", category.getCategoryId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/category/detail"))
+                .andExpect(model().attributeExists("category"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     public void testDeleteCategoryWithProductFails() throws Exception {
         // 1. Setup - Create a category
         ProductCategory category = ProductCategory.builder()
@@ -118,6 +134,27 @@ public class ProductCategoryControllerTest {
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/categories"))
-                .andExpect(flash().attribute("error", "Không thể xóa danh mục này vì đang có sản phẩm (Product) liên kết."));
+                .andExpect(flash().attribute("error", "Không thể xóa danh mục này vì đang có sản phẩm liên kết"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    public void testDuplicateCategoryNameFails() throws Exception {
+        // Setup - Create a category
+        ProductCategory category = ProductCategory.builder()
+                .categoryName("Name Duplicate Category")
+                .skuPrefix("NDUP")
+                .build();
+        categoryRepository.saveAndFlush(category);
+
+        // Try to create another category with the same name
+        mockMvc.perform(post("/admin/categories/create")
+                        .param("categoryName", "Name Duplicate Category")
+                        .param("skuPrefix", "DIFF")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/category/form"))
+                .andExpect(model().hasErrors())
+                .andExpect(model().attributeHasFieldErrorCode("category", "categoryName", "duplicate"));
     }
 }

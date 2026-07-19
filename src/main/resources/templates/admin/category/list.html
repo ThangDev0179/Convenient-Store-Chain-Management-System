@@ -105,6 +105,7 @@
                         </td>
                         <td class="text-center">
                             <div class="d-flex gap-2 justify-content-center">
+                                <a th:href="@{/admin/categories/detail/{id}(id=${cat.categoryId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Chi tiết</a>
                                 <a th:href="@{/admin/categories/edit/{id}(id=${cat.categoryId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>
                                 
                                 <!-- Physical Delete Action -->

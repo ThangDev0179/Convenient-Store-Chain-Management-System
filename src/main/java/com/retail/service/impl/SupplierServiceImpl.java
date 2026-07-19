@@ -4,14 +4,20 @@ import com.retail.dto.SupplierRequest;
 import com.retail.dto.SupplierResponse;
 import com.retail.entity.Supplier;
 import com.retail.entity.SupplierStatus;
+import com.retail.entity.PurchaseOrderStatus;
 import com.retail.exception.ValidationException;
 import com.retail.repository.SupplierRepository;
+import com.retail.repository.PurchaseOrderRepository;
 import com.retail.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 @Transactional
@@ -20,7 +26,11 @@ public class SupplierServiceImpl implements SupplierService {
     @Autowired
     private SupplierRepository supplierRepository;
 
+    @Autowired
+    private PurchaseOrderRepository purchaseOrderRepository;
+
     @Override
+    @Transactional(readOnly = true)
     public Page<SupplierResponse> list(String search, SupplierStatus status, Pageable pageable) {
         String keyword = (search == null || search.trim().isEmpty()) ? null : search.trim();
         return supplierRepository.searchSuppliers(keyword, status, pageable)
@@ -28,6 +38,7 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SupplierResponse getDetail(Integer id) {
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new ValidationException("Không tìm thấy nhà cung cấp với ID: " + id));
@@ -46,7 +57,13 @@ public class SupplierServiceImpl implements SupplierService {
                 .status(SupplierStatus.Active)
                 .build();
 
-        supplier = supplierRepository.save(supplier);
+        try {
+            supplier = supplierRepository.save(supplier);
+            supplierRepository.flush(); // Flush immediately inside transaction bounds to check for DB unique constraints
+        } catch (DataIntegrityViolationException e) {
+            throw new ValidationException("Email hoặc số điện thoại nhà cung cấp đã tồn tại trong hệ thống");
+        }
+
         return mapToResponse(supplier);
     }
 
@@ -62,7 +79,13 @@ public class SupplierServiceImpl implements SupplierService {
         supplier.setContactEmail(request.getContactEmail() != null && !request.getContactEmail().trim().isEmpty() ? request.getContactEmail().trim() : null);
         supplier.setAddress(request.getAddress() != null && !request.getAddress().trim().isEmpty() ? request.getAddress().trim() : null);
 
-        supplier = supplierRepository.save(supplier);
+        try {
+            supplier = supplierRepository.save(supplier);
+            supplierRepository.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw new ValidationException("Email hoặc số điện thoại nhà cung cấp đã tồn tại trong hệ thống");
+        }
+
         return mapToResponse(supplier);
     }
 
@@ -70,8 +93,13 @@ public class SupplierServiceImpl implements SupplierService {
     public void delete(Integer id) {
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new ValidationException("Không tìm thấy nhà cung cấp với ID: " + id));
+
+        // Check if supplier has any pending purchase orders
+        checkPendingOrders(id);
+
         supplier.setStatus(SupplierStatus.Inactive);
         supplierRepository.save(supplier);
+        supplierRepository.flush();
     }
 
     @Override
@@ -80,9 +108,33 @@ public class SupplierServiceImpl implements SupplierService {
                 .orElseThrow(() -> new ValidationException("Không tìm thấy nhà cung cấp với ID: " + id));
         supplier.setStatus(SupplierStatus.Active);
         supplierRepository.save(supplier);
+        supplierRepository.flush();
+    }
+
+    private void checkPendingOrders(Integer supplierId) {
+        List<PurchaseOrderStatus> pendingStatuses = Arrays.asList(
+                PurchaseOrderStatus.Draft,
+                PurchaseOrderStatus.Submitted,
+                PurchaseOrderStatus.Partially_Received,
+                PurchaseOrderStatus.Received_Partial
+        );
+        boolean hasPending = purchaseOrderRepository.existsBySupplierSupplierIdAndStatusIn(supplierId, pendingStatuses);
+        if (hasPending) {
+            throw new ValidationException("Không thể ngừng hoạt động nhà cung cấp này vì đang có đơn mua hàng (Purchase Order) chưa hoàn tất.");
+        }
     }
 
     private void validateSupplier(Integer id, SupplierRequest request) {
+        String name = request.getSupplierName() != null ? request.getSupplierName().trim() : null;
+        if (name != null && !name.isEmpty()) {
+            boolean nameExists = (id == null)
+                    ? supplierRepository.existsBySupplierName(name)
+                    : supplierRepository.existsBySupplierNameAndSupplierIdNot(name, id);
+            if (nameExists) {
+                throw new ValidationException("Tên nhà cung cấp đã tồn tại trong hệ thống");
+            }
+        }
+
         String email = request.getContactEmail() != null ? request.getContactEmail().trim() : null;
         String phone = request.getContactPhone() != null ? request.getContactPhone().trim() : null;
 
@@ -114,6 +166,9 @@ public class SupplierServiceImpl implements SupplierService {
                 .address(supplier.getAddress())
                 .status(supplier.getStatus())
                 .createdAt(supplier.getCreatedAt())
+                .updatedAt(supplier.getUpdatedAt())
+                .createdBy(supplier.getCreatedBy())
+                .updatedBy(supplier.getUpdatedBy())
                 .build();
     }
 }

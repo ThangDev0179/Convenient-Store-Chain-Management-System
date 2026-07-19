@@ -15,7 +15,7 @@ public class SupplierRequest {
     @NotBlank(message = "Tên nhà cung cấp không được để trống")
     private String supplierName;
 
-    @Pattern(regexp = "^$|^(0|\\+84)[0-9]{9,10}$", message = "Số điện thoại không hợp lệ (phải bắt đầu bằng 0 hoặc +84 và có 10-11 chữ số)")
+    @Pattern(regexp = "^$|^(0|\\+84)[0-9]{9}$", message = "SĐT không hợp lệ")
     private String contactPhone;
 
     @Email(message = "Email không đúng định dạng")

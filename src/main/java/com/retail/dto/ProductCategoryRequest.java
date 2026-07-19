@@ -10,9 +10,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CategoryRequest {
+public class ProductCategoryRequest {
 
     @NotBlank(message = "Tên ngành hàng không được để trống")
+    @Size(max = 150, message = "Tên không vượt quá 150 ký tự")
     private String categoryName;
 
     @NotBlank(message = "Tiền tố SKU không được để trống")

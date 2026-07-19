@@ -15,6 +15,9 @@ import java.util.List;
 public interface SupplierRepository extends JpaRepository<Supplier, Integer> {
     List<Supplier> findByStatus(SupplierStatus status);
 
+    boolean existsBySupplierName(String supplierName);
+    boolean existsBySupplierNameAndSupplierIdNot(String supplierName, Integer supplierId);
+
     boolean existsByContactEmail(String email);
     boolean existsByContactEmailAndSupplierIdNot(String email, Integer supplierId);
     boolean existsByContactPhone(String phone);

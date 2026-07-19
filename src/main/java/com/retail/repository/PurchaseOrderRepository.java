@@ -15,6 +15,8 @@ import java.util.Optional;
 public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Long> {
     Optional<PurchaseOrder> findByPoCode(String poCode);
 
+    boolean existsBySupplierSupplierIdAndStatusIn(Integer supplierId, java.util.Collection<PurchaseOrderStatus> statuses);
+
     @Query("SELECT MAX(po.poCode) FROM PurchaseOrder po WHERE po.branch.branchCode = :branchCode AND po.poCode LIKE CONCAT('PO-', :branchCode, '-', :dateStr, '-%')")
     String findMaxPoCodeByBranchAndDate(@Param("branchCode") String branchCode, @Param("dateStr") String dateStr);
 

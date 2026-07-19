@@ -1,6 +1,5 @@
 package com.retail.dto;
 
-import com.retail.entity.SupplierStatus;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -9,13 +8,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SupplierResponse {
-    private Integer supplierId;
-    private String supplierName;
-    private String contactPhone;
-    private String contactEmail;
-    private String address;
-    private SupplierStatus status;
+public class ProductCategoryResponse {
+    private Integer categoryId;
+    private String categoryName;
+    private String skuPrefix;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String createdBy;

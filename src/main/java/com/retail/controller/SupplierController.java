@@ -77,7 +77,9 @@ public class SupplierController {
             redirectAttributes.addFlashAttribute("success", "Thêm mới nhà cung cấp thành công!");
             return "redirect:/admin/suppliers";
         } catch (ValidationException e) {
-            if (e.getMessage().contains("Email")) {
+            if (e.getMessage().contains("Tên nhà cung cấp") || e.getMessage().contains("supplierName")) {
+                bindingResult.rejectValue("supplierName", "duplicate", e.getMessage());
+            } else if (e.getMessage().contains("Email")) {
                 bindingResult.rejectValue("contactEmail", "duplicate", e.getMessage());
             } else if (e.getMessage().contains("Số điện thoại") || e.getMessage().contains("Phone")) {
                 bindingResult.rejectValue("contactPhone", "duplicate", e.getMessage());
@@ -86,6 +88,21 @@ public class SupplierController {
             }
             model.addAttribute("isEdit", false);
             return "admin/supplier/form";
+        }
+    }
+
+    @GetMapping("/detail/{id}")
+    public String showDetail(
+            @PathVariable("id") Integer id,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+        try {
+            SupplierResponse detail = supplierService.getDetail(id);
+            model.addAttribute("supplier", detail);
+            return "admin/supplier/detail";
+        } catch (ValidationException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/suppliers";
         }
     }
 
@@ -133,7 +150,9 @@ public class SupplierController {
             redirectAttributes.addFlashAttribute("success", "Cập nhật nhà cung cấp thành công!");
             return "redirect:/admin/suppliers";
         } catch (ValidationException e) {
-            if (e.getMessage().contains("Email")) {
+            if (e.getMessage().contains("Tên nhà cung cấp") || e.getMessage().contains("supplierName")) {
+                bindingResult.rejectValue("supplierName", "duplicate", e.getMessage());
+            } else if (e.getMessage().contains("Email")) {
                 bindingResult.rejectValue("contactEmail", "duplicate", e.getMessage());
             } else if (e.getMessage().contains("Số điện thoại") || e.getMessage().contains("Phone")) {
                 bindingResult.rejectValue("contactPhone", "duplicate", e.getMessage());
