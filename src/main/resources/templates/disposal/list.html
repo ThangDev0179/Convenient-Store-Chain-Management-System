@@ -59,7 +59,7 @@
                         <td>
                             <span th:class="${'badge ' + 
                                 (d.status.name() == 'Draft' ? 'bg-secondary' : 
-                                (d.status.name() == 'Approved' ? 'bg-success' : 'bg-danger'))}"
+                                (d.status.name() == 'Completed' ? 'bg-success' : 'bg-danger'))}"
                                   th:text="${d.status}">
                             </span>
                         </td>

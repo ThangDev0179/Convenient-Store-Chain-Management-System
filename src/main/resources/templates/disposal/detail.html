@@ -32,7 +32,7 @@
                 <strong>Trạng thái: </strong>
                 <span th:class="${'badge ' + 
                     (disposal.status.name() == 'Draft' ? 'bg-secondary' : 
-                    (disposal.status.name() == 'Approved' ? 'bg-success' : 'bg-danger'))}"
+                    (disposal.status.name() == 'Completed' ? 'bg-success' : 'bg-danger'))}"
                       th:text="${disposal.status}">
                 </span>
             </div>

@@ -108,7 +108,7 @@ public class StockDisposalServiceImpl implements StockDisposalService {
         }
 
         String oldStatus = disposal.getStatus().name();
-        disposal.setStatus(StockDisposalStatus.Approved);
+        disposal.setStatus(StockDisposalStatus.Completed);
         disposal.setApprovedBy(entityManager.getReference(Employee.class, approvedByEmployeeId));
         disposal.setApprovedAt(LocalDateTime.now());
 
@@ -155,7 +155,7 @@ public class StockDisposalServiceImpl implements StockDisposalService {
         }
 
         String oldStatus = disposal.getStatus().name();
-        disposal.setStatus(StockDisposalStatus.Rejected);
+        disposal.setStatus(StockDisposalStatus.Canceled);
         StockDisposal saved = disposalRepository.save(disposal);
         auditLogService.logAction(rejectedByEmployeeId, "RejectDisposal", "StockDisposal",
                 saved.getDisposalId(), oldStatus, saved.getStatus().name(), "Từ chối phiếu xuất hủy", null, null);

@@ -67,7 +67,7 @@ public class ReportServiceImpl implements ReportService {
                 "FROM StockDisposalDetail dd " +
                 "JOIN dd.stockDisposal d " +
                 "JOIN d.branch b " +
-                "WHERE d.status = 'Approved' "
+                "WHERE d.status = 'Completed' "
         );
         
         if (startDate != null) {
@@ -113,10 +113,10 @@ public class ReportServiceImpl implements ReportService {
         BigDecimal totalStockValue = rawTotalStockValue != null ? new BigDecimal(rawTotalStockValue.toString()) : BigDecimal.ZERO;
         metrics.put("totalStockValue", totalStockValue);
         
-        // 2. Tổng giá trị thất thoát (Approved) trong tháng hiện tại
+        // 2. Tổng giá trị thất thoát (Completed) trong tháng hiện tại
         LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         String lossJpql = "SELECT SUM(dd.quantityDisposed * dd.unitCost) FROM StockDisposalDetail dd JOIN dd.stockDisposal d " +
-                          "WHERE d.status = 'Approved' AND d.approvedAt >= :startOfMonth";
+                          "WHERE d.status = 'Completed' AND d.approvedAt >= :startOfMonth";
         Object rawTotalLossValue = entityManager.createQuery(lossJpql)
                                             .setParameter("startOfMonth", startOfMonth)
                                             .getSingleResult();
