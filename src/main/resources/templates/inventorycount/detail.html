@@ -1,41 +1,134 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <title>Inventory Count Details</title>
+    <title>Chi Tiết Kiểm Kê Kho</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
-<body>
-<div class="container mt-5">
-    <h2>Count Details: <span th:text="${count.countCode}"></span></h2>
-    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
-    <p>Status: <span th:text="${count.status}"></span></p>
+<body class="bg-light">
+<div class="container py-5" style="max-width: 900px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-file-earmark-text text-primary me-2"></i>Chi Tiết Kiểm Kê</h2>
+            <div class="text-muted fs-5">Mã phiếu: <strong class="text-dark" th:text="${count.countCode}"></strong></div>
+        </div>
+        <div>
+            <span th:class="${count.status.name() == 'Draft' ? 'badge bg-secondary fs-6' : 
+                             count.status.name() == 'Submitted' ? 'badge bg-warning text-dark fs-6' :
+                             count.status.name() == 'Approved' ? 'badge bg-success fs-6' : 'badge bg-danger fs-6'}"
+                  th:text="${count.status}"></span>
+        </div>
+    </div>
 
-    <form th:if="${count.status.name() == 'Draft'}" th:action="@{/inventory-count/{id}/submit(id=${count.inventoryCountId})}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-warning" onclick="return confirm('Submit this count for approval?')">Submit</button>
-    </form>
-    
-    <form th:if="${count.status.name() == 'Submitted'}" th:action="@{/inventory-count/{id}/approve(id=${count.inventoryCountId})}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-success" onclick="return confirm('Approve and update inventory?')">Approve</button>
-    </form>
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm" th:text="${successMessage}">
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show shadow-sm" th:text="${errorMessage}">
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 
-    <form th:if="${count.status.name() == 'Submitted'}" th:action="@{/inventory-count/{id}/reject(id=${count.inventoryCountId})}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Reject this count?')">Reject</button>
-    </form>
+    <!-- Thông tin chung -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-header bg-white fw-bold py-3">
+            <i class="bi bi-info-circle me-1"></i> Thông tin chung
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-sm-3 text-muted">Chi nhánh:</div>
+                <div class="col-sm-9 fw-semibold" th:text="${count.branch.branchId + ' - ' + count.branch.branchName}"></div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-sm-3 text-muted">Người tạo:</div>
+                <div class="col-sm-9" th:text="${count.createdBy.fullName}"></div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-sm-3 text-muted">Ngày tạo:</div>
+                <div class="col-sm-9" th:text="${#temporals.format(count.createdAt, 'dd/MM/yyyy HH:mm')}"></div>
+            </div>
+            <div class="row mb-2" th:if="${count.approvedBy != null}">
+                <div class="col-sm-3 text-muted">Người duyệt:</div>
+                <div class="col-sm-9 fw-semibold text-success" th:text="${count.approvedBy.fullName}"></div>
+            </div>
+        </div>
+    </div>
 
-    <table class="table mt-3">
-        <thead><tr><th>Product ID</th><th>System Qty</th><th>Actual Qty</th><th>Delta</th></tr></thead>
-        <tbody>
-            <tr th:each="detail : ${count.details}">
-                <td th:text="${detail.product.productId}"></td>
-                <td th:text="${detail.systemQty}"></td>
-                <td th:text="${detail.actualQty}"></td>
-                <td th:text="${detail.actualQty.subtract(detail.systemQty)}"
-                    th:class="${detail.actualQty.subtract(detail.systemQty).compareTo(T(java.math.BigDecimal).ZERO) lt 0} ? 'text-danger' : 'text-success'"></td>
-            </tr>
-        </tbody>
-    </table>
-    <a href="/inventory-count" class="btn btn-secondary mt-3">Back to List</a>
+    <!-- Danh sách sản phẩm -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white fw-bold py-3">
+            <i class="bi bi-box-seam me-1"></i> Chi tiết sản phẩm
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Sản phẩm</th>
+                        <th class="text-center">Tồn hệ thống</th>
+                        <th class="text-center">Kiểm đếm thực tế</th>
+                        <th class="text-center">Độ lệch (Delta)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="detail : ${count.details}">
+                        <td class="ps-3">
+                            <span class="fw-medium" th:text="${detail.product.productName}"></span><br/>
+                            <small class="text-muted">ID: <span th:text="${detail.product.productId}"></span></small>
+                        </td>
+                        <td class="text-center" th:text="${detail.systemQty}"></td>
+                        <td class="text-center fw-bold" th:text="${detail.actualQty}"></td>
+                        <td class="text-center fw-bold">
+                            <span th:if="${detail.actualQty.subtract(detail.systemQty).compareTo(T(java.math.BigDecimal).ZERO) < 0}" 
+                                  class="text-danger">
+                                <i class="bi bi-arrow-down"></i> [[${detail.actualQty.subtract(detail.systemQty)}]]
+                            </span>
+                            <span th:if="${detail.actualQty.subtract(detail.systemQty).compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
+                                  class="text-success">
+                                <i class="bi bi-arrow-up"></i> +[[${detail.actualQty.subtract(detail.systemQty)}]]
+                            </span>
+                            <span th:if="${detail.actualQty.subtract(detail.systemQty).compareTo(T(java.math.BigDecimal).ZERO) == 0}" 
+                                  class="text-secondary">0</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm">
+        <a href="/inventory-count" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách
+        </a>
+        
+        <div class="d-flex gap-2">
+            <!-- Nút Submit (Chỉ người tạo hoặc bất kỳ staff nào có thể trình) -->
+            <form th:if="${count.status.name() == 'Draft'}" 
+                  th:action="@{/inventory-count/{id}/submit(id=${count.inventoryCountId})}" method="post">
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Bạn có chắc chắn muốn nộp phiếu này để phê duyệt?')">
+                    <i class="bi bi-send me-1"></i> Trình duyệt (Submit)
+                </button>
+            </form>
+            
+            <!-- Các nút Duyệt/Từ chối (CHỈ DÀNH CHO MANAGER/ADMIN) -->
+            <th:block sec:authorize="hasAnyRole('MANAGER', 'ADMIN')">
+                <form th:if="${count.status.name() == 'Submitted'}" 
+                      th:action="@{/inventory-count/{id}/reject(id=${count.inventoryCountId})}" method="post">
+                    <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Bạn muốn từ chối phiếu kiểm kê này?')">
+                        <i class="bi bi-x-circle me-1"></i> Từ chối
+                    </button>
+                </form>
+
+                <form th:if="${count.status.name() == 'Submitted'}" 
+                      th:action="@{/inventory-count/{id}/approve(id=${count.inventoryCountId})}" method="post">
+                    <button type="submit" class="btn btn-success" onclick="return confirm('Phê duyệt phiếu này? Số lượng tồn kho sẽ bị ghi đè và tự động tạo xuất hủy nếu hụt hàng.')">
+                        <i class="bi bi-check-circle me-1"></i> Phê duyệt
+                    </button>
+                </form>
+            </th:block>
+        </div>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
