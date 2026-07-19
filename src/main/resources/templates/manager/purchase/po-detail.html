@@ -118,14 +118,14 @@
                 </a>
 
                 <!-- Submit order for approval if in Draft state -->
-                <form th:if="${po.status == 'Draft'}" th:action="@{/manager/purchase-orders/{id}/submit(id=${po.purchaseOrderId})}" method="post">
+                <form th:if="${po.status == 'Draft'}" th:action="@{/manager/purchase-orders/{id}/submit(id=${po.purchaseOrderId})}" method="post" sec:authorize="hasRole('MANAGER')">
                     <button type="submit" class="btn btn-primary px-4 py-2">
                         <i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu Phê Duyệt PO
                     </button>
                 </form>
                 
                 <!-- Cancel order if in Draft or Submitted state -->
-                <form th:if="${po.status == 'Draft' or po.status == 'Submitted'}" th:action="@{/manager/purchase-orders/{id}/cancel(id=${po.purchaseOrderId})}" method="post">
+                <form th:if="${po.status == 'Draft' or po.status == 'Submitted'}" th:action="@{/manager/purchase-orders/{id}/cancel(id=${po.purchaseOrderId})}" method="post" sec:authorize="hasRole('MANAGER')">
                     <button type="submit" class="btn btn-danger px-4 py-2" onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng PO này không? Hành động này sẽ chuyển trạng thái sang Canceled và không thể hoàn tác.');">
                         <i class="fa-solid fa-ban"></i> Hủy Đơn Hàng PO
                     </button>
