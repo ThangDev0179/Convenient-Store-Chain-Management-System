@@ -43,6 +43,18 @@
             background: var(--primary-gradient);
             border-color: #6366f1;
         }
+        .badge-active {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+            white-space: nowrap;
+        }
         .badge-inactive {
             background: rgba(239, 68, 68, 0.2);
             border: 1px solid rgba(239, 68, 68, 0.4);
@@ -52,6 +64,8 @@
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
+            display: inline-block;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -110,29 +124,29 @@
             <table class="table align-middle">
                 <thead>
                     <tr>
-                        <th style="width: 80px;">Mã NCC</th>
+                        <th style="width: 80px; white-space: nowrap;">Mã NCC</th>
                         <th>Tên nhà cung cấp</th>
-                        <th>Số điện thoại</th>
-                        <th>Email liên hệ</th>
+                        <th style="white-space: nowrap;">Số điện thoại</th>
+                        <th style="white-space: nowrap;">Email liên hệ</th>
                         <th>Địa chỉ</th>
-                        <th>Trạng thái</th>
-                        <th>Ngày tạo</th>
-                        <th class="text-center" style="width: 250px;">Thao tác</th>
+                        <th style="white-space: nowrap;">Trạng thái</th>
+                        <th style="white-space: nowrap;">Ngày tạo</th>
+                        <th class="text-center" style="width: 250px; white-space: nowrap;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="sup : ${suppliers}">
-                        <td class="text-info font-weight-bold" th:text="${'NCC-' + sup.supplierId}">NCC-1</td>
+                        <td class="text-info font-weight-bold" style="white-space: nowrap;" th:text="${'NCC-' + sup.supplierId}">NCC-1</td>
                         <td th:text="${sup.supplierName}" class="font-weight-bold">Nhà cung cấp A</td>
-                        <td th:text="${sup.contactPhone != null ? sup.contactPhone : '-'}">0901234567</td>
-                        <td th:text="${sup.contactEmail != null ? sup.contactEmail : '-'}">email@example.com</td>
+                        <td style="white-space: nowrap;" th:text="${sup.contactPhone != null ? sup.contactPhone : '-'}">0901234567</td>
+                        <td style="white-space: nowrap;" th:text="${sup.contactEmail != null ? sup.contactEmail : '-'}">email@example.com</td>
                         <td th:text="${sup.address != null ? sup.address : '-'}">123 Đường ABC</td>
-                        <td>
+                        <td style="white-space: nowrap;">
                             <span th:if="${sup.status.name() == 'Active'}" class="badge-active">Hoạt động</span>
                             <span th:if="${sup.status.name() == 'Inactive'}" class="badge-inactive">Ngưng hoạt động</span>
                         </td>
-                        <td th:text="${#temporals.format(sup.createdAt, 'dd/MM/yyyy HH:mm')}">18/07/2026</td>
-                        <td class="text-center">
+                        <td style="white-space: nowrap;" th:text="${#temporals.format(sup.createdAt, 'dd/MM/yyyy HH:mm')}">18/07/2026</td>
+                        <td class="text-center" style="white-space: nowrap;">
                             <div class="d-flex gap-1 justify-content-center">
                                 <a th:href="@{/admin/suppliers/detail/{id}(id=${sup.supplierId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Chi tiết</a>
                                 <a th:href="@{/admin/suppliers/edit/{id}(id=${sup.supplierId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>

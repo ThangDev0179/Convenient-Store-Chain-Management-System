@@ -20,6 +20,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Optional<Product> findByBarcode(String barcode);
 
+
+
     List<Product> findByStatus(ProductStatus status);
 
     boolean existsByProductName(String productName);
@@ -29,6 +31,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     boolean existsByBarcode(String barcode);
 
     boolean existsByBarcodeAndProductIdNot(String barcode, Long productId);
+
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT MAX(p.sku) FROM Product p WHERE p.sku LIKE :prefix%")

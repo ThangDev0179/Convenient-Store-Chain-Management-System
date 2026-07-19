@@ -19,6 +19,8 @@ public interface ProductCategoryRepository extends JpaRepository<ProductCategory
     boolean existsByCategoryName(String categoryName);
     boolean existsByCategoryNameAndCategoryIdNot(String categoryName, Integer categoryId);
 
+
+
     @Query("SELECT c FROM ProductCategory c WHERE " +
            "(:keyword IS NULL OR LOWER(c.categoryName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "OR LOWER(c.skuPrefix) LIKE LOWER(CONCAT('%', :keyword, '%')))")

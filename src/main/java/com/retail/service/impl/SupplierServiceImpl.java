@@ -6,6 +6,10 @@ import com.retail.entity.Supplier;
 import com.retail.entity.SupplierStatus;
 import com.retail.entity.PurchaseOrderStatus;
 import com.retail.exception.ValidationException;
+import com.retail.entity.AuditLog;
+import com.retail.entity.Employee;
+import com.retail.repository.AuditLogRepository;
+import com.retail.repository.EmployeeRepository;
 import com.retail.repository.SupplierRepository;
 import com.retail.repository.PurchaseOrderRepository;
 import com.retail.service.SupplierService;
@@ -28,6 +32,45 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Autowired
     private PurchaseOrderRepository purchaseOrderRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private AuditLogRepository auditLogRepository;
+
+    @Autowired(required = false)
+    private jakarta.servlet.http.HttpServletRequest currentRequest;
+
+    private void logAudit(String actionType, String entityName, Long entityId, String oldValue, String newValue, String reason) {
+        Employee employee = null;
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()) {
+                employee = employeeRepository.findByUsername(auth.getName()).orElse(null);
+            }
+        } catch (Exception ignored) {}
+
+        String ip = null;
+        String userAgent = null;
+        if (currentRequest != null) {
+            ip = currentRequest.getRemoteAddr();
+            userAgent = currentRequest.getHeader("User-Agent");
+        }
+
+        AuditLog log = AuditLog.builder()
+                .employee(employee)
+                .actionType(actionType)
+                .entityName(entityName)
+                .entityId(entityId)
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .reason(reason)
+                .ipAddress(ip)
+                .deviceId(userAgent)
+                .build();
+        auditLogRepository.save(log);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -97,18 +140,24 @@ public class SupplierServiceImpl implements SupplierService {
         // Check if supplier has any pending purchase orders
         checkPendingOrders(id);
 
+        String oldStatus = supplier.getStatus().name();
         supplier.setStatus(SupplierStatus.Inactive);
         supplierRepository.save(supplier);
         supplierRepository.flush();
+
+        logAudit("UPDATE_SUPPLIER_STATUS", "Supplier", id.longValue(), oldStatus, SupplierStatus.Inactive.name(), "Ngừng hoạt động nhà cung cấp (Soft Delete)");
     }
 
     @Override
     public void restore(Integer id) {
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new ValidationException("Không tìm thấy nhà cung cấp với ID: " + id));
+        String oldStatus = supplier.getStatus().name();
         supplier.setStatus(SupplierStatus.Active);
         supplierRepository.save(supplier);
         supplierRepository.flush();
+
+        logAudit("UPDATE_SUPPLIER_STATUS", "Supplier", id.longValue(), oldStatus, SupplierStatus.Active.name(), "Khôi phục hoạt động nhà cung cấp");
     }
 
     private void checkPendingOrders(Integer supplierId) {

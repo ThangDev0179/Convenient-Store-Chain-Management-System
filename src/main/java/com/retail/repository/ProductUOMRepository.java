@@ -1,6 +1,6 @@
 package com.retail.repository;
-import com.retail.entity.ProductUOM;
 
+import com.retail.entity.ProductUOM;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,4 +12,7 @@ public interface ProductUOMRepository extends JpaRepository<ProductUOM, Long> {
     List<ProductUOM> findByProductProductId(Long productId);
     Optional<ProductUOM> findByProductProductIdAndUomName(Long productId, String uomName);
     Optional<ProductUOM> findByProductProductIdAndIsBaseUnitTrue(Long productId);
+    Optional<ProductUOM> findByBarcode(String barcode);
+    boolean existsByBarcode(String barcode);
+    boolean existsByBarcodeAndUomIdNot(String barcode, Long uomId);
 }

@@ -30,10 +30,14 @@
         .detail-value {
             font-weight: 600;
         }
+        .table-dark {
+            --bs-table-bg: rgba(15, 23, 42, 0.6);
+            --bs-table-border-color: var(--card-border);
+        }
     </style>
 </head>
 <body class="d-flex align-items-center justify-content-center" style="min-height: 100vh; padding: 40px 0;">
-    <div class="container" style="max-width: 800px;">
+    <div class="container" style="max-width: 850px;">
         <div class="detail-card">
             <div class="mb-4 d-flex justify-content-between align-items-start">
                 <div>
@@ -87,6 +91,41 @@
             <div class="detail-item">
                 <div class="detail-label">Mô tả sản phẩm</div>
                 <div class="detail-value font-weight-normal text-muted" th:text="${product.description != null ? product.description : 'Không có mô tả cho sản phẩm này.'}">Mô tả</div>
+            </div>
+
+            <!-- UOM List -->
+            <div class="mt-4 mb-2">
+                <div class="detail-label mb-2">Danh sách đơn vị tính (UOM)</div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-dark align-middle">
+                        <thead>
+                            <tr>
+                                <th>Tên Đơn vị</th>
+                                <th class="text-center" style="width: 120px;">Đơn vị cơ sở</th>
+                                <th class="text-center" style="width: 130px;">Tỷ lệ quy đổi</th>
+                                <th>Mã vạch (Barcode)</th>
+                                <th>Giá bán tiêu chuẩn</th>
+                                <th style="width: 120px;">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="u : ${product.uoms}">
+                                <td th:text="${u.uomName}" class="font-weight-bold text-info">Lon</td>
+                                <td class="text-center">
+                                    <span th:if="${u.isBaseUnit}" class="badge bg-success">Cơ sở (Base)</span>
+                                    <span th:if="${!u.isBaseUnit}" class="text-muted">-</span>
+                                </td>
+                                <td class="text-center font-weight-bold" th:text="${u.conversionRate}">1</td>
+                                <td th:text="${u.barcode != null ? u.barcode : '-'}">-</td>
+                                <td th:text="${#numbers.formatDecimal(u.standardPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">10,000 đ</td>
+                                <td th:text="${u.status}">ACTIVE</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(product.uoms)}">
+                                <td colspan="6" class="text-center text-muted">Chưa cấu hình đơn vị tính cho sản phẩm này.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Audit Trail -->

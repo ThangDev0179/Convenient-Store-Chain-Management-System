@@ -144,7 +144,7 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
             }
 
             // Update Branch Inventory in Base Unit Quantity
-            BigDecimal baseQtyReceived = detailReq.getQuantityReceived().multiply(uom.getConversionRate());
+            BigDecimal baseQtyReceived = detailReq.getQuantityReceived().multiply(BigDecimal.valueOf(uom.getConversionRate()));
 
             GoodsReceiptNoteDetail detail = GoodsReceiptNoteDetail.builder()
                     .goodsReceiptNote(savedGrn)
@@ -261,7 +261,7 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
         for (GoodsReceiptNote grn : grns) {
             for (GoodsReceiptNoteDetail detail : grn.getDetails()) {
                 Long productId = detail.getProduct().getProductId();
-                BigDecimal conversionRate = detail.getUom().getConversionRate();
+                BigDecimal conversionRate = BigDecimal.valueOf(detail.getUom().getConversionRate());
                 BigDecimal baseQty = detail.getQuantityReceived().multiply(conversionRate);
 
                 receivedMap.put(productId, receivedMap.getOrDefault(productId, BigDecimal.ZERO).add(baseQty));
@@ -273,7 +273,7 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
 
         for (PurchaseOrderDetail poDetail : po.getDetails()) {
             Long productId = poDetail.getProduct().getProductId();
-            BigDecimal baseQtyOrdered = poDetail.getQuantityOrdered().multiply(poDetail.getUom().getConversionRate());
+            BigDecimal baseQtyOrdered = poDetail.getQuantityOrdered().multiply(BigDecimal.valueOf(poDetail.getUom().getConversionRate()));
 
             BigDecimal baseQtyReceived = receivedMap.getOrDefault(productId, BigDecimal.ZERO);
 

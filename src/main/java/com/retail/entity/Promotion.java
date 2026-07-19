@@ -29,28 +29,30 @@ public class Promotion {
     @Column(name = "EndDateTime", nullable = false)
     private LocalDateTime endDateTime;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "Status", nullable = false, length = 20)
-    private String status; // Draft | Active | Ended | Canceled
+    @Builder.Default
+    private PromotionStatus status = PromotionStatus.Draft;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "CreatedBy", nullable = false)
     private Employee createdBy;
 
     @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "promotion", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "promotion", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<PromotionDetail> details = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        if (status == null) status = "Draft";
+        this.createdAt = LocalDateTime.now();
     }
 
     public void addDetail(PromotionDetail detail) {
-        details.add(detail);
+        if (this.details == null) this.details = new ArrayList<>();
         detail.setPromotion(this);
+        this.details.add(detail);
     }
 }

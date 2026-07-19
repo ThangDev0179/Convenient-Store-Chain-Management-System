@@ -2,6 +2,8 @@ package com.retail.controller;
 
 import com.retail.dto.ProductRequest;
 import com.retail.dto.ProductResponse;
+import com.retail.dto.UomRequest;
+import com.retail.dto.UomResponse;
 import com.retail.entity.ProductStatus;
 import com.retail.exception.ValidationException;
 import com.retail.repository.ProductCategoryRepository;
@@ -84,7 +86,14 @@ public class ProductController {
 
     @GetMapping("/create")
     public String showCreateForm(Model model) {
-        model.addAttribute("product", new ProductRequest());
+        ProductRequest request = new ProductRequest();
+        request.getUoms().add(UomRequest.builder()
+                .isBaseUnit(true)
+                .conversionRate(1)
+                .status("ACTIVE")
+                .build());
+
+        model.addAttribute("product", request);
         model.addAttribute("isEdit", false);
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("suppliers", supplierRepository.findAll());
@@ -112,6 +121,8 @@ public class ProductController {
         } catch (ValidationException e) {
             if (e.getMessage().contains("Tên sản phẩm")) {
                 bindingResult.rejectValue("productName", "duplicate", e.getMessage());
+            } else if (e.getMessage().contains("đơn vị tính") || e.getMessage().contains("UOM") || e.getMessage().contains("quy đổi")) {
+                bindingResult.rejectValue("uoms", "invalid", e.getMessage());
             } else if (e.getMessage().contains("Mã vạch") || e.getMessage().contains("barcode")) {
                 bindingResult.rejectValue("barcode", "duplicate", e.getMessage());
             } else if (e.getMessage().contains("Danh mục")) {
@@ -125,15 +136,30 @@ public class ProductController {
             return "admin/product/form";
         }
     }
-
     @GetMapping("/edit/{id}")
     public String showEditForm(
             @PathVariable("id") Long id,
             Model model,
             RedirectAttributes redirectAttributes) {
-
         try {
             ProductResponse detail = productService.getDetail(id);
+            java.util.List<UomRequest> uomRequests = new java.util.ArrayList<>();
+            if (detail.getUoms() != null) {
+                for (UomResponse u : detail.getUoms()) {
+                    uomRequests.add(UomRequest.builder()
+                            .id(u.getId())
+                            .uomName(u.getUomName())
+                            .isBaseUnit(u.getIsBaseUnit())
+                            .conversionRate(u.getConversionRate())
+                            .barcode(u.getBarcode())
+                            .standardPrice(u.getStandardPrice())
+                            .status(u.getStatus())
+                            .build());
+                }
+            }
+            // Sort so base unit is always at index 0
+            uomRequests.sort((u1, u2) -> Boolean.compare(u2.getIsBaseUnit(), u1.getIsBaseUnit()));
+
             ProductRequest request = ProductRequest.builder()
                     .productName(detail.getProductName())
                     .barcode(detail.getBarcode())
@@ -141,6 +167,7 @@ public class ProductController {
                     .categoryId(detail.getCategoryId())
                     .standardPrice(detail.getStandardPrice())
                     .defaultSupplierId(detail.getDefaultSupplierId())
+                    .uoms(uomRequests)
                     .build();
 
             model.addAttribute("product", request);
@@ -182,6 +209,8 @@ public class ProductController {
         } catch (ValidationException e) {
             if (e.getMessage().contains("Tên sản phẩm")) {
                 bindingResult.rejectValue("productName", "duplicate", e.getMessage());
+            } else if (e.getMessage().contains("đơn vị tính") || e.getMessage().contains("UOM") || e.getMessage().contains("quy đổi")) {
+                bindingResult.rejectValue("uoms", "invalid", e.getMessage());
             } else if (e.getMessage().contains("Mã vạch") || e.getMessage().contains("barcode")) {
                 bindingResult.rejectValue("barcode", "duplicate", e.getMessage());
             } else {

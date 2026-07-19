@@ -19,6 +19,7 @@ public class ProductRequest {
     @Size(max = 150, message = "Tên sản phẩm không quá 150 ký tự")
     private String productName;
 
+    @Size(max = 100, message = "Mã vạch không được vượt quá 100 ký tự")
     private String barcode;
 
     private String description;
@@ -32,4 +33,9 @@ public class ProductRequest {
     private BigDecimal standardPrice = BigDecimal.ZERO;
 
     private Integer defaultSupplierId;
+
+    @jakarta.validation.Valid
+    @com.retail.validator.ValidUomList
+    @Builder.Default
+    private java.util.List<UomRequest> uoms = new java.util.ArrayList<>();
 }

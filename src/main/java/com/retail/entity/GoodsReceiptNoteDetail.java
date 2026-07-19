@@ -40,7 +40,7 @@ public class GoodsReceiptNoteDetail {
     @PreUpdate
     public void calculateConvertedQuantity() {
         if (quantityReceived != null && uom != null) {
-            this.quantityConvertedBase = quantityReceived.multiply(uom.getConversionRate());
+            this.quantityConvertedBase = quantityReceived.multiply(BigDecimal.valueOf(uom.getConversionRate()));
         }
     }
 }
