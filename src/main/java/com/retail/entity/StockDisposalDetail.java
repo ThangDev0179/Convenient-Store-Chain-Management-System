@@ -32,6 +32,6 @@ public class StockDisposalDetail {
     @Column(name = "UnitCost", nullable = false, precision = 18, scale = 2)
     private BigDecimal unitCost;
 
-    @Column(name = "Note", length = 200)
+    @Column(name = "Note", length = 4000)
     private String note;
 }
