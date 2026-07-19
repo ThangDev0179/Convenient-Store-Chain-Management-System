@@ -19,7 +19,7 @@ public class StockDisposal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "DisposalId")
+    @Column(name = "StockDisposalId")
     private Long disposalId;
 
     @Column(name = "DisposalCode", unique = true, nullable = false, length = 50)

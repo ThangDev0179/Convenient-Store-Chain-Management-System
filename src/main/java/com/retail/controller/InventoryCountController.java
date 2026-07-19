@@ -105,4 +105,16 @@ public class InventoryCountController {
         }
         return "redirect:/inventory-count/" + id;
     }
+
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    public String cancelCount(@PathVariable Long id, Authentication auth, RedirectAttributes redirectAttributes) {
+        try {
+            countService.cancelCount(id, getEmployeeId(auth));
+            redirectAttributes.addFlashAttribute("successMessage", "Đã hủy bỏ bản nháp phiếu kiểm kê.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/inventory-count";
+    }
 }

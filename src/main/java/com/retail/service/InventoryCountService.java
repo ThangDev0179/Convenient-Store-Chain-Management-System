@@ -10,6 +10,7 @@ public interface InventoryCountService {
     InventoryCount submitCount(Long countId, Long employeeId);
     InventoryCount approveCount(Long countId, Long approvedByEmployeeId);
     InventoryCount rejectCount(Long countId, Long rejectedByEmployeeId);
+    void cancelCount(Long countId, Long cancelledByEmployeeId);
     List<InventoryCount> getAllCounts();
     InventoryCount getCountById(Long countId);
 }
