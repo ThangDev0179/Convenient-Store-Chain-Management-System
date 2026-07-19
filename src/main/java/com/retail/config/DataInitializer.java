@@ -43,8 +43,12 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // 2. Khởi tạo Branch nếu chưa có
-        if (branchRepository.count() == 0) {
-            log.info("Creating default branches...");
+        java.util.List<Branch> allBranches = branchRepository.findAll();
+        boolean hasBR001 = allBranches.stream().anyMatch(b -> "BR001".equals(b.getBranchCode()));
+        boolean hasBR002 = allBranches.stream().anyMatch(b -> "BR002".equals(b.getBranchCode()));
+
+        if (!hasBR001) {
+            log.info("Creating default branch 1...");
             Branch branch1 = Branch.builder()
                     .branchCode("BR001")
                     .branchName("Chi nhánh Trung tâm")
@@ -52,7 +56,10 @@ public class DataInitializer implements CommandLineRunner {
                     .status(BranchStatus.Active)
                     .build();
             branchRepository.save(branch1);
+        }
 
+        if (!hasBR002) {
+            log.info("Creating default branch 2...");
             Branch branch2 = Branch.builder()
                     .branchCode("BR002")
                     .branchName("Chi nhánh Quận 2")
@@ -145,6 +152,29 @@ public class DataInitializer implements CommandLineRunner {
 
             // Cấp tồn kho cho 2 chi nhánh
             java.util.List<Branch> branches = branchRepository.findAll();
+            if (branches.size() >= 2 && inventoryRepository.count() == 0) {
+                Branch b1 = branches.get(0);
+                Branch b2 = branches.get(1);
+
+                BranchInventory inv1 = BranchInventory.builder()
+                        .branch(b1)
+                        .product(product)
+                        .qtyOnHand(new java.math.BigDecimal("1000.000"))
+                        .qtyInTransit(java.math.BigDecimal.ZERO)
+                        .build();
+                inventoryRepository.save(inv1);
+
+                BranchInventory inv2 = BranchInventory.builder()
+                        .branch(b2)
+                        .product(product)
+                        .qtyOnHand(java.math.BigDecimal.ZERO)
+                        .qtyInTransit(java.math.BigDecimal.ZERO)
+                        .build();
+                inventoryRepository.save(inv2);
+            }
+        } else if (inventoryRepository.count() == 0) {
+            java.util.List<Branch> branches = branchRepository.findAll();
+            Product product = productRepository.findAll().get(0);
             if (branches.size() >= 2) {
                 Branch b1 = branches.get(0);
                 Branch b2 = branches.get(1);
