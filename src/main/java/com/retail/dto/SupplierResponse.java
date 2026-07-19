@@ -17,4 +17,7 @@ public class SupplierResponse {
     private String address;
     private SupplierStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String createdBy;
+    private String updatedBy;
 }

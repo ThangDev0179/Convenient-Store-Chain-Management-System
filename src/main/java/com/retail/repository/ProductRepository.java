@@ -18,11 +18,17 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findBySku(String sku);
 
+    Optional<Product> findByBarcode(String barcode);
+
     List<Product> findByStatus(ProductStatus status);
 
     boolean existsByProductName(String productName);
 
     boolean existsByProductNameAndProductIdNot(String productName, Long productId);
+
+    boolean existsByBarcode(String barcode);
+
+    boolean existsByBarcodeAndProductIdNot(String barcode, Long productId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT MAX(p.sku) FROM Product p WHERE p.sku LIKE :prefix%")
@@ -33,7 +39,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p WHERE " +
            "(:keyword IS NULL OR LOWER(p.productName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "OR LOWER(p.sku) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "OR LOWER(p.sku) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(p.barcode) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "AND (:categoryId IS NULL OR p.category.categoryId = :categoryId) " +
            "AND (:supplierId IS NULL OR p.defaultSupplier.supplierId = :supplierId) " +
            "AND (:status IS NULL OR p.status = :status)")

@@ -122,6 +122,10 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
                 .categoryId(category.getCategoryId())
                 .categoryName(category.getCategoryName())
                 .skuPrefix(category.getSkuPrefix())
+                .createdAt(category.getCreatedAt())
+                .updatedAt(category.getUpdatedAt())
+                .createdBy(category.getCreatedBy())
+                .updatedBy(category.getUpdatedBy())
                 .build();
     }
 }

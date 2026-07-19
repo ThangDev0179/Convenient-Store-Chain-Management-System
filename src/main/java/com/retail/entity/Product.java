@@ -2,6 +2,12 @@ package com.retail.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -12,6 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Product {
 
     @Id
@@ -22,8 +29,14 @@ public class Product {
     @Column(name = "Sku", unique = true, nullable = false, length = 20)
     private String sku;
 
+    @Column(name = "Barcode", unique = true, length = 100)
+    private String barcode;
+
     @Column(name = "ProductName", nullable = false, length = 150)
     private String productName;
+
+    @Column(name = "Description", columnDefinition = "NVARCHAR(MAX)")
+    private String description;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "CategoryId", nullable = false)
@@ -41,12 +54,24 @@ public class Product {
     @Column(name = "Status", nullable = false, length = 20)
     private ProductStatus status;
 
+    @CreatedDate
     @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @LastModifiedDate
+    @Column(name = "UpdatedAt")
+    private LocalDateTime updatedAt;
+
+    @CreatedBy
+    @Column(name = "CreatedBy", length = 100)
+    private String createdBy;
+
+    @LastModifiedBy
+    @Column(name = "UpdatedBy", length = 100)
+    private String updatedBy;
+
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
         if (status == null) {
             status = ProductStatus.Active;
         }

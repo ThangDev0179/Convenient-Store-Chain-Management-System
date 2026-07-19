@@ -55,7 +55,10 @@
                             <div class="detail-label">Mã SKU</div>
                             <div class="detail-value text-info fs-5" th:text="${product.sku}">SKU-0001</div>
                         </div>
-
+                        <div class="col-md-6 detail-item">
+                            <div class="detail-label">Mã vạch (Barcode)</div>
+                            <div class="detail-value fs-5" th:text="${product.barcode != null ? product.barcode : 'N/A'}">Barcode</div>
+                        </div>
                     </div>
 
                     <div class="detail-item">
@@ -81,12 +84,31 @@
                 </div>
             </div>
 
+            <div class="detail-item">
+                <div class="detail-label">Mô tả sản phẩm</div>
+                <div class="detail-value font-weight-normal text-muted" th:text="${product.description != null ? product.description : 'Không có mô tả cho sản phẩm này.'}">Mô tả</div>
+            </div>
 
-
+            <!-- Audit Trail -->
             <div class="row mt-3">
-                <div class="col-12 detail-item">
+                <div class="col-md-6 detail-item">
+                    <div class="detail-label">Người tạo</div>
+                    <div class="detail-value" th:text="${product.createdBy != null ? product.createdBy : 'Hệ thống'}">system</div>
+                </div>
+                <div class="col-md-6 detail-item">
                     <div class="detail-label">Thời gian tạo</div>
                     <div class="detail-value" th:text="${product.createdAt != null ? #temporals.format(product.createdAt, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}">N/A</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 detail-item">
+                    <div class="detail-label">Người cập nhật cuối</div>
+                    <div class="detail-value" th:text="${product.updatedBy != null ? product.updatedBy : 'Chưa cập nhật'}">N/A</div>
+                </div>
+                <div class="col-md-6 detail-item">
+                    <div class="detail-label">Thời gian cập nhật</div>
+                    <div class="detail-value" th:text="${product.updatedAt != null ? #temporals.format(product.updatedAt, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}">N/A</div>
                 </div>
             </div>
 

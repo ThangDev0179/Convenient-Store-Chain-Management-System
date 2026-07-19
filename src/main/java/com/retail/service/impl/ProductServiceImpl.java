@@ -58,6 +58,12 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
+        // Proactive barcode validation
+        if (request.getBarcode() != null && !request.getBarcode().trim().isEmpty()) {
+            if (productRepository.existsByBarcode(request.getBarcode().trim())) {
+                throw new ValidationException("Mã vạch đã tồn tại trong hệ thống");
+            }
+        }
 
         ProductCategory category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ValidationException("Danh mục không tồn tại với ID: " + request.getCategoryId()));
@@ -93,7 +99,9 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = Product.builder()
                 .sku(generatedSku)
+                .barcode(request.getBarcode() != null ? request.getBarcode().trim() : null)
                 .productName(request.getProductName().trim())
+                .description(request.getDescription())
                 .category(category)
                 .standardPrice(request.getStandardPrice())
                 .defaultSupplier(supplier)
@@ -120,6 +128,12 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
+        // Proactive barcode validation
+        if (request.getBarcode() != null && !request.getBarcode().trim().isEmpty()) {
+            if (productRepository.existsByBarcodeAndProductIdNot(request.getBarcode().trim(), id)) {
+                throw new ValidationException("Mã vạch đã tồn tại trong hệ thống");
+            }
+        }
 
         ProductCategory category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ValidationException("Danh mục không tồn tại với ID: " + request.getCategoryId()));
@@ -131,6 +145,8 @@ public class ProductServiceImpl implements ProductService {
         }
 
         product.setProductName(request.getProductName().trim());
+        product.setBarcode(request.getBarcode() != null ? request.getBarcode().trim() : null);
+        product.setDescription(request.getDescription());
         product.setCategory(category);
         product.setStandardPrice(request.getStandardPrice());
         product.setDefaultSupplier(supplier);
@@ -172,7 +188,9 @@ public class ProductServiceImpl implements ProductService {
 
     private void handleDataIntegrityViolation(DataIntegrityViolationException e) {
         String msg = e.getRootCause() != null ? e.getRootCause().getMessage() : e.getMessage();
-        if (msg != null && (msg.contains("ProductName") || msg.contains("UQ_Product_ProductName"))) {
+        if (msg != null && (msg.contains("Barcode") || msg.contains("UQ_Product_Barcode"))) {
+            throw new ValidationException("Mã vạch đã tồn tại trong hệ thống");
+        } else if (msg != null && (msg.contains("ProductName") || msg.contains("UQ_Product_ProductName"))) {
             throw new ValidationException("Tên sản phẩm đã tồn tại trong hệ thống");
         } else if (msg != null && (msg.contains("Sku") || msg.contains("UQ_Product_Sku"))) {
             throw new ValidationException("Mã sản phẩm (SKU) đã tồn tại trong hệ thống");
@@ -185,7 +203,9 @@ public class ProductServiceImpl implements ProductService {
         return ProductResponse.builder()
                 .productId(product.getProductId())
                 .sku(product.getSku())
+                .barcode(product.getBarcode())
                 .productName(product.getProductName())
+                .description(product.getDescription())
                 .categoryId(product.getCategory().getCategoryId())
                 .categoryName(product.getCategory().getCategoryName())
                 .standardPrice(product.getStandardPrice())
@@ -193,6 +213,9 @@ public class ProductServiceImpl implements ProductService {
                 .defaultSupplierName(product.getDefaultSupplier() != null ? product.getDefaultSupplier().getSupplierName() : null)
                 .status(product.getStatus())
                 .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
+                .createdBy(product.getCreatedBy())
+                .updatedBy(product.getUpdatedBy())
                 .build();
     }
 }

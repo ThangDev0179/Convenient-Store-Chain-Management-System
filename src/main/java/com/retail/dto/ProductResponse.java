@@ -14,12 +14,18 @@ import java.time.LocalDateTime;
 public class ProductResponse {
     private Long productId;
     private String sku;
+    private String barcode;
     private String productName;
+    private String description;
     private Integer categoryId;
     private String categoryName;
     private BigDecimal standardPrice;
     private Integer defaultSupplierId;
     private String defaultSupplierName;
     private ProductStatus status;
+
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String createdBy;
+    private String updatedBy;
 }
