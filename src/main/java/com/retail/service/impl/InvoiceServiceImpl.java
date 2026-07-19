@@ -46,6 +46,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.retail.entity.BranchProductPrice;
+import com.retail.entity.BranchProductPriceId;
+import com.retail.entity.Promotion;
+import com.retail.entity.PromotionDetail;
+import com.retail.entity.PromotionStatus;
+import com.retail.entity.DiscountType;
+import com.retail.repository.BranchProductPriceRepository;
+import com.retail.repository.PromotionDetailRepository;
 /**
  * Business logic for POS / Invoice module.
  *
@@ -58,6 +66,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
+
+
 public class InvoiceServiceImpl implements InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
@@ -72,8 +82,8 @@ public class InvoiceServiceImpl implements InvoiceService {
     // ── Stub repositories (cross-module — replaced at full team merge) ─────────
     private final com.retail.repository.ProductRepository productRepo;
     private final com.retail.repository.BranchInventoryRepository inventoryRepo;
-    private final com.retail.repository.BranchProductPriceStubRepository priceRepo;
-    private final com.retail.repository.PromotionDetailStubRepository promotionDetailRepo;
+    private final BranchProductPriceRepository priceRepo;
+    private final PromotionDetailRepository promotionDetailRepo;
     private final com.retail.repository.InventoryTransactionHistoryRepository ithRepo;
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -158,14 +168,14 @@ public class InvoiceServiceImpl implements InvoiceService {
             log.debug("Merged quantity for product {} in invoice {}", request.productId(), invoiceId);
         } else {
             BigDecimal basePrice = resolveEffectivePrice(product, invoice.getBranchId());
-            PromotionDetailStub bestPromo = findBestActivePromotion(request.productId());
+            PromotionDetail bestPromo = findBestActivePromotion(request.productId());
             BigDecimal finalPrice = applyPromotion(basePrice, bestPromo);
 
             InvoiceDetail detail = InvoiceDetail.builder()
                     .productId(request.productId())
                     .quantity(request.quantity())
                     .unitPrice(finalPrice)
-                    .promotionId(bestPromo != null ? bestPromo.getPromotionId() : null)
+                    .promotionId(bestPromo != null && bestPromo.getPromotion() != null ? bestPromo.getPromotion().getPromotionId() : null)
                     .build();
             invoice.addDetail(detail);
         }
@@ -396,7 +406,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private BigDecimal resolveEffectivePrice(Product product, Integer branchId) {
         return priceRepo.findById(new BranchProductPriceId(branchId, product.getProductId()))
-                .map(BranchProductPriceStub::getEffectivePrice)
+                .map(BranchProductPrice::getEffectivePrice)
                 .orElse(product.getStandardPrice());
     }
 
@@ -405,22 +415,22 @@ public class InvoiceServiceImpl implements InvoiceService {
      * Strategy: choose promotion with most recent StartDateTime among all active ones.
      * Rationale: most recently started = latest pricing intent.
      */
-    private PromotionDetailStub findBestActivePromotion(Long productId) {
+    private PromotionDetail findBestActivePromotion(Long productId) {
         LocalDateTime now = LocalDateTime.now();
         return promotionDetailRepo.findAll().stream()
-                .filter(pd -> pd.getProductId().equals(productId))
+                .filter(pd -> pd.getProduct().getProductId().equals(productId))
                 .filter(pd -> pd.getPromotion() != null
-                              && "Active".equalsIgnoreCase(pd.getPromotion().getStatus())
+                              && pd.getPromotion().getStatus() == PromotionStatus.Active
                               && !now.isBefore(pd.getPromotion().getStartDateTime())
                               && !now.isAfter(pd.getPromotion().getEndDateTime()))
                 .max(Comparator.comparing(pd -> pd.getPromotion().getStartDateTime()))
                 .orElse(null);
     }
 
-    private BigDecimal applyPromotion(BigDecimal basePrice, PromotionDetailStub promo) {
+    private BigDecimal applyPromotion(BigDecimal basePrice, PromotionDetail promo) {
         if (promo == null) return basePrice;
         BigDecimal discounted;
-        if ("Percentage".equalsIgnoreCase(promo.getDiscountType())) {
+        if (promo.getDiscountType() == DiscountType.Percentage) {
             discounted = basePrice.multiply(BigDecimal.ONE.subtract(
                     promo.getDiscountValue().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)));
         } else {
@@ -445,12 +455,12 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .findById(new BranchInventoryId(branchId, product.getProductId()))
                 .orElse(null);
         BigDecimal qtyAvailable = inv != null ? inv.getQtyAvailable() : BigDecimal.ZERO;
-        PromotionDetailStub promo = findBestActivePromotion(product.getProductId());
+        PromotionDetail promo = findBestActivePromotion(product.getProductId());
         return new ProductSearchResponse(
                 product.getProductId(), product.getSku(), product.getProductName(),
                 effectivePrice, qtyAvailable,
-                promo != null ? promo.getPromotionId() : null,
-                promo != null ? promo.getDiscountType() : null,
+                promo != null && promo.getPromotion() != null ? promo.getPromotion().getPromotionId() : null,
+                promo != null && promo.getDiscountType() != null ? promo.getDiscountType().name() : null,
                 promo != null ? promo.getDiscountValue() : null);
     }
 

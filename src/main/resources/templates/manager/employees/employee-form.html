@@ -20,7 +20,7 @@
                     <span th:text="${error}">Dữ liệu nhập vào không hợp lệ</span>
                 </div>
 
-                <form th:action="${isEdit} ? @{/admin/employees/{id}/edit(id=${employeeId})} : @{/admin/employees/new}" 
+                <form th:action="${isEdit} ? @{/manager/employees/{id}/edit(id=${employeeId})} : @{/manager/employees/new}" 
                       th:object="${employeeRequest}" 
                       method="post">
                     
@@ -82,7 +82,7 @@
                     <!-- Submit and Cancel Buttons -->
                     <div class="d-flex gap-2 mt-4">
                         <button type="submit" class="btn btn-primary w-50" th:text="${isEdit ? 'Lưu thay đổi' : 'Đăng ký nhân viên'}">Xác nhận</button>
-                        <a th:href="@{/admin/employees}" class="btn btn-secondary w-50 d-flex align-items-center justify-content-center">Hủy bỏ</a>
+                        <a th:href="@{/manager/employees}" class="btn btn-secondary w-50 d-flex align-items-center justify-content-center">Hủy bỏ</a>
                     </div>
                 </form>
             </div>

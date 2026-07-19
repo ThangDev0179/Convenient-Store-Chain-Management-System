@@ -27,7 +27,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/admin/employees")
+@RequestMapping("/manager/employees")
 public class EmployeeController {
 
     @Autowired
@@ -89,7 +89,7 @@ public class EmployeeController {
                     .collect(Collectors.toList()));
         }
 
-        return "admin/employees/employee-list";
+        return "manager/employees/employee-list";
     }
 
     @GetMapping("/new")
@@ -112,7 +112,7 @@ public class EmployeeController {
 
         model.addAttribute("employeeRequest", request);
         model.addAttribute("isEdit", false);
-        return "admin/employees/employee-form";
+        return "manager/employees/employee-form";
     }
 
     @PostMapping("/new")
@@ -135,7 +135,7 @@ public class EmployeeController {
             populateFormModels(model, userRole, managerBranchId);
             model.addAttribute("employeeRequest", request);
             model.addAttribute("isEdit", false);
-            return "admin/employees/employee-form";
+            return "manager/employees/employee-form";
         }
 
         if ("MANAGER".equals(userRole)) {
@@ -146,7 +146,7 @@ public class EmployeeController {
                 populateFormModels(model, userRole, managerBranchId);
                 model.addAttribute("employeeRequest", request);
                 model.addAttribute("isEdit", false);
-                return "admin/employees/employee-form";
+                return "manager/employees/employee-form";
             }
         }
 
@@ -154,13 +154,13 @@ public class EmployeeController {
         try {
             employeeService.create(request);
             redirectAttributes.addFlashAttribute("success", "Tạo mới nhân viên thành công! Thông tin đăng nhập đã được gửi đến email.");
-            return "redirect:/admin/employees";
+            return "redirect:/manager/employees";
         } catch (BranchAlreadyHasManagerException | ValidationException e) {
             model.addAttribute("error", e.getMessage());
             populateFormModels(model, userRole, managerBranchId);
             model.addAttribute("employeeRequest", request);
             model.addAttribute("isEdit", false);
-            return "admin/employees/employee-form";
+            return "manager/employees/employee-form";
         }
     }
 
@@ -178,7 +178,7 @@ public class EmployeeController {
 
         if ("MANAGER".equals(userRole) && !detail.getBranchId().equals(managerBranchId)) {
             redirectAttributes.addFlashAttribute("error", "Từ chối quyền truy cập: Nhân viên không thuộc chi nhánh của bạn.");
-            return "redirect:/admin/employees";
+            return "redirect:/manager/employees";
         }
 
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
@@ -192,7 +192,7 @@ public class EmployeeController {
         model.addAttribute("username", detail.getUsername());
         model.addAttribute("isEdit", true);
         model.addAttribute("employeeId", id);
-        return "admin/employees/employee-form";
+        return "manager/employees/employee-form";
     }
 
     @PostMapping("/{id}/edit")
@@ -219,19 +219,19 @@ public class EmployeeController {
             model.addAttribute("username", detail.getUsername());
             model.addAttribute("isEdit", true);
             model.addAttribute("employeeId", id);
-            return "admin/employees/employee-form";
+            return "manager/employees/employee-form";
         }
 
         if ("MANAGER".equals(userRole) && !detail.getBranchId().equals(managerBranchId)) {
             redirectAttributes.addFlashAttribute("error", "Từ chối quyền truy cập: Nhân viên không thuộc chi nhánh của bạn.");
-            return "redirect:/admin/employees";
+            return "redirect:/manager/employees";
         }
 
 
         try {
             employeeService.update(id, request);
             redirectAttributes.addFlashAttribute("success", "Cập nhật thông tin nhân viên thành công!");
-            return "redirect:/admin/employees";
+            return "redirect:/manager/employees";
         } catch (ValidationException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("employeeRequest", request);
@@ -239,7 +239,7 @@ public class EmployeeController {
             model.addAttribute("username", detail.getUsername());
             model.addAttribute("isEdit", true);
             model.addAttribute("employeeId", id);
-            return "admin/employees/employee-form";
+            return "manager/employees/employee-form";
         }
     }
 
@@ -256,7 +256,7 @@ public class EmployeeController {
 
         if ("MANAGER".equals(userRole) && !detail.getBranchId().equals(managerBranchId)) {
             redirectAttributes.addFlashAttribute("error", "Từ chối quyền truy cập: Nhân viên không thuộc chi nhánh của bạn.");
-            return "redirect:/admin/employees";
+            return "redirect:/manager/employees";
         }
 
         try {
@@ -270,7 +270,7 @@ public class EmployeeController {
         } catch (ValidationException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/admin/employees";
+        return "redirect:/manager/employees";
     }
 
     @PostMapping("/{id}/reset-password")
@@ -286,12 +286,12 @@ public class EmployeeController {
 
         if ("MANAGER".equals(userRole) && !detail.getBranchId().equals(managerBranchId)) {
             redirectAttributes.addFlashAttribute("error", "Từ chối quyền truy cập: Nhân viên không thuộc chi nhánh của bạn.");
-            return "redirect:/admin/employees";
+            return "redirect:/manager/employees";
         }
 
         employeeService.resetPassword(id);
         redirectAttributes.addFlashAttribute("success", "Đã đặt lại mật khẩu! Mật khẩu mới đã được ghi nhận và gửi đến email.");
-        return "redirect:/admin/employees";
+        return "redirect:/manager/employees";
     }
 
     @PostMapping("/{id}/change-role")
@@ -305,7 +305,7 @@ public class EmployeeController {
 
         if (!"ADMIN".equals(userRole)) {
             redirectAttributes.addFlashAttribute("error", "Từ chối quyền thực hiện: Chỉ có Quản trị viên mới được phép đổi chức vụ nhân viên.");
-            return "redirect:/admin/employees";
+            return "redirect:/manager/employees";
         }
 
         try {
@@ -315,7 +315,7 @@ public class EmployeeController {
         } catch (ValidationException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/admin/employees";
+        return "redirect:/manager/employees";
     }
 
     @PostMapping("/{id}/transfer")
@@ -329,7 +329,7 @@ public class EmployeeController {
 
         if (!"ADMIN".equals(userRole)) {
             redirectAttributes.addFlashAttribute("error", "Từ chối quyền thực hiện: Chỉ có Quản trị viên mới được phép luân chuyển chi nhánh.");
-            return "redirect:/admin/employees";
+            return "redirect:/manager/employees";
         }
 
         try {
@@ -339,7 +339,7 @@ public class EmployeeController {
         } catch (ValidationException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/admin/employees";
+        return "redirect:/manager/employees";
     }
 
     @GetMapping("/{id}")
@@ -356,7 +356,7 @@ public class EmployeeController {
 
         if ("MANAGER".equals(userRole) && !detail.getBranchId().equals(managerBranchId)) {
             redirectAttributes.addFlashAttribute("error", "Từ chối quyền truy cập: Nhân viên không thuộc chi nhánh của bạn.");
-            return "redirect:/admin/employees";
+            return "redirect:/manager/employees";
         }
 
         model.addAttribute("employee", detail);
@@ -364,7 +364,7 @@ public class EmployeeController {
         model.addAttribute("branches", branchRepository.findAll());
         model.addAttribute("currentUserRole", userRole);
 
-        return "admin/employees/employee-detail";
+        return "manager/employees/employee-detail";
     }
 
     private void populateFormModels(Model model, String userRole, Integer managerBranchId) {

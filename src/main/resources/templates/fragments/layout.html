@@ -28,7 +28,7 @@
             <a th:href="@{/admin/branches}" class="sidebar-link" th:classappend="${activePage == 'branches'} ? 'active'">
                 <i class="fa-solid fa-building"></i> Chi nhánh
             </a>
-            <a th:href="@{/admin/employees}" class="sidebar-link" th:classappend="${activePage == 'employees'} ? 'active'">
+            <a th:href="@{/manager/employees}" class="sidebar-link" th:classappend="${activePage == 'employees'} ? 'active'">
                 <i class="fa-solid fa-users"></i> Nhân viên
             </a>
             <a th:href="@{/admin/products}" class="sidebar-link" th:classappend="${activePage == 'products'} ? 'active'">
@@ -114,7 +114,7 @@
             </a>
 
             <div class="sidebar-section-label">Nhân sự</div>
-            <a th:href="@{/admin/employees}" class="sidebar-link" th:classappend="${activePage == 'employees'} ? 'active'">
+            <a th:href="@{/manager/employees}" class="sidebar-link" th:classappend="${activePage == 'employees'} ? 'active'">
                 <i class="fa-solid fa-users"></i> Nhân viên
             </a>
             <a th:href="@{/manager/schedule}" class="sidebar-link" th:classappend="${activePage == 'schedules'} ? 'active'">
