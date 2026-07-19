@@ -87,12 +87,15 @@
                     <tr th:each="detail, stat : ${transfer.details}">
                         <td th:text="${stat.index + 1}"></td>
                         <td th:text="${detail.product.productId}"></td>
-                        <td th:text="${detail.quantitySent}"></td>
-                        <td th:text="${detail.quantityReceived != null ? detail.quantityReceived : '-'}"></td>
+                        <td th:text="${detail.quantitySent.stripTrailingZeros().toPlainString()}"></td>
+                        <td th:text="${detail.quantityReceived != null ? detail.quantityReceived.stripTrailingZeros().toPlainString() : '-'}"></td>
                         <td>
-                            <span th:if="${detail.quantityReceived != null}"
-                                  th:text="${detail.quantitySent.subtract(detail.quantityReceived)}"
-                                  th:class="${detail.quantitySent.subtract(detail.quantityReceived).compareTo(T(java.math.BigDecimal).ZERO) gt 0} ? 'text-danger fw-bold' : 'text-success'">
+                            <span th:if="${detail.quantityReceived != null && detail.quantitySent.compareTo(detail.quantityReceived) > 0}"
+                                  th:text="${detail.quantitySent.subtract(detail.quantityReceived).stripTrailingZeros().toPlainString()}"
+                                  class="text-danger fw-bold">
+                            </span>
+                            <span th:if="${detail.quantityReceived != null && detail.quantitySent.compareTo(detail.quantityReceived) <= 0}"
+                                  th:text="0" class="text-success">
                             </span>
                             <span th:if="${detail.quantityReceived == null}">-</span>
                         </td>

@@ -97,7 +97,7 @@
                     <tr th:each="detail, stat : ${disposal.details}">
                         <td th:text="${stat.index + 1}"></td>
                         <td th:text="${detail.product.productName + ' (' + detail.product.productId + ')'}"></td>
-                        <td class="text-danger fw-bold" th:text="${detail.quantityDisposed}"></td>
+                        <td class="text-danger fw-bold" th:text="${detail.quantityDisposed.stripTrailingZeros().toPlainString()}"></td>
                         <td th:text="${detail.unitCost}"></td>
                         <td class="text-danger fw-bold" th:text="${detail.quantityDisposed.multiply(detail.unitCost)}"></td>
                         <td th:text="${detail.note != null ? detail.note : '-'}"></td>
