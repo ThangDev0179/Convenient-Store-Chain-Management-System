@@ -4,6 +4,7 @@ import com.retail.dto.BranchInventoryResponse;
 import com.retail.dto.InventoryTransactionResponse;
 import com.retail.entity.BranchInventory;
 import com.retail.entity.InventoryTransactionHistory;
+import com.retail.entity.ProductUOM;
 import com.retail.repository.BranchInventoryRepository;
 import com.retail.repository.InventoryTransactionHistoryRepository;
 import com.retail.repository.ProductUOMRepository;
@@ -13,7 +14,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -42,9 +45,61 @@ public class InventoryServiceImpl implements InventoryService {
         return historyPage.map(this::mapToTransactionResponse);
     }
 
+    private String formatQuantity(BigDecimal qty, List<ProductUOM> uoms) {
+        if (qty == null) return "0";
+        if (uoms == null || uoms.isEmpty()) {
+            return qty.stripTrailingZeros().toPlainString();
+        }
+
+        // Sort by conversion rate descending
+        List<ProductUOM> sortedUoms = uoms.stream()
+                .sorted((u1, u2) -> u2.getConversionRate().compareTo(u1.getConversionRate()))
+                .toList();
+
+        StringBuilder sb = new StringBuilder();
+        BigDecimal remaining = qty.abs(); // Keep positive for division, add sign at the end
+        boolean isNegative = qty.compareTo(BigDecimal.ZERO) < 0;
+
+        for (ProductUOM uom : sortedUoms) {
+            BigDecimal rate = uom.getConversionRate();
+            if (rate.compareTo(BigDecimal.ONE) > 0) {
+                BigDecimal[] divideAndRemainder = remaining.divideAndRemainder(rate);
+                BigDecimal quotient = divideAndRemainder[0];
+                if (quotient.compareTo(BigDecimal.ZERO) > 0) {
+                    if (sb.length() > 0) {
+                        sb.append(", ");
+                    }
+                    sb.append(quotient.stripTrailingZeros().toPlainString()).append(" ").append(uom.getUomName());
+                    remaining = divideAndRemainder[1];
+                }
+            } else {
+                // Base unit
+                if (remaining.compareTo(BigDecimal.ZERO) > 0 || sb.length() == 0) {
+                    if (sb.length() > 0) {
+                        sb.append(", ");
+                    }
+                    sb.append(remaining.stripTrailingZeros().toPlainString()).append(" ").append(uom.getUomName());
+                    remaining = BigDecimal.ZERO;
+                }
+            }
+        }
+
+        if (remaining.compareTo(BigDecimal.ZERO) > 0) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append(remaining.stripTrailingZeros().toPlainString());
+        }
+
+        return (isNegative ? "-" : "") + sb.toString();
+    }
+
     private BranchInventoryResponse mapToInventoryResponse(BranchInventory bi) {
-        String baseUom = productUOMRepository.findByProductProductIdAndIsBaseUnitTrue(bi.getProduct().getProductId())
-                .map(uom -> uom.getUomName())
+        List<ProductUOM> uoms = productUOMRepository.findByProductProductId(bi.getProduct().getProductId());
+        String baseUom = uoms.stream()
+                .filter(ProductUOM::getIsBaseUnit)
+                .map(ProductUOM::getUomName)
+                .findFirst()
                 .orElse("Đơn vị");
 
         return BranchInventoryResponse.builder()
@@ -58,13 +113,19 @@ public class InventoryServiceImpl implements InventoryService {
                 .qtyAvailable(bi.getQtyAvailable())
                 .qtyInTransit(bi.getQtyInTransit())
                 .baseUomName(baseUom)
+                .qtyOnHandFormatted(formatQuantity(bi.getQtyOnHand(), uoms))
+                .qtyAvailableFormatted(formatQuantity(bi.getQtyAvailable(), uoms))
+                .qtyInTransitFormatted(formatQuantity(bi.getQtyInTransit(), uoms))
                 .updatedAt(bi.getUpdatedAt())
                 .build();
     }
 
     private InventoryTransactionResponse mapToTransactionResponse(InventoryTransactionHistory ith) {
-        String baseUom = productUOMRepository.findByProductProductIdAndIsBaseUnitTrue(ith.getProduct().getProductId())
-                .map(uom -> uom.getUomName())
+        List<ProductUOM> uoms = productUOMRepository.findByProductProductId(ith.getProduct().getProductId());
+        String baseUom = uoms.stream()
+                .filter(ProductUOM::getIsBaseUnit)
+                .map(ProductUOM::getUomName)
+                .findFirst()
                 .orElse("Đơn vị");
 
         return InventoryTransactionResponse.builder()
@@ -79,9 +140,11 @@ public class InventoryServiceImpl implements InventoryService {
                 .referenceId(ith.getReferenceId())
                 .quantityChange(ith.getQuantityChange())
                 .baseUomName(baseUom)
+                .quantityChangeFormatted(formatQuantity(ith.getQuantityChange(), uoms))
                 .reason(ith.getReason())
                 .createdByName(ith.getCreatedBy() != null ? ith.getCreatedBy().getFullName() : "System")
                 .createdAt(ith.getCreatedAt())
                 .build();
     }
 }
+

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- ==================== SIDEBAR FRAGMENT ==================== -->
+<nav th:fragment="sidebar(activePage)" class="sidebar" id="sidebar">
+    <!-- Brand -->
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">
+            <i class="fa-solid fa-store"></i>
+        </div>
+        <div class="sidebar-brand-text">
+            ConvStore
+            <small>Chuỗi Cửa Hàng Tiện Lợi</small>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="sidebar-nav">
+        <!-- ===== ADMIN NAV ===== -->
+        <div sec:authorize="hasRole('ADMIN')">
+            <div class="sidebar-section-label">Tổng quan</div>
+            <a th:href="@{/admin/dashboard}" class="sidebar-link" th:classappend="${activePage == 'admin-dashboard'} ? 'active'">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </a>
+
+            <div class="sidebar-section-label">Quản lý hệ thống</div>
+            <a th:href="@{/admin/branches}" class="sidebar-link" th:classappend="${activePage == 'branches'} ? 'active'">
+                <i class="fa-solid fa-building"></i> Chi nhánh
+            </a>
+            <a th:href="@{/admin/employees}" class="sidebar-link" th:classappend="${activePage == 'employees'} ? 'active'">
+                <i class="fa-solid fa-users"></i> Nhân viên
+            </a>
+            <a th:href="@{/admin/products}" class="sidebar-link" th:classappend="${activePage == 'products'} ? 'active'">
+                <i class="fa-solid fa-box-open"></i> Sản phẩm
+            </a>
+            <a th:href="@{/admin/suppliers}" class="sidebar-link" th:classappend="${activePage == 'suppliers'} ? 'active'">
+                <i class="fa-solid fa-truck-field"></i> Nhà cung cấp
+            </a>
+            <a th:href="@{/admin/promotions}" class="sidebar-link" th:classappend="${activePage == 'promotions'} ? 'active'">
+                <i class="fa-solid fa-tags"></i> Khuyến mãi
+            </a>
+
+            <div class="sidebar-section-label">Mua hàng & Kho</div>
+            <a th:href="@{/manager/purchase-orders}" class="sidebar-link" th:classappend="${activePage == 'po'} ? 'active'">
+                <i class="fa-solid fa-file-invoice"></i> Đơn đặt hàng
+            </a>
+            <a th:href="@{/manager/grn}" class="sidebar-link" th:classappend="${activePage == 'grn'} ? 'active'">
+                <i class="fa-solid fa-truck-ramp-box"></i> Nhập kho (GRN)
+            </a>
+            <a th:href="@{/manager/supplier-invoices}" class="sidebar-link" th:classappend="${activePage == 'invoices'} ? 'active'">
+                <i class="fa-solid fa-receipt"></i> Hóa đơn NCC
+            </a>
+            <a th:href="@{/manager/supplier-payments}" class="sidebar-link" th:classappend="${activePage == 'payments'} ? 'active'">
+                <i class="fa-solid fa-money-check-dollar"></i> Phiếu chi
+            </a>
+            <a th:href="@{/manager/inventory}" class="sidebar-link" th:classappend="${activePage == 'inventory'} ? 'active'">
+                <i class="fa-solid fa-warehouse"></i> Tồn kho
+            </a>
+            <a th:href="@{/manager/inventory/ledger}" class="sidebar-link" th:classappend="${activePage == 'ledger'} ? 'active'">
+                <i class="fa-solid fa-clock-rotate-left"></i> Thẻ kho
+            </a>
+
+            <div class="sidebar-section-label">Nhân sự</div>
+            <a th:href="@{/manager/schedules}" class="sidebar-link" th:classappend="${activePage == 'schedules'} ? 'active'">
+                <i class="fa-solid fa-calendar-days"></i> Lịch làm việc
+            </a>
+        </div>
+
+        <!-- ===== MANAGER NAV ===== -->
+        <div sec:authorize="hasRole('MANAGER')">
+            <div class="sidebar-section-label">Tổng quan</div>
+            <a th:href="@{/manager/dashboard}" class="sidebar-link" th:classappend="${activePage == 'manager-dashboard'} ? 'active'">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard
+            </a>
+
+            <div class="sidebar-section-label">Mua hàng & Kho</div>
+            <a th:href="@{/manager/purchase-orders}" class="sidebar-link" th:classappend="${activePage == 'po'} ? 'active'">
+                <i class="fa-solid fa-file-invoice"></i> Đơn đặt hàng
+            </a>
+            <a th:href="@{/manager/grn}" class="sidebar-link" th:classappend="${activePage == 'grn'} ? 'active'">
+                <i class="fa-solid fa-truck-ramp-box"></i> Nhập kho (GRN)
+            </a>
+            <a th:href="@{/manager/supplier-invoices}" class="sidebar-link" th:classappend="${activePage == 'invoices'} ? 'active'">
+                <i class="fa-solid fa-receipt"></i> Hóa đơn NCC
+            </a>
+            <a th:href="@{/manager/supplier-payments}" class="sidebar-link" th:classappend="${activePage == 'payments'} ? 'active'">
+                <i class="fa-solid fa-money-check-dollar"></i> Phiếu chi
+            </a>
+            <a th:href="@{/manager/inventory}" class="sidebar-link" th:classappend="${activePage == 'inventory'} ? 'active'">
+                <i class="fa-solid fa-warehouse"></i> Tồn kho
+            </a>
+            <a th:href="@{/manager/inventory/ledger}" class="sidebar-link" th:classappend="${activePage == 'ledger'} ? 'active'">
+                <i class="fa-solid fa-clock-rotate-left"></i> Thẻ kho
+            </a>
+
+            <div class="sidebar-section-label">Vận hành</div>
+            <a th:href="@{/disposal}" class="sidebar-link" th:classappend="${activePage == 'disposal'} ? 'active'">
+                <i class="fa-solid fa-trash-can"></i> Xuất hủy
+            </a>
+            <a th:href="@{/transfer}" class="sidebar-link" th:classappend="${activePage == 'transfer'} ? 'active'">
+                <i class="fa-solid fa-right-left"></i> Chuyển kho
+            </a>
+            <a th:href="@{/inventory-count}" class="sidebar-link" th:classappend="${activePage == 'inventory-count'} ? 'active'">
+                <i class="fa-solid fa-clipboard-check"></i> Kiểm kê
+            </a>
+            <a th:href="@{/manager/price-requests}" class="sidebar-link" th:classappend="${activePage == 'price-request'} ? 'active'">
+                <i class="fa-solid fa-hand-holding-dollar"></i> Giá chi nhánh
+            </a>
+
+            <div class="sidebar-section-label">Nhân sự</div>
+            <a th:href="@{/manager/schedules}" class="sidebar-link" th:classappend="${activePage == 'schedules'} ? 'active'">
+                <i class="fa-solid fa-calendar-days"></i> Lịch làm việc
+            </a>
+            <a th:href="@{/manager/shift-history}" class="sidebar-link" th:classappend="${activePage == 'shift-history'} ? 'active'">
+                <i class="fa-solid fa-business-time"></i> Nhật ký ca
+            </a>
+        </div>
+
+        <!-- ===== STAFF NAV ===== -->
+        <div sec:authorize="hasRole('STAFF')">
+            <div class="sidebar-section-label">Tổng quan</div>
+            <a th:href="@{/staff/dashboard}" class="sidebar-link" th:classappend="${activePage == 'staff-dashboard'} ? 'active'">
+                <i class="fa-solid fa-house"></i> Dashboard
+            </a>
+
+            <div class="sidebar-section-label">Bán hàng</div>
+            <a th:href="@{/staff/pos}" class="sidebar-link" th:classappend="${activePage == 'pos'} ? 'active'">
+                <i class="fa-solid fa-cash-register"></i> Thu ngân (POS)
+            </a>
+            <a th:href="@{/staff/refund}" class="sidebar-link" th:classappend="${activePage == 'refund'} ? 'active'">
+                <i class="fa-solid fa-rotate-left"></i> Hoàn trả
+            </a>
+
+            <div class="sidebar-section-label">Ca làm việc</div>
+            <a th:href="@{/staff/shift}" class="sidebar-link" th:classappend="${activePage == 'shift'} ? 'active'">
+                <i class="fa-solid fa-user-clock"></i> Check-in / Check-out
+            </a>
+            <a th:href="@{/staff/shift/history}" class="sidebar-link" th:classappend="${activePage == 'my-shifts'} ? 'active'">
+                <i class="fa-solid fa-list-check"></i> Lịch sử ca
+            </a>
+        </div>
+
+        <!-- ===== COMMON (all roles) ===== -->
+        <div class="sidebar-section-label">Tài khoản</div>
+        <a th:href="@{/}" class="sidebar-link" th:classappend="${activePage == 'profile'} ? 'active'">
+            <i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân
+        </a>
+        <a th:href="@{/change-password}" class="sidebar-link" th:classappend="${activePage == 'change-password'} ? 'active'">
+            <i class="fa-solid fa-key"></i> Đổi mật khẩu
+        </a>
+    </div>
+
+    <!-- Footer: User info + Logout -->
+    <div class="sidebar-footer">
+        <div class="sidebar-user" th:if="${#authentication != null}">
+            <div class="sidebar-user-avatar" th:text="${#authentication.name != null ? #authentication.name.substring(0,1).toUpperCase() : '?'}">U</div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name" th:text="${#authentication.name}">User</div>
+                <div class="sidebar-user-role" sec:authorize="hasRole('ADMIN')">Quản trị viên</div>
+                <div class="sidebar-user-role" sec:authorize="hasRole('MANAGER')">Quản lý chi nhánh</div>
+                <div class="sidebar-user-role" sec:authorize="hasRole('STAFF')">Nhân viên thu ngân</div>
+            </div>
+        </div>
+        <form th:action="@{/logout}" method="post" class="mt-2">
+            <button type="submit" class="btn btn-secondary w-100" style="font-size:0.8rem; padding:8px;">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+            </button>
+        </form>
+    </div>
+</nav>
+
+<!-- ==================== TOPBAR FRAGMENT ==================== -->
+<div th:fragment="topbar(pageTitle)" class="topbar">
+    <div class="d-flex align-items-center gap-3">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('d-block');">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <span class="topbar-title" th:text="${pageTitle}">Trang</span>
+    </div>
+    <div class="topbar-actions">
+        <a th:href="@{/}" class="topbar-btn" title="Trang chủ"><i class="fa-solid fa-home"></i></a>
+    </div>
+</div>
+<div th:fragment="overlay" class="sidebar-overlay" id="sidebarOverlay" onclick="document.getElementById('sidebar').classList.remove('open'); this.classList.remove('d-block');"></div>
+
+<!-- ==================== HEAD FRAGMENT ==================== -->
+<head th:fragment="head(pageTitle)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' - Chuỗi Cửa Hàng Tiện Lợi'">Page Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+
+<!-- ==================== SCRIPTS FRAGMENT ==================== -->
+<div th:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+
+</html>

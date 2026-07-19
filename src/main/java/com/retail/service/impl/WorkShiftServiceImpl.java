@@ -92,13 +92,29 @@ public class WorkShiftServiceImpl implements WorkShiftService {
             throw new ValidationException("Ca làm việc đã được đóng trước đó");
         }
 
+        // Enforce cash closing has been done before check-out
+        ShiftMetrics metrics = shiftMetricsRepository.findById(workShift.getWorkShiftId())
+                .orElseThrow(() -> new ValidationException("Vui lòng thực hiện kết ca bàn giao tiền mặt trước khi check-out."));
+
         LocalDateTime checkOutTime = LocalDateTime.now();
         if (checkOutTime.isBefore(workShift.getCheckInTime())) {
             throw new ValidationException("Thời gian check-out phải sau thời gian check-in");
         }
 
         workShift.setCheckOutTime(checkOutTime);
-        workShift.setStatus(WorkShiftStatus.Closed);
+
+        // Check if duration exceeds 15 hours
+        java.time.Duration duration = java.time.Duration.between(workShift.getCheckInTime(), checkOutTime);
+        boolean isOver15Hours = duration.toHours() > 15;
+
+        // Check for cash variance mismatch
+        boolean isCashMismatch = metrics.getCashCounted().subtract(metrics.getCashExpected()).compareTo(BigDecimal.ZERO) != 0;
+
+        if (isOver15Hours || isCashMismatch) {
+            workShift.setStatus(WorkShiftStatus.Warning_Mismatch);
+        } else {
+            workShift.setStatus(WorkShiftStatus.Closed);
+        }
 
         return workShiftRepository.save(workShift);
     }
@@ -115,20 +131,13 @@ public class WorkShiftServiceImpl implements WorkShiftService {
         WorkShift workShift = workShiftRepository.findById(request.getWorkShiftId())
                 .orElseThrow(() -> new ValidationException("Ca làm việc không tồn tại"));
 
-        if (workShift.getStatus() == WorkShiftStatus.Open) {
-            throw new ValidationException("Vui lòng check-out ca làm việc trước khi thực hiện kết ca kiểm tiền.");
+        if (workShift.getStatus() != WorkShiftStatus.Open) {
+            throw new ValidationException("Chỉ được kết ca kiểm tiền khi ca làm việc đang mở.");
         }
 
         BigDecimal cashExpected = calculateExpectedCashFromDB(workShift);
         BigDecimal cashCounted = request.getCashCounted();
         BigDecimal cashVariance = cashCounted.subtract(cashExpected);
-
-        if (cashVariance.compareTo(BigDecimal.ZERO) != 0) {
-            workShift.setStatus(WorkShiftStatus.Warning_Mismatch);
-        } else {
-            workShift.setStatus(WorkShiftStatus.Closed);
-        }
-        workShiftRepository.save(workShift);
 
         ShiftMetrics metrics = ShiftMetrics.builder()
                 .workShiftId(workShift.getWorkShiftId())
@@ -143,6 +152,7 @@ public class WorkShiftServiceImpl implements WorkShiftService {
 
         shiftMetricsRepository.save(metrics);
     }
+
 
     @Override
     @Transactional(readOnly = true)

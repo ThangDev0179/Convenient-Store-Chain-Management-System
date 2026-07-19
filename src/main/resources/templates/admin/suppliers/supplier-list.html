@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Đối Tác Nhà Cung Ứng')}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('suppliers')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Đối Tác Nhà Cung Ứng')}"></div>
+        <div class="page-content">
+
+            <!-- Header -->
+            <div class="dashboard-header mb-4">
+                <div>
+                    <h1 class="page-heading">QUẢN LÝ ĐỐI TÁC CUNG ỨNG</h1>
+                    <small class="text-muted">Quản trị danh sách các nhà cung ứng sản phẩm toàn chuỗi</small>
+                </div>
+                <div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-outline-light">
+                        <i class="fa-solid fa-house"></i> Trang Chủ Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+            <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}"></div>
+
+            <div class="row">
+                <!-- Left Side: List Suppliers -->
+                <div class="col-md-8">
+                    <div class="card-glass mb-4">
+                        <div class="card-header-glass">
+                            <h4 class="mb-0 font-weight-bold text-light"><i class="fa-solid fa-handshake text-indigo"></i> Danh sách Nhà cung cấp</h4>
+                        </div>
+                        <div class="card-body-glass">
+                            <div class="table-responsive">
+                                <table class="table-glass align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Nhà Cung Cấp</th>
+                                            <th>Số điện thoại</th>
+                                            <th>Email</th>
+                                            <th>Địa chỉ</th>
+                                            <th>Trạng Thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:if="${suppliers.isEmpty()}">
+                                            <td colspan="5" class="text-center py-4 text-secondary">Không có đối tác cung ứng nào.</td>
+                                        </tr>
+                                        <tr th:each="s : ${suppliers}">
+                                            <td class="fw-bold text-light" th:text="${s.supplierName}">Supplier Name</td>
+                                            <td th:text="${s.contactPhone}">0123456789</td>
+                                            <td th:text="${s.contactEmail}">email@domain.com</td>
+                                            <td th:text="${s.address}">Hà Nội, Việt Nam</td>
+                                            <td>
+                                                <span class="badge-status status-active" th:text="${s.status}">Active</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Create Supplier Form -->
+                <div class="col-md-4">
+                    <div class="card-glass">
+                        <div class="card-header-glass">
+                            <h4 class="mb-0 font-weight-bold text-light"><i class="fa-solid fa-plus-circle text-purple"></i> Thêm nhà cung cấp mới</h4>
+                        </div>
+                        <div class="card-body-glass">
+                            <form th:action="@{/admin/suppliers/new}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Tên nhà cung cấp</label>
+                                    <input type="text" name="supplierName" class="form-control" placeholder="Ví dụ: Công ty TNHH Coca-Cola Việt Nam" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Số điện thoại liên hệ</label>
+                                    <input type="text" name="contactPhone" class="form-control" placeholder="Nhập số điện thoại...">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email liên hệ</label>
+                                    <input type="email" name="contactEmail" class="form-control" placeholder="Nhập email...">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Địa chỉ trụ sở</label>
+                                    <input type="text" name="address" class="form-control" placeholder="Nhập địa chỉ...">
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2 mt-2"><i class="fa-solid fa-plus-circle"></i> Thêm vào danh mục</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

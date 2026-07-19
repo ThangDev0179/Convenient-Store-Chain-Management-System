@@ -19,5 +19,8 @@ public class BranchInventoryResponse {
     private BigDecimal qtyAvailable;
     private BigDecimal qtyInTransit;
     private String baseUomName;
+    private String qtyOnHandFormatted;
+    private String qtyAvailableFormatted;
+    private String qtyInTransitFormatted;
     private LocalDateTime updatedAt;
 }

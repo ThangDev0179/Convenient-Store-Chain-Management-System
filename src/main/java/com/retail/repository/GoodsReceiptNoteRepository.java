@@ -13,4 +13,6 @@ public interface GoodsReceiptNoteRepository extends JpaRepository<GoodsReceiptNo
     String findMaxGrnCodeByBranchAndDate(@Param("branchCode") String branchCode, @Param("dateStr") String dateStr);
 
     java.util.List<GoodsReceiptNote> findByPurchaseOrderPurchaseOrderIdAndStatus(Long poId, String status);
-}
+
+    long countByBranchBranchIdAndStatus(Integer branchId, String status);
+}

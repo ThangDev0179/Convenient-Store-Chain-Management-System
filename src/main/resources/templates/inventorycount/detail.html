@@ -1,41 +1,88 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Inventory Count Details</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Chi Tiết Kiểm Kê')}"></head>
 <body>
-<div class="container mt-5">
-    <h2>Count Details: <span th:text="${count.countCode}"></span></h2>
-    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
-    <p>Status: <span th:text="${count.status}"></span></p>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('inventory-count')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Chi Tiết Kiểm Kê')}"></div>
+        <div class="page-content">
 
-    <form th:if="${count.status.name() == 'Draft'}" th:action="@{/inventory-count/{id}/submit(id=${count.inventoryCountId})}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-warning" onclick="return confirm('Submit this count for approval?')">Submit</button>
-    </form>
-    
-    <form th:if="${count.status.name() == 'Submitted'}" th:action="@{/inventory-count/{id}/approve(id=${count.inventoryCountId})}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-success" onclick="return confirm('Approve and update inventory?')">Approve</button>
-    </form>
+            <div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
+                <h2 class="page-heading">
+                    <i class="fa-solid fa-clipboard-check me-2"></i> Count Details: <span th:text="${count.countCode}"></span>
+                </h2>
+                <a href="/inventory-count" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+                </a>
+            </div>
 
-    <form th:if="${count.status.name() == 'Submitted'}" th:action="@{/inventory-count/{id}/reject(id=${count.inventoryCountId})}" method="post" style="display:inline;">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Reject this count?')">Reject</button>
-    </form>
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
 
-    <table class="table mt-3">
-        <thead><tr><th>Product ID</th><th>System Qty</th><th>Actual Qty</th><th>Delta</th></tr></thead>
-        <tbody>
-            <tr th:each="detail : ${count.details}">
-                <td th:text="${detail.product.productId}"></td>
-                <td th:text="${detail.systemQty}"></td>
-                <td th:text="${detail.actualQty}"></td>
-                <td th:text="${detail.actualQty.subtract(detail.systemQty)}"
-                    th:class="${detail.actualQty.subtract(detail.systemQty).compareTo(T(java.math.BigDecimal).ZERO) lt 0} ? 'text-danger' : 'text-success'"></td>
-            </tr>
-        </tbody>
-    </table>
-    <a href="/inventory-count" class="btn btn-secondary mt-3">Back to List</a>
+            <div class="card-glass mb-4 p-3 d-flex align-items-center gap-3">
+                <strong class="text-light">Status:</strong>
+                <span th:class="${'badge-status ' + 
+                    (count.status.name() == 'Draft' ? 'status-secondary' : 
+                    (count.status.name() == 'Submitted' ? 'status-warning' : 
+                    (count.status.name() == 'Approved' ? 'status-success' : 'status-danger')))}"
+                      th:text="${count.status}"></span>
+            </div>
+
+            <div class="mb-4 d-flex gap-2">
+                <form th:if="${count.status.name() == 'Draft'}" th:action="@{/inventory-count/{id}/submit(id=${count.inventoryCountId})}" method="post">
+                    <button type="submit" class="btn btn-warning" onclick="return confirm('Submit this count for approval?')">
+                        <i class="fa-solid fa-paper-plane me-1"></i> Submit
+                    </button>
+                </form>
+                
+                <form th:if="${count.status.name() == 'Submitted'}" th:action="@{/inventory-count/{id}/approve(id=${count.inventoryCountId})}" method="post">
+                    <button type="submit" class="btn btn-success" onclick="return confirm('Approve and update inventory?')">
+                        <i class="fa-solid fa-check-circle me-1"></i> Approve
+                    </button>
+                </form>
+
+                <form th:if="${count.status.name() == 'Submitted'}" th:action="@{/inventory-count/{id}/reject(id=${count.inventoryCountId})}" method="post">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Reject this count?')">
+                        <i class="fa-solid fa-xmark-circle me-1"></i> Reject
+                    </button>
+                </form>
+            </div>
+
+            <div class="card-glass">
+                <div class="table-responsive">
+                    <table class="table-glass w-100 mb-0">
+                        <thead>
+                            <tr>
+                                <th>Product ID</th>
+                                <th>System Qty</th>
+                                <th>Actual Qty</th>
+                                <th>Delta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="detail : ${count.details}">
+                                <td th:text="${detail.product.productId}"></td>
+                                <td th:text="${detail.systemQty}"></td>
+                                <td th:text="${detail.actualQty}"></td>
+                                <td th:text="${detail.actualQty.subtract(detail.systemQty)}"
+                                    th:class="${detail.actualQty.subtract(detail.systemQty).compareTo(T(java.math.BigDecimal).ZERO) lt 0} ? 'text-danger font-weight-bold' : 'text-success font-weight-bold'"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

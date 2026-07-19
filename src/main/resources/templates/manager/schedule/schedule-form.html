@@ -1,105 +1,103 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${isEdit ? 'Chỉnh sửa lịch phân ca' : 'Xếp lịch trực mới'} + ' - Hệ thống bán lẻ'">Form phân ca</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Xếp Lịch')}"></head>
 <body>
-    <div class="auth-wrapper" style="max-width: 650px; margin-top: 50px;">
-        <div class="auth-card p-5">
-            <div class="auth-header">
-                <h1 class="auth-title" th:text="${isEdit ? 'Chỉnh sửa lịch phân ca' : 'Xếp lịch trực mới'}">Phân lịch trực</h1>
-                <p class="auth-subtitle">Phân ca và thiết lập ngày hiệu lực hoạt động cho nhân viên tại chi nhánh</p>
-            </div>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('schedules')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Xếp Lịch')}"></div>
+        <div class="page-content">
 
-            <!-- Error banner -->
-            <div th:if="${error}" class="alert alert-danger text-center" role="alert">
-                <span th:text="${error}"></span>
-            </div>
-
-            <form th:action="${isEdit} ? @{/manager/schedule/{id}/edit(id=${scheduleId})} : @{/manager/schedule/new}" 
-                  th:object="${scheduleRequest}" 
-                  method="post">
-                
-                <!-- Employee Selection -->
-                <div class="mb-3">
-                    <label for="employeeId" class="form-label">Chọn nhân viên</label>
-                    <select id="employeeId" th:field="*{employeeId}" class="form-control" required th:disabled="${isEdit}">
-                        <option value="">-- Chọn nhân viên trong danh sách --</option>
-                        <option th:each="emp : ${employees}" 
-                                th:value="${emp.employeeId}" 
-                                th:text="${emp.fullName + ' (' + emp.employeeCode + ')'}"></option>
-                    </select>
-                    <!-- Carry key when editing -->
-                    <input th:if="${isEdit}" type="hidden" th:field="*{employeeId}">
+            <div class="form-card mx-auto" style="max-width: 650px;">
+                <div class="text-center mb-4">
+                    <h2 class="page-heading mb-2" th:text="${isEdit ? 'Chỉnh sửa lịch phân ca' : 'Xếp lịch trực mới'}">Phân lịch trực</h2>
+                    <p class="text-muted">Phân ca và thiết lập ngày hiệu lực hoạt động cho nhân viên tại chi nhánh</p>
                 </div>
 
-                <!-- Branch Selection -->
-                <div class="mb-3">
-                    <label for="branchId" class="form-label">Chi nhánh</label>
-                    <select id="branchId" th:field="*{branchId}" class="form-control" required th:disabled="${isEdit}">
-                        <option th:each="br : ${branches}" 
-                                th:value="${br.branchId}" 
-                                th:text="${br.branchName}"></option>
-                    </select>
-                    <!-- Carry branch ID when editing -->
-                    <input th:if="${isEdit}" type="hidden" th:field="*{branchId}">
+                <!-- Error banner -->
+                <div th:if="${error}" class="alert alert-danger text-center" role="alert">
+                    <span th:text="${error}"></span>
                 </div>
 
-                <div class="row">
-                    <!-- Shift Type Selection -->
-                    <div class="col-md-6 mb-3">
-                        <label for="shiftTypeId" class="form-label">Chọn ca trực</label>
-                        <select id="shiftTypeId" th:field="*{shiftTypeId}" class="form-control" required>
-                            <option th:each="st : ${shiftTypes}" 
-                                    th:value="${st.shiftTypeId}" 
-                                    th:text="${st.shiftName + ' (' + st.startTime + ' - ' + st.endTime + ')'}"></option>
+                <form th:action="${isEdit} ? @{/manager/schedule/{id}/edit(id=${scheduleId})} : @{/manager/schedule/new}" 
+                      th:object="${scheduleRequest}" 
+                      method="post">
+                    
+                    <!-- Employee Selection -->
+                    <div class="mb-3">
+                        <label for="employeeId" class="form-label">Chọn nhân viên</label>
+                        <select id="employeeId" th:field="*{employeeId}" class="form-select" required th:disabled="${isEdit}">
+                            <option value="">-- Chọn nhân viên trong danh sách --</option>
+                            <option th:each="emp : ${employees}" 
+                                    th:value="${emp.employeeId}" 
+                                    th:text="${emp.fullName + ' (' + emp.employeeCode + ')'}"></option>
                         </select>
+                        <!-- Carry key when editing -->
+                        <input th:if="${isEdit}" type="hidden" th:field="*{employeeId}">
                     </div>
 
-                    <!-- Day of Week -->
-                    <div class="col-md-6 mb-3">
-                        <label for="dayOfWeek" class="form-label">Ngày trong tuần</label>
-                        <select id="dayOfWeek" th:field="*{dayOfWeek}" class="form-control" required>
-                            <option value="1">Thứ Hai</option>
-                            <option value="2">Thứ Ba</option>
-                            <option value="3">Thứ Tư</option>
-                            <option value="4">Thứ Năm</option>
-                            <option value="5">Thứ Sáu</option>
-                            <option value="6">Thứ Bảy</option>
-                            <option value="7">Chủ Nhật</option>
+                    <!-- Branch Selection -->
+                    <div class="mb-3">
+                        <label for="branchId" class="form-label">Chi nhánh</label>
+                        <select id="branchId" th:field="*{branchId}" class="form-select" required th:disabled="${isEdit}">
+                            <option th:each="br : ${branches}" 
+                                    th:value="${br.branchId}" 
+                                    th:text="${br.branchName}"></option>
                         </select>
-                    </div>
-                </div>
-
-                <div class="row mb-4">
-                    <!-- Effective From -->
-                    <div class="col-md-6">
-                        <label for="effectiveFrom" class="form-label">Hiệu lực từ ngày</label>
-                        <input type="date" class="form-control" id="effectiveFrom" th:field="*{effectiveFrom}" required>
+                        <!-- Carry branch ID when editing -->
+                        <input th:if="${isEdit}" type="hidden" th:field="*{branchId}">
                     </div>
 
-                    <!-- Effective To -->
-                    <div class="col-md-6">
-                        <label for="effectiveTo" class="form-label">Hiệu lực đến ngày (Tùy chọn)</label>
-                        <input type="date" class="form-control" id="effectiveTo" th:field="*{effectiveTo}">
-                    </div>
-                </div>
+                    <div class="row">
+                        <!-- Shift Type Selection -->
+                        <div class="col-md-6 mb-3">
+                            <label for="shiftTypeId" class="form-label">Chọn ca trực</label>
+                            <select id="shiftTypeId" th:field="*{shiftTypeId}" class="form-select" required>
+                                <option th:each="st : ${shiftTypes}" 
+                                        th:value="${st.shiftTypeId}" 
+                                        th:text="${st.shiftName + ' (' + st.startTime + ' - ' + st.endTime + ')'}"></option>
+                            </select>
+                        </div>
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-50" th:text="${isEdit ? 'Lưu thay đổi' : 'Xác nhận phân ca'}">Xác nhận</button>
-                    <a th:href="@{/manager/schedule}" class="btn btn-secondary w-50 d-flex align-items-center justify-content-center" style="margin-top: 15px;">Hủy bỏ</a>
-                </div>
-            </form>
+                        <!-- Day of Week -->
+                        <div class="col-md-6 mb-3">
+                            <label for="dayOfWeek" class="form-label">Ngày trong tuần</label>
+                            <select id="dayOfWeek" th:field="*{dayOfWeek}" class="form-select" required>
+                                <option value="1">Thứ Hai</option>
+                                <option value="2">Thứ Ba</option>
+                                <option value="3">Thứ Tư</option>
+                                <option value="4">Thứ Năm</option>
+                                <option value="5">Thứ Sáu</option>
+                                <option value="6">Thứ Bảy</option>
+                                <option value="7">Chủ Nhật</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <!-- Effective From -->
+                        <div class="col-md-6">
+                            <label for="effectiveFrom" class="form-label">Hiệu lực từ ngày</label>
+                            <input type="date" class="form-control" id="effectiveFrom" th:field="*{effectiveFrom}" required>
+                        </div>
+
+                        <!-- Effective To -->
+                        <div class="col-md-6">
+                            <label for="effectiveTo" class="form-label">Hiệu lực đến ngày (Tùy chọn)</label>
+                            <input type="date" class="form-control" id="effectiveTo" th:field="*{effectiveTo}">
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-50" th:text="${isEdit ? 'Lưu thay đổi' : 'Xác nhận phân ca'}">Xác nhận</button>
+                        <a th:href="@{/manager/schedule}" class="btn btn-secondary w-50 d-flex align-items-center justify-content-center">Hủy bỏ</a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

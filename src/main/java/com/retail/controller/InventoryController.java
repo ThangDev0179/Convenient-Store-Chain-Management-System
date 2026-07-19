@@ -114,4 +114,61 @@ public class InventoryController {
 
         return "manager/inventory/ledger-list";
     }
+
+    @GetMapping("/ledger/export")
+    public void exportLedgerCsv(
+            @RequestParam(value = "branchId", required = false) Integer branchId,
+            @RequestParam(value = "productId", required = false) Long productId,
+            @RequestParam(value = "startDate", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(value = "transactionType", required = false) String transactionType,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+
+        Employee employee = userDetails.getEmployee();
+        boolean isAdmin = employee.getRole().getRoleCode().name().equals("ADMIN");
+
+        if (!isAdmin) {
+            branchId = employee.getBranch().getBranchId();
+        }
+
+        java.time.LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : null;
+        java.time.LocalDateTime endDateTime = endDate != null ? endDate.atTime(java.time.LocalTime.MAX) : null;
+
+        Page<InventoryTransactionResponse> ledgerPage = inventoryService.filterHistory(
+                branchId, productId, startDateTime, endDateTime, transactionType, org.springframework.data.domain.PageRequest.of(0, 10000));
+
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=inventory_ledger.csv");
+
+        // Write UTF-8 BOM so Excel displays Vietnamese correctly
+        response.getWriter().write('\ufeff');
+
+        java.io.PrintWriter writer = response.getWriter();
+        writer.println("Mã Giao Dịch,Thời Gian,Chi Nhánh,Sản Phẩm,Mã SKU,Loại Giao Dịch,Chứng Từ Nguồn,Biến Động (Base Unit),Lý Do / Ghi Chú,Người Thực Hiện");
+
+        for (InventoryTransactionResponse tx : ledgerPage.getContent()) {
+            writer.printf("TX-%d,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+                    tx.getTransactionId(),
+                    tx.getCreatedAt() != null ? tx.getCreatedAt().toString() : "",
+                    escapeCsv(tx.getBranchName()),
+                    escapeCsv(tx.getProductName()),
+                    escapeCsv(tx.getProductSku()),
+                    tx.getTransactionType(),
+                    tx.getReferenceTable() + " #" + tx.getReferenceId(),
+                    tx.getQuantityChange().toString(),
+                    escapeCsv(tx.getReason()),
+                    escapeCsv(tx.getCreatedByName())
+            );
+        }
+    }
+
+    private String escapeCsv(String val) {
+        if (val == null) return "";
+        if (val.contains(",") || val.contains("\"") || val.contains("\n")) {
+            return "\"" + val.replace("\"", "\"\"") + "\"";
+        }
+        return val;
+    }
 }

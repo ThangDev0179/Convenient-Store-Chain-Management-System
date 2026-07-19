@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Thu Ngân POS')}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('pos')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Thu Ngân POS')}"></div>
+        <div class="page-content">
+            <style>
+                .pos-container {
+                    display: flex;
+                    height: calc(100vh - 180px);
+                    gap: 20px;
+                }
+                .pos-catalog {
+                    flex: 1.2;
+                    background: var(--card-bg);
+                    border: 1px solid var(--card-border);
+                    border-radius: 24px;
+                    padding: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                }
+                .pos-cart {
+                    flex: 1;
+                    background: var(--card-bg);
+                    border: 1px solid var(--card-border);
+                    border-radius: 24px;
+                    padding: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                    box-shadow: var(--shadow-lg);
+                }
+                .product-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                    gap: 15px;
+                    overflow-y: auto;
+                    flex-grow: 1;
+                    padding-right: 5px;
+                }
+                .product-card {
+                    background: rgba(3, 7, 18, 0.4);
+                    border: 1px solid var(--card-border);
+                    border-radius: 16px;
+                    padding: 15px;
+                    text-align: center;
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                }
+                .product-card:hover {
+                    transform: translateY(-5px);
+                    border-color: var(--primary-glow);
+                    box-shadow: 0 10px 20px -10px var(--primary-glow);
+                }
+                .cart-items {
+                    flex-grow: 1;
+                    overflow-y: auto;
+                    margin-bottom: 20px;
+                    padding-right: 5px;
+                }
+                .cart-item {
+                    background: rgba(3, 7, 18, 0.3);
+                    border: 1px solid var(--card-border);
+                    border-radius: 12px;
+                    padding: 10px 15px;
+                    margin-bottom: 10px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .total-display {
+                    background: var(--primary-gradient);
+                    border-radius: 16px;
+                    padding: 20px;
+                    text-align: center;
+                    margin-bottom: 15px;
+                }
+            </style>
+
+            <!-- POS Header -->
+            <div class="dashboard-header mb-3">
+                <div>
+                    <h1 class="page-heading">HỆ THỐNG BÁN HÀNG POS</h1>
+                    <small class="text-muted">Chi nhánh: <span th:text="${branchName}">Quận 1</span> | Nhân viên lập hóa đơn</small>
+                </div>
+                <div>
+                    <a th:href="@{/staff/refund}" class="btn btn-outline-danger me-2">
+                        <i class="fa-solid fa-rotate-left"></i> Đổi Trả Hàng (Refund)
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alert messages -->
+            <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+            <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}"></div>
+
+            <!-- POS Workspace -->
+            <div class="pos-container">
+                <!-- Catalog / Grid of products -->
+                <div class="pos-catalog">
+                    <h4 class="mb-3 font-weight-bold text-light"><i class="fa-solid fa-tags text-indigo"></i> Danh Mục Sản Phẩm</h4>
+                    <div class="product-grid">
+                        <div class="product-card" th:each="p : ${products}" 
+                             th:onclick="'document.getElementById(\'selectedProdId\').value = ' + ${p.productId} + '; document.getElementById(\'addForm\').submit();'">
+                            <div class="fw-bold text-light mb-1" th:text="${p.productName}">Coca-Cola</div>
+                            <div class="text-muted small mb-2" th:text="${p.sku}">SKU-001</div>
+                            <div class="text-indigo fw-bold" th:text="${#numbers.formatDecimal(p.standardPrice, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'">10,000 VNĐ</div>
+                        </div>
+                    </div>
+                    <!-- Hidden item add form -->
+                    <form id="addForm" th:if="${invoice != null}" th:action="@{/staff/pos/{id}/add-item(id=${invoice.invoiceId})}" method="post">
+                        <input type="hidden" id="selectedProdId" name="productId">
+                        <input type="hidden" name="quantity" value="1">
+                    </form>
+                </div>
+
+                <!-- Current Cart/Invoice Session -->
+                <div class="pos-cart">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0 font-weight-bold text-light"><i class="fa-solid fa-cart-shopping text-purple"></i> Giỏ Hàng</h4>
+                        <span th:if="${invoice != null}" class="badge-status status-active" th:text="${invoice.invoiceCode}">INV-001</span>
+                    </div>
+
+                    <!-- If NO active invoice session -->
+                    <div th:if="${invoice == null}" class="d-flex flex-column align-items-center justify-content-center flex-grow-1 text-center">
+                        <i class="fa-solid fa-receipt fa-3x text-muted mb-3"></i>
+                        <h5 class="text-secondary">Không có hóa đơn nháp nào đang mở</h5>
+                        <form th:action="@{/staff/pos/new}" method="post" class="mt-3">
+                            <button type="submit" class="btn btn-primary px-4 py-2"><i class="fa-solid fa-plus"></i> Tạo hóa đơn mới</button>
+                        </form>
+                    </div>
+
+                    <!-- If active invoice session -->
+                    <div th:if="${invoice != null}" class="d-flex flex-column flex-grow-1">
+                        <div class="cart-items">
+                            <div class="cart-item" th:each="det : ${invoice.details}">
+                                <div>
+                                    <div class="fw-bold text-light" th:text="${det.product.productName}">Coca-Cola</div>
+                                    <small class="text-muted" th:text="'Số lượng: ' + ${#numbers.formatDecimal(det.quantity, 1, 0)} + ' x ' + ${#numbers.formatDecimal(det.unitPrice, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'"></small>
+                                    <div th:if="${det.promotion != null}" class="text-success small">
+                                        <i class="fa-solid fa-gift"></i> Khuyến mãi áp dụng
+                                    </div>
+                                </div>
+                                <div class="fw-bold text-indigo" th:text="${#numbers.formatDecimal(det.quantity * det.unitPrice, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'"></div>
+                            </div>
+                        </div>
+
+                        <!-- Total display -->
+                        <div class="total-display">
+                            <small class="text-light-50 text-uppercase d-block mb-1">Tổng cộng thanh toán</small>
+                            <h2 class="mb-0 font-weight-bold" th:text="${#numbers.formatDecimal(invoice.totalAmount, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'">0 VNĐ</h2>
+                        </div>
+
+                        <!-- Checkout form -->
+                        <form th:action="@{/staff/pos/{id}/checkout(id=${invoice.invoiceId})}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label text-secondary">Phương thức thanh toán</label>
+                                <select name="paymentMethod" class="form-select">
+                                    <option value="Cash">Tiền mặt (Cash)</option>
+                                    <option value="QR">Chuyển khoản QR</option>
+                                    <option value="Card">Thẻ Ngân hàng</option>
+                                    <option value="Bank">Chuyển khoản ngân hàng</option>
+                                </select>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary w-100 py-2"><i class="fa-solid fa-credit-card"></i> Thanh Toán (Checkout)</button>
+                            </div>
+                        </form>
+                        <form th:action="@{/staff/pos/{id}/cancel(id=${invoice.invoiceId})}" method="post" class="mt-2">
+                            <button type="submit" class="btn btn-outline-danger w-100 py-2"><i class="fa-solid fa-trash-can"></i> Hủy hóa đơn nháp</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

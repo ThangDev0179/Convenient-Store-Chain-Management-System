@@ -1,96 +1,117 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi tiết chi nhánh - Hệ thống bán lẻ</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <style>
-        .badge-closed {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #fca5a5;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        .badge-archived {
-            background: rgba(156, 163, 175, 0.2);
-            border: 1px solid rgba(156, 163, 175, 0.4);
-            color: #d1d5db;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-    </style>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Chi Tiết Chi Nhánh')}"></head>
 <body>
-    <div class="dashboard-container" style="max-width: 700px;">
-        <div class="dashboard-header">
-            <div>
-                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    CHI TIẾT CHI NHÁNH
-                </h1>
-                <small class="text-muted" th:text="${'Chi nhánh: ' + branch.branchName}">Chi tiết</small>
-            </div>
-            <div>
-                <a th:href="@{/admin/branches}" class="btn btn-secondary">Quay lại danh sách</a>
-            </div>
-        </div>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('branches')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Chi Tiết Chi Nhánh')}"></div>
+        <div class="page-content">
+            <style>
+                .badge-closed {
+                    background: rgba(239, 68, 68, 0.2);
+                    border: 1px solid rgba(239, 68, 68, 0.4);
+                    color: #fca5a5;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                }
+                .badge-archived {
+                    background: rgba(156, 163, 175, 0.2);
+                    border: 1px solid rgba(156, 163, 175, 0.4);
+                    color: #d1d5db;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                }
+                .badge-active {
+                    background: rgba(34, 197, 94, 0.2);
+                    border: 1px solid rgba(34, 197, 94, 0.4);
+                    color: #86efac;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                }
+                .info-item {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 0.75rem 0;
+                    border-bottom: 1px solid var(--card-border);
+                }
+                .info-item:last-child {
+                    border-bottom: none;
+                }
+                .info-label {
+                    color: var(--text-secondary);
+                    font-weight: 500;
+                }
+                .info-value {
+                    color: var(--text-primary);
+                    text-align: right;
+                }
+            </style>
 
-        <div class="row">
-            <div class="col-md-12">
-                <div class="dashboard-user-info">
-                    <div class="info-item">
-                        <span class="info-label">Mã ID hệ thống:</span>
-                        <span class="info-value text-info" th:text="${branch.branchId}">1</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Mã chi nhánh (Code):</span>
-                        <span class="info-value font-weight-bold" th:text="${branch.branchCode}">BR001</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Tên chi nhánh:</span>
-                        <span class="info-value" th:text="${branch.branchName}">Chi nhánh Quận 1</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Địa chỉ:</span>
-                        <span class="info-value" th:text="${branch.address != null && !branch.address.isEmpty() ? branch.address : 'Chưa thiết lập'}">Địa chỉ</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Trạng thái:</span>
-                        <span>
-                            <span th:if="${branch.status.name() == 'Active'}" class="badge-active">Hoạt động</span>
-                            <span th:if="${branch.status.name() == 'Closed'}" class="badge-closed">Đóng cửa</span>
-                            <span th:if="${branch.status.name() == 'Archived'}" class="badge-archived">Lưu trữ</span>
-                        </span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Ngày tạo lập:</span>
-                        <span class="info-value" th:text="${#temporals.format(branch.createdAt, 'dd/MM/yyyy HH:mm:ss')}">18/07/2026</span>
-                    </div>
-                    <div class="info-item" th:if="${branch.archivedAt != null}">
-                        <span class="info-label">Ngày lưu trữ:</span>
-                        <span class="info-value text-danger" th:text="${#temporals.format(branch.archivedAt, 'dd/MM/yyyy HH:mm:ss')}">18/07/2026</span>
-                    </div>
+            <div class="dashboard-header">
+                <div>
+                    <h1 class="page-heading">CHI TIẾT CHI NHÁNH</h1>
+                    <small class="text-muted" th:text="${'Chi nhánh: ' + branch.branchName}">Chi tiết</small>
                 </div>
+                <div>
+                    <a th:href="@{/admin/branches}" class="btn btn-secondary">Quay lại danh sách</a>
+                </div>
+            </div>
 
-                <div class="mt-4 text-center d-flex gap-3 justify-content-center">
-                    <a th:href="@{/admin/branches/{id}/edit(id=${branch.branchId})}" 
-                       class="btn btn-primary px-5" 
-                       style="width: auto;"
-                       th:if="${branch.status.name() != 'Archived'}">Chỉnh sửa chi nhánh</a>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card-glass p-4" style="max-width: 700px;">
+                        <div class="info-item">
+                            <span class="info-label">Mã ID hệ thống:</span>
+                            <span class="info-value text-info" th:text="${branch.branchId}">1</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Mã chi nhánh (Code):</span>
+                            <span class="info-value fw-bold" th:text="${branch.branchCode}">BR001</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tên chi nhánh:</span>
+                            <span class="info-value" th:text="${branch.branchName}">Chi nhánh Quận 1</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Địa chỉ:</span>
+                            <span class="info-value" th:text="${branch.address != null && !branch.address.isEmpty() ? branch.address : 'Chưa thiết lập'}">Địa chỉ</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Trạng thái:</span>
+                            <span>
+                                <span th:if="${branch.status.name() == 'Active'}" class="badge-active">Hoạt động</span>
+                                <span th:if="${branch.status.name() == 'Closed'}" class="badge-closed">Đóng cửa</span>
+                                <span th:if="${branch.status.name() == 'Archived'}" class="badge-archived">Lưu trữ</span>
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Ngày tạo lập:</span>
+                            <span class="info-value" th:text="${#temporals.format(branch.createdAt, 'dd/MM/yyyy HH:mm:ss')}">18/07/2026</span>
+                        </div>
+                        <div class="info-item" th:if="${branch.archivedAt != null}">
+                            <span class="info-label">Ngày lưu trữ:</span>
+                            <span class="info-value text-danger" th:text="${#temporals.format(branch.archivedAt, 'dd/MM/yyyy HH:mm:ss')}">18/07/2026</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center d-flex gap-3" style="max-width: 700px;">
+                        <a th:href="@{/admin/branches/{id}/edit(id=${branch.branchId})}" 
+                           class="btn btn-primary px-5 w-100" 
+                           th:if="${branch.status.name() != 'Archived'}">Chỉnh sửa chi nhánh</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

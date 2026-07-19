@@ -27,4 +27,7 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
                                              @Param("status") PurchaseOrderStatus status,
                                              @Param("keyword") String keyword,
                                              Pageable pageable);
-}
+
+    @Query("SELECT COUNT(po) FROM PurchaseOrder po WHERE po.branch.branchId = :branchId AND po.status IN (:statuses)")
+    long countPendingPOs(@Param("branchId") Integer branchId, @Param("statuses") java.util.Collection<PurchaseOrderStatus> statuses);
+}

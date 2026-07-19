@@ -27,4 +27,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
 
     @Query("SELECT MAX(e.employeeCode) FROM Employee e WHERE e.employeeCode LIKE :prefix%")
     String findMaxEmployeeCodeWithPrefix(@Param("prefix") String prefix);
-}
+
+    java.util.List<Employee> findByBranchBranchIdAndStatus(Integer branchId, EmployeeStatus status);
+}

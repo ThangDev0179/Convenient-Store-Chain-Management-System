@@ -51,8 +51,12 @@ public class Employee {
     @Column(name = "ForceChangePassword", nullable = false)
     private Boolean forceChangePassword;
 
+    @Column(name = "PinCode", length = 10)
+    private String pinCode;
+
     @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
 
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;

@@ -46,14 +46,42 @@ public class StockTransferServiceImpl implements StockTransferService {
             throw new IllegalArgumentException("Chi nhánh gửi và chi nhánh nhận không được giống nhau");
         }
 
+        Branch fromBranch = entityManager.find(Branch.class, request.getFromBranchId());
+        Branch toBranch = entityManager.find(Branch.class, request.getToBranchId());
+        if (fromBranch == null || toBranch == null) {
+            throw new IllegalArgumentException("Chi nhánh không tồn tại");
+        }
+
+        // Generate TransferCode: ST-[Mã CN Gửi]-[Mã CN Nhận]-YYYYMMDD-[4 số tăng tự động]
+        java.time.LocalDate today = java.time.LocalDate.now();
+        String dateStr = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String prefix = "ST-" + fromBranch.getBranchCode() + "-" + toBranch.getBranchCode() + "-" + dateStr + "-";
+
+        java.time.LocalDateTime startOfDay = today.atStartOfDay();
+        List<StockTransfer> todayTransfers = transferRepository.findByFromBranchBranchIdAndCreatedAtAfter(request.getFromBranchId(), startOfDay);
+
+        int nextSeq = 1;
+        for (StockTransfer t : todayTransfers) {
+            String transferCode = t.getTransferCode();
+            if (transferCode != null && transferCode.startsWith(prefix)) {
+                try {
+                    String seqStr = transferCode.substring(prefix.length());
+                    int seq = Integer.parseInt(seqStr);
+                    if (seq >= nextSeq) {
+                        nextSeq = seq + 1;
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        String code = prefix + String.format("%04d", nextSeq);
+
         StockTransfer transfer = new StockTransfer();
-        String code = "ST-" + request.getFromBranchId() + "-" + request.getToBranchId()
-                + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         transfer.setTransferCode(code);
-        transfer.setFromBranch(entityManager.getReference(Branch.class, request.getFromBranchId()));
-        transfer.setToBranch(entityManager.getReference(Branch.class, request.getToBranchId()));
+        transfer.setFromBranch(fromBranch);
+        transfer.setToBranch(toBranch);
         transfer.setStatus(StockTransferStatus.Draft);
         transfer.setCreatedBy(entityManager.getReference(Employee.class, createdByEmployeeId));
+
 
         for (StockTransferRequest.TransferDetailDto dto : request.getDetails()) {
             StockTransferDetail detail = new StockTransferDetail();
@@ -183,16 +211,49 @@ public class StockTransferServiceImpl implements StockTransferService {
     @Transactional
     public StockTransfer rejectTransfer(Long transferId, Long rejectedByEmployeeId) {
         StockTransfer transfer = getTransferById(transferId);
-        if (transfer.getStatus() != StockTransferStatus.Draft) {
-            throw new IllegalStateException("Chỉ phiếu Draft mới được từ chối");
+        if (transfer.getStatus() != StockTransferStatus.Draft && transfer.getStatus() != StockTransferStatus.In_Transit) {
+            throw new IllegalStateException("Chỉ phiếu Draft hoặc In_Transit mới được từ chối");
         }
+
         String oldStatus = transfer.getStatus().name();
+
+        if (transfer.getStatus() == StockTransferStatus.In_Transit) {
+            Integer fromBranchId = transfer.getFromBranch().getBranchId();
+            Integer toBranchId = transfer.getToBranch().getBranchId();
+
+            for (StockTransferDetail detail : transfer.getDetails()) {
+                Long productId = detail.getProduct().getProductId();
+                BigDecimal qty = detail.getQuantitySent();
+
+                // Chi nhánh gửi: Cộng trả lại QtyAvailable
+                transactionService.recordTransaction(
+                        fromBranchId, productId,
+                        BigDecimal.ZERO, qty, BigDecimal.ZERO,
+                        InventoryTransactionType.TransferOut,
+                        "StockTransfer", transfer.getStockTransferId(),
+                        "Từ chối nhận điều chuyển (hoàn khả dụng): " + transfer.getTransferCode(),
+                        rejectedByEmployeeId
+                );
+
+                // Chi nhánh nhận: Trừ QtyInTransit
+                transactionService.recordTransaction(
+                        toBranchId, productId,
+                        BigDecimal.ZERO, BigDecimal.ZERO, qty.negate(),
+                        InventoryTransactionType.TransferIn,
+                        "StockTransfer", transfer.getStockTransferId(),
+                        "Từ chối nhận điều chuyển (hủy vận chuyển): " + transfer.getTransferCode(),
+                        rejectedByEmployeeId
+                );
+            }
+        }
+
         transfer.setStatus(StockTransferStatus.Rejected);
         StockTransfer saved = transferRepository.save(transfer);
         auditLogService.logAction(rejectedByEmployeeId, "RejectStockTransfer", "StockTransfer",
                 saved.getStockTransferId(), oldStatus, saved.getStatus().name(), "Từ chối điều chuyển", null, null);
         return saved;
     }
+
 
     @Override
     public List<StockTransfer> getAllTransfers() {

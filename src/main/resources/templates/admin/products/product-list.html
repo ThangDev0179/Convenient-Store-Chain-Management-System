@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Danh Mục Sản Phẩm')}"></head>
+<body>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('products')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Danh Mục Sản Phẩm')}"></div>
+        <div class="page-content">
+
+            <!-- Header -->
+            <div class="dashboard-header mb-4">
+                <div>
+                    <h1 class="page-heading">DANH MỤC SẢN PHẨM HỆ THỐNG</h1>
+                    <small class="text-muted">Quản trị danh mục sản phẩm và SKU quy đổi</small>
+                </div>
+                <div>
+                    <a th:href="@{/admin/dashboard}" class="btn btn-outline-light">
+                        <i class="fa-solid fa-house"></i> Trang Chủ Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+            <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}"></div>
+
+            <div class="row">
+                <!-- Left Side: List Products -->
+                <div class="col-md-8">
+                    <div class="card-glass mb-4">
+                        <div class="card-header-glass">
+                            <h4 class="mb-0 font-weight-bold text-light"><i class="fa-solid fa-boxes-stacked text-indigo"></i> Danh sách Sản phẩm</h4>
+                        </div>
+                        <div class="card-body-glass">
+                            <div class="table-responsive">
+                                <table class="table-glass align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã SKU</th>
+                                            <th>Tên Sản Phẩm</th>
+                                            <th>Ngành Hàng</th>
+                                            <th>Giá chuẩn</th>
+                                            <th>Nhà cung cấp</th>
+                                            <th>Trạng Thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:if="${productPage.content.isEmpty()}">
+                                            <td colspan="6" class="text-center py-4 text-secondary">Không có sản phẩm nào.</td>
+                                        </tr>
+                                        <tr th:each="p : ${productPage.content}">
+                                            <td class="fw-bold text-indigo" th:text="${p.sku}">SKU</td>
+                                            <td class="text-light" th:text="${p.productName}">Product Name</td>
+                                            <td th:text="${p.category.categoryName}">Category</td>
+                                            <td th:text="${#numbers.formatDecimal(p.standardPrice, 1, 'DEFAULT', 0, 'DEFAULT')} + ' VNĐ'">10,000 VNĐ</td>
+                                            <td th:text="${p.defaultSupplier.supplierName}">Supplier</td>
+                                            <td>
+                                                <span class="badge-status status-active">Đang bán</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Create Product Form -->
+                <div class="col-md-4">
+                    <div class="card-glass">
+                        <div class="card-header-glass">
+                            <h4 class="mb-0 font-weight-bold text-light"><i class="fa-solid fa-plus-circle text-purple"></i> Thêm sản phẩm mới</h4>
+                        </div>
+                        <div class="card-body-glass">
+                            <form th:action="@{/admin/products/new}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label">Tên sản phẩm</label>
+                                    <input type="text" name="productName" class="form-control" placeholder="Ví dụ: Coca-Cola Lon 320ml" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Chọn ngành hàng</label>
+                                    <select name="categoryId" class="form-select" required>
+                                        <option value="">-- Chọn ngành hàng --</option>
+                                        <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName} + ' (' + ${cat.skuPrefix} + ')'"></option>
+                                    </select>
+                                    <small class="text-muted d-block mt-1">Hệ thống sẽ tự động sinh SKU tăng dần theo tiền tố của ngành hàng.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Giá bán tiêu chuẩn (VNĐ)</label>
+                                    <input type="number" name="standardPrice" class="form-control" placeholder="Ví dụ: 10000" min="0" step="1" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Chọn nhà cung cấp mặc định</label>
+                                    <select name="supplierId" class="form-select" required>
+                                        <option value="">-- Chọn nhà cung cấp --</option>
+                                        <option th:each="sup : ${suppliers}" th:value="${sup.supplierId}" th:text="${sup.supplierName}"></option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2 mt-2"><i class="fa-solid fa-plus-circle"></i> Thêm vào danh mục</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

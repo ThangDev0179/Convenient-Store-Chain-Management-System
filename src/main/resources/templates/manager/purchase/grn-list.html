@@ -1,185 +1,120 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh sách Phiếu Nhập Kho (GRN) - Hệ thống bán lẻ</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <style>
-        .grn-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(16px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 25px;
-            box-shadow: var(--shadow-lg);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .grn-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-        }
-        .table {
-            color: var(--text-primary);
-        }
-        .table th {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 2px solid var(--card-border);
-        }
-        .table td {
-            border-bottom: 1px solid var(--card-border);
-            padding: 16px 8px;
-        }
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .status-completed {
-            background: rgba(16, 185, 129, 0.2);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.4);
-        }
-        .status-canceled {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.4);
-        }
-        .dashboard-container {
-            width: 95%;
-            max-width: 1100px;
-        }
-    </style>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Phiếu Nhập Kho')}"></head>
 <body>
-    <div class="dashboard-container">
-        <!-- Header -->
-        <div class="dashboard-header">
-            <div>
-                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    DANH SÁCH PHIẾU NHẬP KHO (GRN)
-                </h1>
-                <small class="text-muted">Nhật ký nhận hàng thực tế từ nhà cung cấp theo đơn PO</small>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('grn')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Phiếu Nhập Kho')}"></div>
+        <div class="page-content">
+            <!-- Header -->
+            <div class="dashboard-header mb-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 font-weight-bold page-heading">DANH SÁCH PHIẾU NHẬP KHO (GRN)</h1>
+                    <small class="text-muted">Nhật ký nhận hàng thực tế từ nhà cung cấp theo đơn PO</small>
+                </div>
+                <div class="d-flex gap-3">
+                    <a th:href="@{/manager/purchase-orders}" class="btn btn-secondary px-4 py-2">
+                        <i class="fa-solid fa-file-invoice"></i> Đơn đặt hàng PO
+                    </a>
+                </div>
             </div>
-            <div class="d-flex gap-3">
-                <a th:href="@{/manager/purchase-orders}" class="btn btn-secondary px-4 py-2">
-                    <i class="fa-solid fa-file-invoice"></i> Đơn đặt hàng PO
-                </a>
+
+            <!-- Notification Alerts -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show text-center" role="alert">
+                <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${success}"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-        </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show text-center" role="alert">
+                <i class="fa-solid fa-circle-exclamation me-2"></i> <span th:text="${error}"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
 
-        <!-- Notification Alerts -->
-        <div th:if="${success}" class="alert alert-success alert-dismissible fade show text-center" role="alert">
-            <i class="fa-solid fa-circle-check me-2"></i> <span th:text="${success}"></span>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show text-center" role="alert">
-            <i class="fa-solid fa-circle-exclamation me-2"></i> <span th:text="${error}"></span>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <!-- Filter & Search Section -->
-        <div class="grn-card mb-4">
-            <form th:action="@{/manager/grn}" method="get" class="row g-3">
-                <div class="col-md-9">
-                    <div class="input-group">
-                        <span class="input-group-text bg-dark border-secondary text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input type="text" name="keyword" class="form-control bg-dark border-secondary text-light" 
-                               placeholder="Tìm kiếm theo mã GRN hoặc mã đơn hàng PO..." th:value="${keyword}">
+            <!-- Filter & Search Section -->
+            <div class="filter-bar mb-4">
+                <form th:action="@{/manager/grn}" method="get" class="row g-3">
+                    <div class="col-md-9">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" name="keyword" class="form-control" placeholder="Tìm kiếm theo mã GRN hoặc mã đơn hàng PO..." th:value="${keyword}">
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100 py-2">Tìm kiếm</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Table Card -->
-        <div class="grn-card">
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Mã Phiếu Nhập</th>
-                            <th>Mã Đơn PO</th>
-                            <th>Chi Nhánh</th>
-                            <th>Ngày Nhận</th>
-                            <th>Người Nhập</th>
-                            <th class="text-center">Trạng Thái</th>
-                            <th class="text-center">Hành Động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="grn : ${grnPage.content}">
-                            <td class="font-weight-bold text-light" th:text="${grn.grnCode}"></td>
-                            <td>
-                                <a th:href="@{/manager/purchase-orders/{id}(id=${grn.purchaseOrderId})}" 
-                                   class="text-indigo" th:text="${grn.purchaseOrderCode}" style="text-decoration:none; font-weight:500;"></a>
-                            </td>
-                            <td th:text="${grn.branchName}"></td>
-                            <td th:text="${#temporals.format(grn.receivedAt, 'dd/MM/yyyy HH:mm')}"></td>
-                            <td th:text="${grn.receivedByName}"></td>
-                            <td class="text-center">
-                                <span th:if="${grn.status == 'Completed'}" class="status-badge status-completed">
-                                    <i class="fa-solid fa-circle-check"></i> Đã Hoàn Thành
-                                </span>
-                                <span th:if="${grn.status == 'Canceled'}" class="status-badge status-canceled">
-                                    <i class="fa-solid fa-ban"></i> Đã Hủy
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <a th:href="@{/manager/grn/{id}(id=${grn.grnId})}" class="btn btn-sm btn-secondary">
-                                    <i class="fa-solid fa-eye"></i> Chi tiết
-                                </a>
-                            </td>
-                        </tr>
-                        <tr th:if="${#lists.isEmpty(grnPage.content)}">
-                            <td colspan="8" class="text-center py-5 text-muted">Không tìm thấy phiếu nhập kho nào.</td>
-                        </tr>
-                    </tbody>
-                </table>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100 py-2">Tìm kiếm</button>
+                    </div>
+                </form>
             </div>
 
-            <!-- Pagination -->
-            <div class="d-flex justify-content-between align-items-center mt-4" th:if="${grnPage.totalPages > 1}">
-                <div class="text-muted small">
-                    Hiển thị trang <span th:text="${currentPage + 1}"></span>/<span th:text="${grnPage.totalPages}"></span>
+            <!-- Table Card -->
+            <div class="card-glass">
+                <div class="table-responsive">
+                    <table class="table-glass align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Mã Phiếu Nhập</th>
+                                <th>Mã Đơn PO</th>
+                                <th>Chi Nhánh</th>
+                                <th>Ngày Nhận</th>
+                                <th>Người Nhập</th>
+                                <th class="text-center">Trạng Thái</th>
+                                <th class="text-center">Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="grn : ${grnPage.content}">
+                                <td class="font-weight-bold text-light" th:text="${grn.grnCode}"></td>
+                                <td>
+                                    <a th:href="@{/manager/purchase-orders/{id}(id=${grn.purchaseOrderId})}" 
+                                       class="text-indigo" th:text="${grn.purchaseOrderCode}" style="text-decoration:none; font-weight:500;"></a>
+                                </td>
+                                <td th:text="${grn.branchName}"></td>
+                                <td th:text="${#temporals.format(grn.receivedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td th:text="${grn.receivedByName}"></td>
+                                <td class="text-center">
+                                    <span th:if="${grn.status == 'Completed'}" class="badge-status status-Completed">
+                                        <i class="fa-solid fa-circle-check"></i> Đã Hoàn Thành
+                                    </span>
+                                    <span th:if="${grn.status == 'Canceled'}" class="badge-status status-Canceled">
+                                        <i class="fa-solid fa-ban"></i> Đã Hủy
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a th:href="@{/manager/grn/{id}(id=${grn.grnId})}" class="btn btn-sm btn-secondary">
+                                        <i class="fa-solid fa-eye"></i> Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(grnPage.content)}">
+                                <td colspan="7" class="text-center py-5 text-muted">Không tìm thấy phiếu nhập kho nào.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <nav>
-                    <ul class="pagination mb-0 gap-1">
-                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                            <a class="page-link bg-dark border-secondary text-light" 
-                               th:href="@{/manager/grn(keyword=${keyword}, page=${currentPage - 1})}">&laquo;</a>
-                        </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, grnPage.totalPages - 1)}"
-                            th:classappend="${currentPage == i} ? 'active'">
-                            <a class="page-link bg-dark border-secondary text-light" 
-                               th:href="@{/manager/grn(keyword=${keyword}, page=${i})}" th:text="${i + 1}"></a>
-                        </li>
-                        <li class="page-item" th:classappend="${currentPage == grnPage.totalPages - 1} ? 'disabled'">
-                            <a class="page-link bg-dark border-secondary text-light" 
-                               th:href="@{/manager/grn(keyword=${keyword}, page=${currentPage + 1})}">&raquo;</a>
-                        </li>
-                    </ul>
-                </nav>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-4" th:if="${grnPage.totalPages > 1}">
+                    <div class="text-muted small">
+                        Hiển thị trang <span th:text="${currentPage + 1}"></span>/<span th:text="${grnPage.totalPages}"></span>
+                    </div>
+                    <nav>
+                        <ul class="pagination mb-0 gap-1">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link" th:href="@{/manager/grn(keyword=${keyword}, page=${currentPage - 1})}">&laquo;</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, grnPage.totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
+                                <a class="page-link" th:href="@{/manager/grn(keyword=${keyword}, page=${i})}" th:text="${i + 1}"></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == grnPage.totalPages - 1} ? 'disabled'">
+                                <a class="page-link" th:href="@{/manager/grn(keyword=${keyword}, page=${currentPage + 1})}">&raquo;</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

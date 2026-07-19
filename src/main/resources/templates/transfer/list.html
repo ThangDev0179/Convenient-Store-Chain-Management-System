@@ -1,70 +1,76 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <title>Danh sách Phiếu Điều Chuyển Kho</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Chuyển Kho')}"></head>
 <body>
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2><i class="bi bi-arrow-left-right me-2"></i>Phiếu Điều Chuyển Kho</h2>
-        <a href="/transfer/create" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Tạo phiếu mới
-        </a>
-    </div>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('transfer')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Chuyển Kho')}"></div>
+        <div class="page-content">
 
-    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" th:text="${successMessage}">
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" th:text="${errorMessage}">
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+            <div class="dashboard-header d-flex justify-content-between align-items-center mb-3">
+                <h2 class="page-heading"><i class="fa-solid fa-arrow-right-arrow-left me-2"></i> Phiếu Điều Chuyển Kho</h2>
+                <a href="/transfer/create" class="btn btn-primary">
+                    <i class="fa-solid fa-plus-circle me-1"></i> Tạo phiếu mới
+                </a>
+            </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Mã phiếu</th>
-                        <th>Chi nhánh gửi</th>
-                        <th>Chi nhánh nhận</th>
-                        <th>Trạng thái</th>
-                        <th>Người tạo</th>
-                        <th>Ngày tạo</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:if="${#lists.isEmpty(transfers)}">
-                        <td colspan="7" class="text-center text-muted py-4">Chưa có phiếu điều chuyển nào</td>
-                    </tr>
-                    <tr th:each="t : ${transfers}">
-                        <td th:text="${t.transferCode}"></td>
-                        <td th:text="${t.fromBranch.branchName}"></td>
-                        <td th:text="${t.toBranch.branchName}"></td>
-                        <td>
-                            <span th:class="${'badge ' + 
-                                (t.status.name() == 'Draft' ? 'bg-secondary' : 
-                                (t.status.name() == 'In_Transit' ? 'bg-warning text-dark' : 
-                                (t.status.name() == 'Completed' ? 'bg-success' : 'bg-danger')))}"
-                                  th:text="${t.status}">
-                            </span>
-                        </td>
-                        <td th:text="${t.createdBy.fullName}"></td>
-                        <td th:text="${#temporals.format(t.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
-                        <td>
-                            <a th:href="@{/transfer/{id}(id=${t.stockTransferId})}" class="btn btn-sm btn-info">
-                                <i class="bi bi-eye"></i> Xem
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card-glass">
+                <div class="table-responsive">
+                    <table class="table-glass w-100 mb-0">
+                        <thead>
+                            <tr>
+                                <th>Mã phiếu</th>
+                                <th>Chi nhánh gửi</th>
+                                <th>Chi nhánh nhận</th>
+                                <th>Trạng thái</th>
+                                <th>Người tạo</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(transfers)}">
+                                <td colspan="7" class="text-center text-muted py-4">Chưa có phiếu điều chuyển nào</td>
+                            </tr>
+                            <tr th:each="t : ${transfers}">
+                                <td th:text="${t.transferCode}"></td>
+                                <td th:text="${t.fromBranch.branchName}"></td>
+                                <td th:text="${t.toBranch.branchName}"></td>
+                                <td>
+                                    <span th:class="${'badge-status ' + 
+                                        (t.status.name() == 'Draft' ? 'status-secondary' : 
+                                        (t.status.name() == 'In_Transit' ? 'status-warning' : 
+                                        (t.status.name() == 'Completed' ? 'status-success' : 'status-danger')))}"
+                                          th:text="${t.status}">
+                                    </span>
+                                </td>
+                                <td th:text="${t.createdBy.fullName}"></td>
+                                <td th:text="${#temporals.format(t.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td>
+                                    <a th:href="@{/transfer/{id}(id=${t.stockTransferId})}" class="btn btn-sm btn-info">
+                                        <i class="fa-solid fa-eye"></i> Xem
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

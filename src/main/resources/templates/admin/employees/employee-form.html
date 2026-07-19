@@ -1,103 +1,102 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${isEdit ? 'Chỉnh sửa nhân viên' : 'Thêm mới nhân viên'} + ' - Hệ thống bán lẻ'">Form nhân viên</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Form Nhân Viên')}"></head>
 <body>
-    <div class="auth-wrapper" style="max-width: 650px;">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1 class="auth-title" th:text="${isEdit ? 'Chỉnh sửa nhân viên' : 'Thêm mới nhân viên'}">Thêm nhân viên</h1>
-                <p class="auth-subtitle" th:text="${isEdit ? 'Cập nhật hồ sơ thông tin cá nhân' : 'Nhập thông tin để đăng ký tài khoản nhân viên mới'}">Mô tả</p>
-            </div>
-
-            <!-- Error message alert -->
-            <div th:if="${error}" class="alert alert-danger text-center" role="alert">
-                <span th:text="${error}">Dữ liệu nhập vào không hợp lệ</span>
-            </div>
-
-            <form th:action="${isEdit} ? @{/admin/employees/{id}/edit(id=${employeeId})} : @{/admin/employees/new}" 
-                  th:object="${employeeRequest}" 
-                  method="post">
-                
-                <!-- Display read-only info if editing -->
-                <div th:if="${isEdit}" class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label text-muted">Mã nhân viên</label>
-                        <input type="text" class="form-control" th:value="${employeeCode}" disabled>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted">Tên đăng nhập</label>
-                        <input type="text" class="form-control" th:value="${username}" disabled>
-                    </div>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('employees')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Form Nhân Viên')}"></div>
+        <div class="page-content">
+            
+            <div class="form-card mx-auto" style="max-width: 650px;">
+                <div class="text-center mb-4">
+                    <h2 class="page-heading mb-2" th:text="${isEdit ? 'Chỉnh sửa nhân viên' : 'Thêm mới nhân viên'}">Thêm nhân viên</h2>
+                    <p class="text-muted" th:text="${isEdit ? 'Cập nhật hồ sơ thông tin cá nhân' : 'Nhập thông tin để đăng ký tài khoản nhân viên mới'}">Mô tả</p>
                 </div>
 
-                <!-- Full Name -->
-                <div class="mb-3">
-                    <label for="fullName" class="form-label">Họ và tên</label>
-                    <input type="text" class="form-control" id="fullName" th:field="*{fullName}" placeholder="Nhập đầy đủ họ và tên..." required>
+                <!-- Error message alert -->
+                <div th:if="${error}" class="alert alert-danger text-center" role="alert">
+                    <span th:text="${error}">Dữ liệu nhập vào không hợp lệ</span>
                 </div>
 
-                <!-- Email -->
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email hệ thống</label>
-                    <input type="email" class="form-control" id="email" th:field="*{email}" placeholder="example@retail.com" required>
-                </div>
-
-                <!-- Phone -->
-                <div class="mb-3">
-                    <label for="phone" class="form-label">Số điện thoại</label>
-                    <input type="text" class="form-control" id="phone" th:field="*{phone}" placeholder="Nhập số điện thoại di động...">
-                </div>
-
-                <!-- Creation Specific Fields -->
-                <div th:if="${!isEdit}">
-                    <div class="row mb-3">
-                        <!-- Branch Selection -->
+                <form th:action="${isEdit} ? @{/manager/employees/{id}/edit(id=${employeeId})} : @{/manager/employees/new}" 
+                      th:object="${employeeRequest}" 
+                      method="post">
+                    
+                    <!-- Display read-only info if editing -->
+                    <div th:if="${isEdit}" class="row mb-3">
                         <div class="col-md-6">
-                            <label for="branchId" class="form-label">Chi nhánh làm việc</label>
-                            <select id="branchId" th:field="*{branchId}" class="form-control" required>
-                                <option th:each="br : ${branches}" 
-                                        th:value="${br.branchId}" 
-                                        th:text="${br.branchName}"></option>
-                            </select>
+                            <label class="form-label text-muted">Mã nhân viên</label>
+                            <input type="text" class="form-control" th:value="${employeeCode}" disabled>
                         </div>
-                        <!-- Role Selection -->
                         <div class="col-md-6">
-                            <label for="roleId" class="form-label">Chức vụ (Vai trò)</label>
-                            <select id="roleId" th:field="*{roleId}" class="form-control" required>
-                                <option th:each="rl : ${roles}" 
-                                        th:value="${rl.roleId}" 
-                                        th:text="${rl.roleName}"></option>
-                            </select>
+                            <label class="form-label text-muted">Tên đăng nhập</label>
+                            <input type="text" class="form-control" th:value="${username}" disabled>
                         </div>
                     </div>
 
-                    <!-- Is Branch Manager Checkbox -->
-                    <div class="mb-4 form-check text-start">
-                        <input type="checkbox" class="form-check-input ms-0 me-2" id="isBranchManager" th:field="*{isBranchManager}">
-                        <label class="form-check-label text-secondary" for="isBranchManager">Đăng ký làm Quản lý chi nhánh (Trưởng nhánh)</label>
-                        <br>
-                        <small class="text-muted" style="font-size: 0.75rem;">Lưu ý: Mỗi chi nhánh chỉ được phép có tối đa 1 Quản lý đang hoạt động.</small>
+                    <!-- Full Name -->
+                    <div class="mb-3">
+                        <label for="fullName" class="form-label">Họ và tên</label>
+                        <input type="text" class="form-control" id="fullName" th:field="*{fullName}" placeholder="Nhập đầy đủ họ và tên..." required>
                     </div>
-                </div>
 
-                <!-- Submit and Cancel Buttons -->
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-50" th:text="${isEdit ? 'Lưu thay đổi' : 'Đăng ký nhân viên'}">Xác nhận</button>
-                    <a th:href="@{/admin/employees}" class="btn btn-secondary w-50 d-flex align-items-center justify-content-center" style="margin-top: 15px;">Hủy bỏ</a>
-                </div>
-            </form>
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email hệ thống</label>
+                        <input type="email" class="form-control" id="email" th:field="*{email}" placeholder="example@retail.com" required>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" id="phone" th:field="*{phone}" placeholder="Nhập số điện thoại di động...">
+                    </div>
+
+                    <!-- Creation Specific Fields -->
+                    <div th:if="${!isEdit}">
+                        <div class="row mb-3">
+                            <!-- Branch Selection -->
+                            <div class="col-md-6">
+                                <label for="branchId" class="form-label">Chi nhánh làm việc</label>
+                                <select id="branchId" th:field="*{branchId}" class="form-select" required>
+                                    <option th:each="br : ${branches}" 
+                                            th:value="${br.branchId}" 
+                                            th:text="${br.branchName}"></option>
+                                </select>
+                            </div>
+                            <!-- Role Selection -->
+                            <div class="col-md-6">
+                                <label for="roleId" class="form-label">Chức vụ (Vai trò)</label>
+                                <select id="roleId" th:field="*{roleId}" class="form-select" required>
+                                    <option th:each="rl : ${roles}" 
+                                            th:value="${rl.roleId}" 
+                                            th:text="${rl.roleName}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Is Branch Manager Checkbox -->
+                        <div class="mb-4 form-check text-start">
+                            <input type="checkbox" class="form-check-input ms-0 me-2" id="isBranchManager" th:field="*{isBranchManager}">
+                            <label class="form-check-label text-secondary" for="isBranchManager">Đăng ký làm Quản lý chi nhánh (Trưởng nhánh)</label>
+                            <br>
+                            <small class="text-muted" style="font-size: 0.75rem;">Lưu ý: Mỗi chi nhánh chỉ được phép có tối đa 1 Quản lý đang hoạt động.</small>
+                        </div>
+                    </div>
+
+                    <!-- Submit and Cancel Buttons -->
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary w-50" th:text="${isEdit ? 'Lưu thay đổi' : 'Đăng ký nhân viên'}">Xác nhận</button>
+                        <a th:href="@{/manager/employees}" class="btn btn-secondary w-50 d-flex align-items-center justify-content-center">Hủy bỏ</a>
+                    </div>
+                </form>
+            </div>
+
         </div>
     </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

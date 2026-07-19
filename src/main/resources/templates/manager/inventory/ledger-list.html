@@ -1,198 +1,181 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lịch Sử Thẻ Kho (Ledger) - Hệ thống bán lẻ</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link th:href="@{/css/style.css}" rel="stylesheet">
-    <style>
-        .ledger-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(16px);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-lg);
-        }
-        .table {
-            color: var(--text-primary);
-        }
-        .table th {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-        }
-        .qty-plus {
-            color: #10b981 !important; /* Green */
-            font-weight: 600;
-        }
-        .qty-minus {
-            color: #ef4444 !important; /* Red */
-            font-weight: 600;
-        }
-        .tx-badge {
-            font-size: 0.8rem;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
-        .tx-grn { background: rgba(16, 185, 129, 0.2); color: #10b981; }
-        .tx-sale { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
-        .tx-disposal { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-        .tx-transfer-out { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-        .tx-transfer-in { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
-        .tx-adjustment { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
-        .tx-restock { background: rgba(6, 182, 212, 0.2); color: #06b6d4; }
-    </style>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Lịch Sử Thẻ Kho')}"></head>
 <body>
-    <div class="dashboard-container">
-        <!-- Header -->
-        <div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="h3 mb-0 font-weight-bold" style="background: linear-gradient(to right, #10b981, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    LỊCH SỬ BIẾN ĐỘNG THẺ KHO (LEDGER)
-                </h1>
-                <small class="text-muted">Nhật ký truy xuất nguồn gốc và lý do xuất nhập tồn sản phẩm</small>
-            </div>
-            <div>
-                <a th:href="@{/manager/inventory}" class="btn btn-secondary px-4 py-2">
-                    <i class="fa-solid fa-arrow-left"></i> Quay Lại Tồn Kho
-                </a>
-            </div>
-        </div>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('ledger')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Lịch Sử Thẻ Kho')}"></div>
+        <div class="page-content">
 
-        <!-- Filter & Search Section -->
-        <div class="ledger-card mb-4">
-            <form th:action="@{/manager/inventory/ledger}" method="get" class="row g-3">
-                
-                <!-- If Admin, show branch selector -->
-                <div class="col-md-3" th:if="${isAdmin}">
-                    <label class="form-label text-secondary small text-uppercase">Chi Nhánh</label>
-                    <select name="branchId" class="form-select bg-dark border-secondary text-light">
-                        <option value="">-- Tất cả chi nhánh --</option>
-                        <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"
-                                th:selected="${b.branchId == branchId}"></option>
-                    </select>
+            <!-- Header -->
+            <div class="dashboard-header d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 font-weight-bold page-heading">
+                        LỊCH SỬ BIẾN ĐỘNG THẺ KHO (LEDGER)
+                    </h1>
+                    <small class="text-muted">Nhật ký truy xuất nguồn gốc và lý do xuất nhập tồn sản phẩm</small>
                 </div>
-                
-                <div class="col-md-3">
-                    <label class="form-label text-secondary small text-uppercase">Sản Phẩm</label>
-                    <select name="productId" class="form-select bg-dark border-secondary text-light">
-                        <option value="">-- Tất cả sản phẩm --</option>
-                        <option th:each="p : ${products}" th:value="${p.productId}" th:text="${p.productName}"
-                                th:selected="${p.productId == productId}"></option>
-                    </select>
+                <div>
+                    <a th:href="@{/manager/inventory/ledger/export(branchId=${branchId}, productId=${productId}, transactionType=${transactionType}, startDate=${startDate}, endDate=${endDate})}" class="btn btn-success px-4 py-2 me-2" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; font-weight:600;">
+                        <i class="fa-solid fa-file-excel"></i> Xuất File CSV (Export)
+                    </a>
+                    <a th:href="@{/manager/inventory}" class="btn btn-secondary px-4 py-2">
+                        <i class="fa-solid fa-arrow-left"></i> Quay Lại Tồn Kho
+                    </a>
                 </div>
-
-                <div class="col-md-2">
-                    <label class="form-label text-secondary small text-uppercase">Loại Giao Dịch</label>
-                    <select name="transactionType" class="form-select bg-dark border-secondary text-light">
-                        <option value="">-- Tất cả --</option>
-                        <option value="GRN" th:selected="${transactionType == 'GRN'}">GRN (Nhập kho)</option>
-                        <option value="Sale" th:selected="${transactionType == 'Sale'}">Sale (Bán lẻ)</option>
-                        <option value="Refund_Restock" th:selected="${transactionType == 'Refund_Restock'}">Refund (Hoàn trả)</option>
-                        <option value="Disposal" th:selected="${transactionType == 'Disposal'}">Disposal (Hủy hàng)</option>
-                        <option value="TransferOut" th:selected="${transactionType == 'TransferOut'}">Transfer Out (Chuyển đi)</option>
-                        <option value="TransferIn" th:selected="${transactionType == 'TransferIn'}">Transfer In (Nhận chuyển)</option>
-                        <option value="CountAdjustment" th:selected="${transactionType == 'CountAdjustment'}">Adjustment (Cân kho)</option>
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label text-secondary small text-uppercase">Từ Ngày</label>
-                    <input type="date" name="startDate" class="form-control bg-dark border-secondary text-light" th:value="${startDate}">
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label text-secondary small text-uppercase">Đến Ngày</label>
-                    <input type="date" name="endDate" class="form-control bg-dark border-secondary text-light" th:value="${endDate}">
-                </div>
-
-                <div class="col-md-12 d-flex justify-content-end mt-3">
-                    <button type="submit" class="btn btn-primary px-5 py-2">
-                        <i class="fa-solid fa-filter"></i> Lọc Thẻ Kho
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Table Card -->
-        <div class="ledger-card">
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Mã Giao Dịch</th>
-                            <th>Thời Gian</th>
-                            <th>Mã SKU / Sản Phẩm</th>
-                            <th>Loại Giao Dịch</th>
-                            <th>Chứng Từ Nguồn</th>
-                            <th class="text-end">Biến Động (Base Unit)</th>
-                            <th>Lý Do / Ghi Chú</th>
-                            <th>Người Thực Hiện</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="p : ${ledgerPage.content}">
-                            <td class="font-weight-bold text-light" th:text="'TX-' + ${p.transactionId}"></td>
-                            <td th:text="${#temporals.format(p.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
-                            <td>
-                                <span class="text-light font-weight-bold" th:text="${p.productName}"></span>
-                                <br>
-                                <small class="text-muted" th:text="'SKU: ' + ${p.productSku} + ' | ' + ${p.branchName}"></small>
-                            </td>
-                            <td>
-                                <span th:if="${p.transactionType == 'GRN'}" class="tx-badge tx-grn">GRN</span>
-                                <span th:if="${p.transactionType == 'Sale'}" class="tx-badge tx-sale">Bán hàng</span>
-                                <span th:if="${p.transactionType == 'Refund_Restock'}" class="tx-badge tx-restock">Hoàn trả</span>
-                                <span th:if="${p.transactionType == 'Disposal'}" class="tx-badge tx-disposal">Hao hụt/Hủy</span>
-                                <span th:if="${p.transactionType == 'TransferOut'}" class="tx-badge tx-transfer-out">Xuất chuyển</span>
-                                <span th:if="${p.transactionType == 'TransferIn'}" class="tx-badge tx-transfer-in">Nhập chuyển</span>
-                                <span th:if="${p.transactionType == 'CountAdjustment'}" class="tx-badge tx-adjustment">Kiểm kê</span>
-                            </td>
-                            <td class="text-indigo" th:text="${p.referenceTable} + ' #' + ${p.referenceId}"></td>
-                            <td class="text-end font-weight-bold"
-                                th:classappend="${p.quantityChange.compareTo(0.0) >= 0} ? 'qty-plus' : 'qty-minus'"
-                                th:text="${p.quantityChange.compareTo(0.0) >= 0 ? '+' + #numbers.formatDecimal(p.quantityChange, 1, 'COMMA', 3, 'POINT') + ' ' + p.baseUomName : #numbers.formatDecimal(p.quantityChange, 1, 'COMMA', 3, 'POINT') + ' ' + p.baseUomName}"></td>
-                            <td th:text="${p.reason != null ? p.reason : 'Không có ghi chú'}"></td>
-                            <td th:text="${p.createdByName}"></td>
-                        </tr>
-                        <tr th:if="${#lists.isEmpty(ledgerPage.content)}">
-                            <td colspan="8" class="text-center text-muted py-4">Không tìm thấy bản ghi lịch sử thẻ kho nào phù hợp.</td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
 
-            <!-- Pagination Control -->
-            <nav th:if="${ledgerPage.totalPages > 1}" class="d-flex justify-content-center mt-4">
-                <ul class="pagination">
-                    <li class="page-item" th:classappend="${ledgerPage.first} ? 'disabled'">
-                        <a class="page-link bg-dark border-secondary text-light"
-                           th:href="@{/manager/inventory/ledger(page=${ledgerPage.number - 1}, branchId=${branchId}, productId=${productId}, transactionType=${transactionType}, startDate=${startDate}, endDate=${endDate})}">&laquo;</a>
-                    </li>
-                    <li class="page-item" th:each="i : ${#numbers.sequence(0, ledgerPage.totalPages - 1)}"
-                        th:classappend="${i == ledgerPage.number} ? 'active'">
-                        <a class="page-link bg-dark border-secondary text-light"
-                           th:href="@{/manager/inventory/ledger(page=${i}, branchId=${branchId}, productId=${productId}, transactionType=${transactionType}, startDate=${startDate}, endDate=${endDate})}" th:text="${i + 1}">1</a>
-                    </li>
-                    <li class="page-item" th:classappend="${ledgerPage.last} ? 'disabled'">
-                        <a class="page-link bg-dark border-secondary text-light"
-                           th:href="@{/manager/inventory/ledger(page=${ledgerPage.number + 1}, branchId=${branchId}, productId=${productId}, transactionType=${transactionType}, startDate=${startDate}, endDate=${endDate})}">&raquo;</a>
-                    </li>
-                </ul>
-            </nav>
+            <!-- Filter & Search Section -->
+            <div class="card-glass mb-4">
+                <form th:action="@{/manager/inventory/ledger}" method="get" class="row g-3">
+                    
+                    <!-- If Admin, show branch selector -->
+                    <div class="col-md-3" th:if="${isAdmin}">
+                        <label class="form-label text-secondary small text-uppercase">Chi Nhánh</label>
+                        <select name="branchId" class="form-select bg-dark border-secondary text-light">
+                            <option value="">-- Tất cả chi nhánh --</option>
+                            <option th:each="b : ${branches}" th:value="${b.branchId}" th:text="${b.branchName}"
+                                    th:selected="${b.branchId == branchId}"></option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label text-secondary small text-uppercase">Sản Phẩm</label>
+                        <select name="productId" class="form-select bg-dark border-secondary text-light">
+                            <option value="">-- Tất cả sản phẩm --</option>
+                            <option th:each="p : ${products}" th:value="${p.productId}" th:text="${p.productName}"
+                                    th:selected="${p.productId == productId}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label text-secondary small text-uppercase">Loại Giao Dịch</label>
+                        <select name="transactionType" class="form-select bg-dark border-secondary text-light">
+                            <option value="">-- Tất cả --</option>
+                            <option value="GRN" th:selected="${transactionType == 'GRN'}">GRN (Nhập kho)</option>
+                            <option value="Sale" th:selected="${transactionType == 'Sale'}">Sale (Bán lẻ)</option>
+                            <option value="Refund_Restock" th:selected="${transactionType == 'Refund_Restock'}">Refund (Hoàn trả)</option>
+                            <option value="Disposal" th:selected="${transactionType == 'Disposal'}">Disposal (Hủy hàng)</option>
+                            <option value="TransferOut" th:selected="${transactionType == 'TransferOut'}">Transfer Out (Chuyển đi)</option>
+                            <option value="TransferIn" th:selected="${transactionType == 'TransferIn'}">Transfer In (Nhận chuyển)</option>
+                            <option value="CountAdjustment" th:selected="${transactionType == 'CountAdjustment'}">Adjustment (Cân kho)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label text-secondary small text-uppercase">Từ Ngày</label>
+                        <input type="date" name="startDate" class="form-control bg-dark border-secondary text-light" th:value="${startDate}">
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label text-secondary small text-uppercase">Đến Ngày</label>
+                        <input type="date" name="endDate" class="form-control bg-dark border-secondary text-light" th:value="${endDate}">
+                    </div>
+
+                    <div class="col-md-12 d-flex justify-content-end mt-3">
+                        <button type="submit" class="btn btn-primary px-5 py-2">
+                            <i class="fa-solid fa-filter"></i> Lọc Thẻ Kho
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Table Card -->
+            <div class="card-glass">
+                <div class="table-responsive">
+                    <table class="table-glass align-middle w-100">
+                        <thead>
+                            <tr>
+                                <th>Mã Giao Dịch</th>
+                                <th>Thời Gian</th>
+                                <th>Mã SKU / Sản Phẩm</th>
+                                <th>Loại Giao Dịch</th>
+                                <th>Chứng Từ Nguồn</th>
+                                <th class="text-end">Biến Động (Base Unit)</th>
+                                <th>Lý Do / Ghi Chú</th>
+                                <th>Người Thực Hiện</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${ledgerPage.content}">
+                                <td class="font-weight-bold text-light" th:text="'TX-' + ${p.transactionId}"></td>
+                                <td th:text="${#temporals.format(p.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td>
+                                    <span class="text-light font-weight-bold" th:text="${p.productName}"></span>
+                                    <br>
+                                    <small class="text-muted" th:text="'SKU: ' + ${p.productSku} + ' | ' + ${p.branchName}"></small>
+                                </td>
+                                <td>
+                                    <span th:if="${p.transactionType == 'GRN'}" class="tx-badge tx-grn">GRN</span>
+                                    <span th:if="${p.transactionType == 'Sale'}" class="tx-badge tx-sale">Bán hàng</span>
+                                    <span th:if="${p.transactionType == 'Refund_Restock'}" class="tx-badge tx-restock">Hoàn trả</span>
+                                    <span th:if="${p.transactionType == 'Disposal'}" class="tx-badge tx-disposal">Hao hụt/Hủy</span>
+                                    <span th:if="${p.transactionType == 'TransferOut'}" class="tx-badge tx-transfer-out">Xuất chuyển</span>
+                                    <span th:if="${p.transactionType == 'TransferIn'}" class="tx-badge tx-transfer-in">Nhập chuyển</span>
+                                    <span th:if="${p.transactionType == 'CountAdjustment'}" class="tx-badge tx-adjustment">Kiểm kê</span>
+                                </td>
+                                <td class="text-indigo" th:text="${p.referenceTable} + ' #' + ${p.referenceId}"></td>
+                                <td class="text-end font-weight-bold"
+                                    th:classappend="${p.quantityChange.compareTo(0.0) >= 0} ? 'qty-plus' : 'qty-minus'"
+                                    th:text="${p.quantityChange.compareTo(0.0) >= 0 ? '+' + p.quantityChangeFormatted : p.quantityChangeFormatted}"></td>
+                                <td th:text="${p.reason != null ? p.reason : 'Không có ghi chú'}"></td>
+                                <td th:text="${p.createdByName}"></td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(ledgerPage.content)}">
+                                <td colspan="8" class="text-center text-muted py-4">Không tìm thấy bản ghi lịch sử thẻ kho nào phù hợp.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Control -->
+                <nav th:if="${ledgerPage.totalPages > 1}" class="d-flex justify-content-center mt-4">
+                    <ul class="pagination">
+                        <li class="page-item" th:classappend="${ledgerPage.first} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/manager/inventory/ledger(page=${ledgerPage.number - 1}, branchId=${branchId}, productId=${productId}, transactionType=${transactionType}, startDate=${startDate}, endDate=${endDate})}">&laquo;</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, ledgerPage.totalPages - 1)}"
+                            th:classappend="${i == ledgerPage.number} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/manager/inventory/ledger(page=${i}, branchId=${branchId}, productId=${productId}, transactionType=${transactionType}, startDate=${startDate}, endDate=${endDate})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${ledgerPage.last} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/manager/inventory/ledger(page=${ledgerPage.number + 1}, branchId=${branchId}, productId=${productId}, transactionType=${transactionType}, startDate=${startDate}, endDate=${endDate})}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
         </div>
     </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<style>
+    .qty-plus {
+        color: #10b981 !important; /* Green */
+        font-weight: 600;
+    }
+    .qty-minus {
+        color: #ef4444 !important; /* Red */
+        font-weight: 600;
+    }
+    .tx-badge {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+    .tx-grn { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+    .tx-sale { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+    .tx-disposal { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+    .tx-transfer-out { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+    .tx-transfer-in { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+    .tx-adjustment { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+    .tx-restock { background: rgba(6, 182, 212, 0.2); color: #06b6d4; }
+</style>
 </body>
 </html>

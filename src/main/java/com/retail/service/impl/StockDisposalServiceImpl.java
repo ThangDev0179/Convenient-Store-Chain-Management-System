@@ -35,10 +35,37 @@ public class StockDisposalServiceImpl implements StockDisposalService {
     @Override
     @Transactional
     public StockDisposal createManualDisposal(StockDisposalRequest request, Long createdByEmployeeId) {
+        Branch branch = entityManager.find(Branch.class, request.getBranchId());
+        if (branch == null) {
+            throw new IllegalArgumentException("Chi nhánh không tồn tại");
+        }
+
+        // Generate DisposalCode: DSP-[Mã Chi Nhánh]-YYYYMMDD-[4 số tăng tự động]
+        java.time.LocalDate today = java.time.LocalDate.now();
+        String dateStr = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String prefix = "DSP-" + branch.getBranchCode() + "-" + dateStr + "-";
+
+        java.time.LocalDateTime startOfDay = today.atStartOfDay();
+        List<StockDisposal> todayDisposals = disposalRepository.findByBranchBranchIdAndCreatedAtAfter(request.getBranchId(), startOfDay);
+
+        int nextSeq = 1;
+        for (StockDisposal d : todayDisposals) {
+            String disposalCode = d.getDisposalCode();
+            if (disposalCode != null && disposalCode.startsWith(prefix)) {
+                try {
+                    String seqStr = disposalCode.substring(prefix.length());
+                    int seq = Integer.parseInt(seqStr);
+                    if (seq >= nextSeq) {
+                        nextSeq = seq + 1;
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        String code = prefix + String.format("%04d", nextSeq);
+
         StockDisposal disposal = new StockDisposal();
-        String code = "DSP-" + request.getBranchId() + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         disposal.setDisposalCode(code);
-        disposal.setBranch(entityManager.getReference(Branch.class, request.getBranchId()));
+        disposal.setBranch(branch);
         disposal.setStatus(StockDisposalStatus.Draft);
         disposal.setSourceType(DisposalSourceType.Manual);
         disposal.setReason(request.getReason());
@@ -67,16 +94,43 @@ public class StockDisposalServiceImpl implements StockDisposalService {
     @Transactional
     public StockDisposal autoCreateFromLoss(Integer branchId, Long productId, BigDecimal lossQty,
                                             DisposalSourceType type, Long refId, String reason, Long employeeId) {
+        Branch branch = entityManager.find(Branch.class, branchId);
+        if (branch == null) {
+            throw new IllegalArgumentException("Chi nhánh không tồn tại");
+        }
+
+        String typePrefix = type == DisposalSourceType.TransferLoss ? "DSPL-" : "DSPC-";
+        java.time.LocalDate today = java.time.LocalDate.now();
+        String dateStr = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String prefix = typePrefix + branch.getBranchCode() + "-" + dateStr + "-";
+
+        java.time.LocalDateTime startOfDay = today.atStartOfDay();
+        List<StockDisposal> todayDisposals = disposalRepository.findByBranchBranchIdAndCreatedAtAfter(branchId, startOfDay);
+
+        int nextSeq = 1;
+        for (StockDisposal d : todayDisposals) {
+            String disposalCode = d.getDisposalCode();
+            if (disposalCode != null && disposalCode.startsWith(prefix)) {
+                try {
+                    String seqStr = disposalCode.substring(prefix.length());
+                    int seq = Integer.parseInt(seqStr);
+                    if (seq >= nextSeq) {
+                        nextSeq = seq + 1;
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        String code = prefix + String.format("%04d", nextSeq);
+
         StockDisposal disposal = new StockDisposal();
-        String prefix = type == DisposalSourceType.TransferLoss ? "DSPL-" : "DSPC-";
-        String code = prefix + branchId + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         disposal.setDisposalCode(code);
-        disposal.setBranch(entityManager.getReference(Branch.class, branchId));
+        disposal.setBranch(branch);
         disposal.setStatus(StockDisposalStatus.Draft);
         disposal.setSourceType(type);
         disposal.setReferenceId(refId);
         disposal.setReason(reason);
         disposal.setCreatedBy(entityManager.getReference(Employee.class, employeeId));
+
 
         StockDisposalDetail detail = new StockDisposalDetail();
         Product product = entityManager.find(Product.class, productId);

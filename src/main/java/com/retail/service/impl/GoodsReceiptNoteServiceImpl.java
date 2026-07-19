@@ -83,8 +83,8 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
         PurchaseOrder po = poRepository.findById(request.getPurchaseOrderId())
                 .orElseThrow(() -> new ValidationException("Không tìm thấy đơn đặt hàng PO liên kết."));
 
-        if (po.getStatus() != PurchaseOrderStatus.Submitted && po.getStatus() != PurchaseOrderStatus.Partially_Received) {
-            throw new ValidationException("Đơn đặt hàng PO phải ở trạng thái Đã gửi duyệt hoặc Đang nhập kho dở dang mới có thể nhập kho.");
+        if (po.getStatus() != PurchaseOrderStatus.Approved && po.getStatus() != PurchaseOrderStatus.Partially_Received) {
+            throw new ValidationException("Đơn đặt hàng PO phải ở trạng thái Đã phê duyệt hoặc Đang nhập kho dở dang mới có thể nhập kho.");
         }
 
         Branch branch = branchRepository.findById(request.getBranchId())
@@ -119,8 +119,12 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
 
         BigDecimal totalCost = BigDecimal.ZERO;
         List<GoodsReceiptNoteDetail> details = new ArrayList<>();
+        java.util.Set<Long> productIds = new java.util.HashSet<>();
 
         for (GoodsReceiptNoteDetailRequest detailReq : request.getDetails()) {
+            if (!productIds.add(detailReq.getProductId())) {
+                throw new ValidationException("Sản phẩm ID " + detailReq.getProductId() + " bị trùng lặp trong danh sách nhận hàng.");
+            }
             Product product = productRepository.findById(detailReq.getProductId())
                     .orElseThrow(() -> new ValidationException("Sản phẩm không tồn tại."));
 
@@ -283,7 +287,7 @@ public class GoodsReceiptNoteServiceImpl implements GoodsReceiptNoteService {
         }
 
         if (allCompleted) {
-            po.setStatus(PurchaseOrderStatus.Received_Partial); // Received_Partial is used as Completed status
+            po.setStatus(PurchaseOrderStatus.Completed);
         } else if (atLeastOneReceived) {
             po.setStatus(PurchaseOrderStatus.Partially_Received);
         } else {

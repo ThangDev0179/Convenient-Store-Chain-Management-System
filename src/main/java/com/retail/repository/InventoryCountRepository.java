@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface InventoryCountRepository extends JpaRepository<InventoryCount, Long> {
     Optional<InventoryCount> findByCountCode(String countCode);
     List<InventoryCount> findByBranchBranchId(Integer branchId);
+    List<InventoryCount> findByBranchBranchIdAndCreatedAtAfter(Integer branchId, java.time.LocalDateTime startOfDay);
 }

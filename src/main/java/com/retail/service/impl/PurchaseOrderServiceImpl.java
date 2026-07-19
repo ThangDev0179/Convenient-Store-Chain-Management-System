@@ -100,7 +100,11 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 .build();
 
         List<PurchaseOrderDetail> details = new ArrayList<>();
+        java.util.Set<Long> productIds = new java.util.HashSet<>();
         for (PurchaseOrderDetailRequest detailReq : request.getDetails()) {
+            if (!productIds.add(detailReq.getProductId())) {
+                throw new ValidationException("Sản phẩm ID " + detailReq.getProductId() + " bị trùng lặp trong danh sách đặt hàng.");
+            }
             Product product = productRepository.findById(detailReq.getProductId())
                     .orElseThrow(() -> new ValidationException("Sản phẩm không tồn tại"));
 
@@ -174,6 +178,58 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 .oldValue("{\"status\":\"" + oldStatus + "\"}")
                 .newValue("{\"status\":\"Canceled\"}")
                 .reason("Manager/Admin requested cancellation")
+                .build();
+        auditLogRepository.save(audit);
+
+        return mapToResponse(saved);
+    }
+
+    @Override
+    public PurchaseOrderResponse approvePurchaseOrder(Long poId, Employee user) {
+        PurchaseOrder po = poRepository.findById(poId)
+                .orElseThrow(() -> new ValidationException("Không tìm thấy đơn đặt hàng"));
+
+        if (po.getStatus() != PurchaseOrderStatus.Submitted) {
+            throw new ValidationException("Chỉ đơn đặt hàng ở trạng thái Chờ duyệt mới có thể phê duyệt");
+        }
+
+        po.setStatus(PurchaseOrderStatus.Approved);
+        PurchaseOrder saved = poRepository.save(po);
+
+        AuditLog audit = AuditLog.builder()
+                .employee(user)
+                .actionType("ApprovePurchaseOrder")
+                .entityName("PurchaseOrder")
+                .entityId(po.getPurchaseOrderId())
+                .oldValue("{\"status\":\"Submitted\"}")
+                .newValue("{\"status\":\"Approved\"}")
+                .reason("Admin approved PO")
+                .build();
+        auditLogRepository.save(audit);
+
+        return mapToResponse(saved);
+    }
+
+    @Override
+    public PurchaseOrderResponse rejectPurchaseOrder(Long poId, Employee user) {
+        PurchaseOrder po = poRepository.findById(poId)
+                .orElseThrow(() -> new ValidationException("Không tìm thấy đơn đặt hàng"));
+
+        if (po.getStatus() != PurchaseOrderStatus.Submitted) {
+            throw new ValidationException("Chỉ đơn đặt hàng ở trạng thái Chờ duyệt mới có thể từ chối");
+        }
+
+        po.setStatus(PurchaseOrderStatus.Rejected);
+        PurchaseOrder saved = poRepository.save(po);
+
+        AuditLog audit = AuditLog.builder()
+                .employee(user)
+                .actionType("RejectPurchaseOrder")
+                .entityName("PurchaseOrder")
+                .entityId(po.getPurchaseOrderId())
+                .oldValue("{\"status\":\"Submitted\"}")
+                .newValue("{\"status\":\"Rejected\"}")
+                .reason("Admin rejected PO")
                 .build();
         auditLogRepository.save(audit);
 
