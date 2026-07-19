@@ -79,11 +79,13 @@ public class StockDisposalServiceImpl implements StockDisposalService {
         String code = prefix + branchId + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         disposal.setDisposalCode(code);
         disposal.setBranch(entityManager.getReference(Branch.class, branchId));
-        disposal.setStatus(StockDisposalStatus.Draft);
+        disposal.setStatus(StockDisposalStatus.Completed);
         disposal.setSourceType(type);
         disposal.setReferenceId(refId);
         disposal.setReason(reason);
         disposal.setCreatedBy(entityManager.getReference(Employee.class, employeeId));
+        disposal.setApprovedBy(entityManager.getReference(Employee.class, employeeId));
+        disposal.setApprovedAt(LocalDateTime.now());
 
         StockDisposalDetail detail = new StockDisposalDetail();
         Product product = entityManager.find(Product.class, productId);
