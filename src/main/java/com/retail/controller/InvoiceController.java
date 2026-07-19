@@ -49,7 +49,12 @@ public class InvoiceController {
 
     private final InvoiceService invoiceService;
 
-    // â”€â”€â”€ List page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    @GetMapping
+    public String posHome() {
+        return "redirect:/pos/invoices/new";
+    }
+
+    // ─── List page ───────────────────────────────────────────────────────────────
 
     @GetMapping("/invoices")
     @PreAuthorize("hasAnyRole('STAFF','MANAGER','ADMIN')")
@@ -79,6 +84,17 @@ public class InvoiceController {
         InvoiceResponse invoice = invoiceService.getInvoiceDetail(id);
         model.addAttribute("invoice", invoice);
         return "pos/invoice-detail";
+    }
+
+    @GetMapping("/invoices/by-invoice-code")
+    @PreAuthorize("hasAnyRole('STAFF','MANAGER','ADMIN')")
+    @ResponseBody
+    public ResponseEntity<InvoiceResponse> lookupInvoice(@RequestParam String invoiceCode) {
+        // Need to add getByCode in InvoiceService? Actually wait, InvoiceService doesn't have getByCode yet.
+        // Let's check InvoiceServiceImpl to see if it has a way to get by code. 
+        // InvoiceRepository has findByInvoiceCode. I need to add getByCode to InvoiceService.
+        // Let's do that next.
+        return ResponseEntity.ok(invoiceService.getByCode(invoiceCode));
     }
 
     // â”€â”€â”€ Create invoice (POST, returns JSON for AJAX) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

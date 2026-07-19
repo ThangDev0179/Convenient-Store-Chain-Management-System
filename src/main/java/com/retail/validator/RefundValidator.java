@@ -34,7 +34,13 @@ public class RefundValidator {
      * @param request         the create refund request
      * @param originalInvoice the resolved original Invoice entity
      */
-    public void validate(CreateRefundRequest request, Invoice originalInvoice) {
+    public void validate(CreateRefundRequest request, Invoice originalInvoice, Integer currentEmployeeBranchId) {
+
+        // Rule #6: Refund.BranchId must match Invoice.BranchId
+        if (!currentEmployeeBranchId.equals(originalInvoice.getBranchId())) {
+            throw new BusinessRuleViolationException("RULE_6",
+                    "You can only create refunds for invoices from your own branch.");
+        }
 
         // Rule #7: Cannot refund an invoice that is not Paid
         if (originalInvoice.getStatus() != InvoiceStatus.Paid) {

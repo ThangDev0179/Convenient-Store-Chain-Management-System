@@ -49,8 +49,6 @@ public class RefundController {
         model.addAttribute("refundPage", page);
         model.addAttribute("searchRequest", request);
         model.addAttribute("statuses", RefundStatus.values());
-        model.addAttribute("isManagerOrAdmin",
-                hasRole("MANAGER") || hasRole("ADMIN"));
         return "refund/list";
     }
 
@@ -72,8 +70,6 @@ public class RefundController {
     public String refundDetail(@PathVariable Long id, Model model) {
         RefundResponse refund = refundService.getRefundDetail(id);
         model.addAttribute("refund", refund);
-        model.addAttribute("isManagerOrAdmin",
-                hasRole("MANAGER") || hasRole("ADMIN"));
         return "refund/detail";
     }
 
@@ -116,26 +112,18 @@ public class RefundController {
     @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
     @ResponseBody
     public ResponseEntity<RefundResponse> rejectRefund(@PathVariable Long id,
-                                                        @RequestParam(required = false) String reason) {
-        return ResponseEntity.ok(refundService.rejectRefund(id, reason));
+                                                        @Valid @RequestBody RejectRefundRequest request) {
+        return ResponseEntity.ok(refundService.rejectRefund(id, request.reason()));
     }
 
     // â”€â”€â”€ Manager PIN Override at POS (AJAX JSON) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @PutMapping("/{id}/override-approve")
-    @PreAuthorize("hasAnyRole('STAFF','MANAGER','ADMIN')")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
     @ResponseBody
     public ResponseEntity<RefundResponse> overrideApprove(@PathVariable Long id,
                                                            @Valid @RequestBody RefundOverrideApproveRequest request) {
         return ResponseEntity.ok(refundService.overrideApprove(id, request));
     }
 
-    // â”€â”€â”€ Utility â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-    private boolean hasRole(String role) {
-        var auth = org.springframework.security.core.context.SecurityContextHolder
-                .getContext().getAuthentication();
-        return auth != null && auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
-    }
 }

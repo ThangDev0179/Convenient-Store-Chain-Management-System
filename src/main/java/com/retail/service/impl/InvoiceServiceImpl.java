@@ -187,6 +187,15 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("InvoiceDetail", detailId));
 
+        BranchInventoryId invKey = new BranchInventoryId(invoice.getBranchId(), detail.getProductId());
+        BranchInventory inventory = entityManager.find(BranchInventory.class, invKey);
+        if (inventory == null || inventory.getQtyAvailable().compareTo(request.quantity()) < 0) {
+            Product product = productRepo.findById(detail.getProductId()).orElse(null);
+            String productName = product != null ? product.getProductName() : "ProductId=" + detail.getProductId();
+            BigDecimal available = inventory != null ? inventory.getQtyAvailable() : BigDecimal.ZERO;
+            throw new InsufficientStockException(detail.getProductId(), productName, request.quantity(), available);
+        }
+
         detail.setQuantity(request.quantity());
         invoice.recalculateTotalAmount();
         invoiceRepository.save(invoice);
@@ -227,7 +236,14 @@ public class InvoiceServiceImpl implements InvoiceService {
             throw new BusinessRuleViolationException("EMPTY_CART", "Cannot pay an empty invoice");
         }
 
-        // Rule #1: Stock check with PESSIMISTIC_WRITE lock
+        LocalDateTime now = LocalDateTime.now();
+        Employee cashier = resolveCurrentEmployee();
+
+        transitionStatus(invoice, InvoiceStatus.Paid);
+        invoice.setPaymentMethod(request.paymentMethod());
+        invoice.setPaidAt(now);
+
+        // Rule #1: Stock check and update with single PESSIMISTIC_WRITE lock
         for (InvoiceDetail detail : invoice.getDetails()) {
             BranchInventoryId invKey = new BranchInventoryId(invoice.getBranchId(), detail.getProductId());
             BranchInventory inventory = entityManager.find(
@@ -240,27 +256,15 @@ public class InvoiceServiceImpl implements InvoiceService {
                 throw new InsufficientStockException(detail.getProductId(), productName,
                         detail.getQuantity(), available);
             }
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        Employee cashier = resolveCurrentEmployee();
-
-        transitionStatus(invoice, InvoiceStatus.Paid);
-        invoice.setPaymentMethod(request.paymentMethod());
-        invoice.setPaidAt(now);
-
-        for (InvoiceDetail detail : invoice.getDetails()) {
-            BranchInventoryId invKey = new BranchInventoryId(invoice.getBranchId(), detail.getProductId());
-            BranchInventory inventory = entityManager.find(BranchInventory.class, invKey,
-                    LockModeType.PESSIMISTIC_WRITE);
 
             inventory.setQtyAvailable(inventory.getQtyAvailable().subtract(detail.getQuantity()));
             inventory.setQtyOnHand(inventory.getQtyOnHand().subtract(detail.getQuantity()));
             inventory.setUpdatedAt(now);
 
+            Product product = productRepo.findById(detail.getProductId()).orElse(null);
             InventoryTransactionHistory ith = InventoryTransactionHistory.builder()
                     .branch(branchRepository.findById(invoice.getBranchId()).orElse(null))
-                    .product(productRepo.findById(detail.getProductId()).orElse(null))
+                    .product(product)
                     .transactionType(InventoryTransactionType.Sale)
                     .referenceTable("Invoice")
                     .referenceId(invoice.getInvoiceId())
@@ -296,6 +300,19 @@ public class InvoiceServiceImpl implements InvoiceService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", invoiceId));
         assertBranchOwnership(invoice);
+
+        // Stock validation on resume (BUG-07)
+        for (InvoiceDetail detail : invoice.getDetails()) {
+            BranchInventoryId invKey = new BranchInventoryId(invoice.getBranchId(), detail.getProductId());
+            BranchInventory inventory = entityManager.find(BranchInventory.class, invKey);
+            if (inventory == null || inventory.getQtyAvailable().compareTo(detail.getQuantity()) < 0) {
+                Product product = productRepo.findById(detail.getProductId()).orElse(null);
+                String productName = product != null ? product.getProductName() : "ProductId=" + detail.getProductId();
+                BigDecimal available = inventory != null ? inventory.getQtyAvailable() : BigDecimal.ZERO;
+                throw new InsufficientStockException(detail.getProductId(), productName, detail.getQuantity(), available);
+            }
+        }
+
         transitionStatus(invoice, InvoiceStatus.Draft);
         Employee cashier = resolveCurrentEmployee();
         return invoiceMapper.toSummaryResponse(invoiceRepository.save(invoice), cashier.getFullName());
@@ -305,9 +322,6 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Transactional
     public InvoiceResponse cancelInvoice(Long invoiceId) {
         Invoice invoice = loadEditableInvoice(invoiceId);
-        if (invoice.getStatus() == InvoiceStatus.Paid) {
-            throw new InvalidStateTransitionException("Invoice", "Paid", "Canceled");
-        }
         transitionStatus(invoice, InvoiceStatus.Canceled);
         invoice.setCanceledAt(LocalDateTime.now());
         Employee cashier = resolveCurrentEmployee();
@@ -321,8 +335,13 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     public Page<InvoiceResponse> listInvoices(InvoiceSearchRequest request) {
         Employee currentEmployee = resolveCurrentEmployee();
-        boolean isStaff = !hasRole("MANAGER") && !hasRole("ADMIN");
-        Integer branchIdFilter = isStaff ? currentEmployee.getBranch().getBranchId() : null;
+        
+        Integer branchIdFilter;
+        if (hasRole("ADMIN")) {
+            branchIdFilter = null;
+        } else {
+            branchIdFilter = currentEmployee.getBranch().getBranchId();
+        }
 
         // HSF302 Mục 3: dùng @Query JPQL (findByFilters) thay Specification API
         // Tham số null → bỏ qua filter (pattern đã học Chapter04)
@@ -348,6 +367,14 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceResponse getInvoiceDetail(Long invoiceId) {
         Invoice invoice = invoiceRepository.findByIdWithDetails(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", invoiceId));
+        assertBranchOwnership(invoice);
+        return buildFullResponse(invoice);
+    }
+
+    @Override
+    public InvoiceResponse getByCode(String invoiceCode) {
+        Invoice invoice = invoiceRepository.findByInvoiceCode(invoiceCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice by code: " + invoiceCode));
         assertBranchOwnership(invoice);
         return buildFullResponse(invoice);
     }

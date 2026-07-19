@@ -41,4 +41,7 @@ public interface InvoiceService {
 
     /** 3.1.5 — Chi tiết hóa đơn kèm InvoiceDetail */
     InvoiceResponse getInvoiceDetail(Long invoiceId);
+
+    /** Support for Refund lookup (BUG-05) */
+    InvoiceResponse getByCode(String invoiceCode);
 }

@@ -2,7 +2,6 @@ package com.retail.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Formula;
 
 import java.math.BigDecimal;
 
@@ -70,9 +69,9 @@ public class InvoiceDetail {
 
     /**
      * READ-ONLY: computed column from DB (Quantity * UnitPrice).
-     * Hibernate will load this value from DB but will NOT include it in INSERT/UPDATE.
+     * SQL Server will compute this. Hibernate reads it but doesn't insert/update.
      * Use invoice.recalculateTotalAmount() in service to keep Invoice.TotalAmount in sync.
      */
-    @Formula("(Quantity * UnitPrice)")
+    @Column(name = "LineTotal", precision = 18, scale = 2, insertable = false, updatable = false)
     private BigDecimal lineTotal;
 }

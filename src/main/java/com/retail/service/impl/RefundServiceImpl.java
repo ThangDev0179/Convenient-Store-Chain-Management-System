@@ -90,9 +90,10 @@ public class RefundServiceImpl implements RefundService {
         Invoice invoice = invoiceRepository.findByIdWithDetails(request.originalInvoiceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", request.originalInvoiceId()));
 
-        refundValidator.validate(request, invoice);
-
         Employee requestedBy = resolveCurrentEmployee();
+
+        refundValidator.validate(request, invoice, requestedBy.getBranch().getBranchId());
+
         Branch branch = branchRepository.findById(invoice.getBranchId())
                 .orElseThrow(() -> new ResourceNotFoundException("Branch", invoice.getBranchId()));
 
@@ -135,8 +136,16 @@ public class RefundServiceImpl implements RefundService {
         details.forEach(refund::addDetail);
         Refund saved = refundRepository.save(refund);
 
-        log.info("Created Refund {} (status={}) for invoice {}",
-                refundCode, initialStatus, invoice.getInvoiceCode());
+        if (initialStatus == RefundStatus.Draft) {
+            // Auto-approve if under threshold (BUG-08)
+            completeRefund(saved, false);
+            saved = refundRepository.save(saved);
+            log.info("Auto-approved Refund {} (under threshold) for invoice {}",
+                    refundCode, invoice.getInvoiceCode());
+        } else {
+            log.info("Created Refund {} (status={}) for invoice {}",
+                    refundCode, initialStatus, invoice.getInvoiceCode());
+        }
 
         return buildFullResponse(saved, invoice);
     }
@@ -212,8 +221,12 @@ public class RefundServiceImpl implements RefundService {
 
     @Override
     public Page<RefundResponse> listRefunds(RefundSearchRequest request) {
-        boolean isStaff = !hasRole("MANAGER") && !hasRole("ADMIN");
-        Integer branchIdFilter = isStaff ? resolveCurrentEmployee().getBranch().getBranchId() : request.branchId();
+        Integer branchIdFilter;
+        if (hasRole("ADMIN")) {
+            branchIdFilter = null;
+        } else {
+            branchIdFilter = resolveCurrentEmployee().getBranch().getBranchId();
+        }
 
         // HSF302 Mục 3: dùng @Query JPQL (findByFilters) thay Specification API
         LocalDateTime fromDateTime = request.fromDate() != null ? request.fromDate().atStartOfDay() : null;

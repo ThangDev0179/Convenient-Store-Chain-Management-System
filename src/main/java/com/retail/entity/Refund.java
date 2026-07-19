@@ -64,7 +64,7 @@ public class Refund {
      * Auto-set by service based on TotalRefundAmount threshold (≥200,000 VND → Pending_Approval).
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "Status", length = 20, nullable = false)
+    @Column(name = "Status", columnDefinition = "NVARCHAR(20) CHECK (Status IN ('Draft','Pending_Approval','Completed','Rejected'))", nullable = false)
     @Builder.Default
     private RefundStatus status = RefundStatus.Draft;
 

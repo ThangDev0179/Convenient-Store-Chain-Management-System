@@ -51,13 +51,13 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
      *   - branchId  : null → không lọc theo chi nhánh (ADMIN/MANAGER thấy tất cả)
      */
     @Query("SELECT i FROM Invoice i WHERE " +
-           "(:status IS NULL OR i.status = :status) AND " +
+           "i.status IN :statuses AND " +
            "(:fromDate IS NULL OR i.createdAt >= :fromDate) AND " +
            "(:toDate IS NULL OR i.createdAt < :toDate) AND " +
            "(:cashierId IS NULL OR i.cashierId = :cashierId) AND " +
            "(:branchId IS NULL OR i.branchId = :branchId)")
     Page<Invoice> findByFilters(
-            @Param("status") InvoiceStatus status,
+            @Param("statuses") java.util.List<InvoiceStatus> statuses,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate,
             @Param("cashierId") Long cashierId,

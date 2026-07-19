@@ -22,7 +22,8 @@ public interface RefundDetailRepository extends JpaRepository<RefundDetail, Long
     @Query("SELECT COALESCE(SUM(rd.quantity), 0) FROM RefundDetail rd " +
            "WHERE rd.productId = :productId " +
            "AND rd.refund.originalInvoiceId = :originalInvoiceId " +
-           "AND rd.refund.status IN ('Completed', 'Pending_Approval')")
+           "AND rd.refund.status IN :statuses")
     BigDecimal sumRefundedQuantity(@Param("productId") Long productId,
-                                   @Param("originalInvoiceId") Long originalInvoiceId);
+                                   @Param("originalInvoiceId") Long originalInvoiceId,
+                                   @Param("statuses") List<com.retail.entity.RefundStatus> statuses);
 }

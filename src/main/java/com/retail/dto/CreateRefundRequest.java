@@ -30,7 +30,8 @@ public record CreateRefundRequest(
         String customerName,
 
         @NotBlank(message = "Customer phone is required")
-        @Pattern(regexp = "^(0|\\+84)[0-9]{9,10}$",
+        @Size(max = 20, message = "Phone number too long")
+        @Pattern(regexp = "^(0|\\+84)[0-9]{8,9}$",
                  message = "Invalid Vietnamese phone number (e.g. 0912345678 or +84912345678)")
         String customerPhone,
 

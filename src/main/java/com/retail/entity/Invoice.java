@@ -49,7 +49,7 @@ public class Invoice {
      * State transitions enforced by InvoiceStatus.canTransitionTo().
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "Status", length = 20, nullable = false)
+    @Column(name = "Status", columnDefinition = "NVARCHAR(20) CHECK (Status IN ('Draft','Held','Paid','Canceled'))", nullable = false)
     @Builder.Default
     private InvoiceStatus status = InvoiceStatus.Draft;
 

@@ -40,12 +40,12 @@ public interface RefundRepository extends JpaRepository<Refund, Long> {
      * Tham số nullable: null → bỏ qua filter đó.
      */
     @Query("SELECT r FROM Refund r WHERE " +
-           "(:status IS NULL OR r.status = :status) AND " +
+           "r.status IN :statuses AND " +
            "(:fromDate IS NULL OR r.createdAt >= :fromDate) AND " +
            "(:toDate IS NULL OR r.createdAt < :toDate) AND " +
            "(:branchId IS NULL OR r.branchId = :branchId)")
     Page<Refund> findByFilters(
-            @Param("status") RefundStatus status,
+            @Param("statuses") java.util.List<RefundStatus> statuses,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate,
             @Param("branchId") Integer branchId,
