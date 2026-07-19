@@ -29,6 +29,9 @@
             <span id="invoice-code-badge" class="badge bg-secondary" th:text="${'Hóa đơn: ' + (currentInvoiceCode ?: 'Chưa tạo')}">Hóa đơn: Chưa tạo</span>
         </div>
         <div class="col text-end">
+            <a th:href="@{/}" class="btn btn-secondary btn-sm me-2">
+                <i class="bi bi-house"></i> Quay lại Dashboard
+            </a>
             <a href="/pos/invoices" class="btn btn-outline-secondary btn-sm me-2">
                 <i class="bi bi-list-ul"></i> DS Hóa đơn
             </a>

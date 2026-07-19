@@ -20,15 +20,15 @@ public record InvoiceSearchRequest(
 
         Long cashierId,
 
-        int page,
+        Integer page,
 
-        int size,
+        Integer size,
 
         String sort   // e.g., "createdAt,desc"
 ) {
     public InvoiceSearchRequest {
-        if (page < 0) page = 0;
-        if (size <= 0) size = 20;
+        if (page == null || page < 0) page = 0;
+        if (size == null || size <= 0) size = 20;
         if (sort == null || sort.isBlank()) sort = "createdAt,desc";
     }
 }

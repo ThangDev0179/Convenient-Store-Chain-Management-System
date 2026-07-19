@@ -57,6 +57,9 @@ public class RefundController {
     @GetMapping("/create")
     @PreAuthorize("hasAnyRole('STAFF','MANAGER','ADMIN')")
     public String createForm(@RequestParam(required = false) String invoiceCode, Model model) {
+        if (!model.containsAttribute("createRefundRequest")) {
+            model.addAttribute("createRefundRequest", new CreateRefundRequest(null, "", "", "", new java.util.ArrayList<>()));
+        }
         model.addAttribute("invoiceCode", invoiceCode);
         model.addAttribute("conditionTypes",
                 com.retail.entity.ConditionType.values());

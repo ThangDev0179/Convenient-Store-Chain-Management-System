@@ -122,7 +122,7 @@
                                 <th>Chức vụ / QL</th>
                                 <th>Chi Nhánh</th>
                                 <th>Trạng Thái</th>
-                                <th class="text-center" style="width: 250px;">Thao Tác</th>
+                                <th class="text-center" style="min-width: 280px; white-space: nowrap;">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -140,7 +140,7 @@
                                     <span th:if="${emp.status.name() == 'Active'}" class="badge-active">Hoạt động</span>
                                     <span th:if="${emp.status.name() == 'Inactive'}" class="badge-locked">Đã Khóa</span>
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center" style="white-space: nowrap;">
                                     <div class="d-flex gap-1 justify-content-center">
                                         <a th:href="@{/manager/employees/{id}(id=${emp.employeeId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Xem</a>
                                         <a th:href="@{/manager/employees/{id}/edit(id=${emp.employeeId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>

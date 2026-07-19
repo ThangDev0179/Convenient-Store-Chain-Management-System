@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        <form method="post" action="/refunds" id="refund-form">
+        <form method="post" action="/refunds" id="refund-form" th:object="${createRefundRequest}">
             <input type="hidden" name="_method" value="post">
             <input type="hidden" name="originalInvoiceId" id="hidden-invoice-id">
 

@@ -19,12 +19,12 @@ public record RefundSearchRequest(
 
         Integer branchId,
 
-        int page,
+        Integer page,
 
-        int size
+        Integer size
 ) {
     public RefundSearchRequest {
-        if (page < 0) page = 0;
-        if (size <= 0) size = 20;
+        if (page == null || page < 0) page = 0;
+        if (size == null || size <= 0) size = 20;
     }
 }

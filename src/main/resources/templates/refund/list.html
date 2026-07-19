@@ -10,8 +10,11 @@
 <body class="bg-light">
 
 <div class="container-fluid py-4">
-    <div class="d-flex align-items-center mb-3">
+    <div class="d-flex align-items-center mb-3 gap-2">
         <h4 class="me-auto mb-0"><i class="bi bi-arrow-return-left text-warning"></i> Danh sách đổi trả</h4>
+        <a th:href="@{/}" class="btn btn-secondary btn-sm">
+            <i class="bi bi-house"></i> Quay lại Dashboard
+        </a>
         <a href="/refunds/create" class="btn btn-warning btn-sm">
             <i class="bi bi-plus-circle"></i> Tạo đổi trả
         </a>
