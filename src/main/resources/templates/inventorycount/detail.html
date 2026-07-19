@@ -101,6 +101,15 @@
         </a>
         
         <div class="d-flex gap-2">
+            <!-- Nút Hủy bỏ bản nháp (staff xóa để tạo lại nếu nhập sai) -->
+            <form th:if="${count.status.name() == 'Draft'}"
+                  th:action="@{/inventory-count/{id}/cancel(id=${count.inventoryCountId})}" method="post">
+                <button type="submit" class="btn btn-outline-secondary"
+                        onclick="return confirm('Bạn muốn hủy bỏ bản nháp này? Phiếu sẽ bị xóa khỏi hệ thống.')">
+                    <i class="bi bi-trash me-1"></i> Hủy bản nháp
+                </button>
+            </form>
+
             <!-- Nút Submit (Chỉ người tạo hoặc bất kỳ staff nào có thể trình) -->
             <form th:if="${count.status.name() == 'Draft'}" 
                   th:action="@{/inventory-count/{id}/submit(id=${count.inventoryCountId})}" method="post">

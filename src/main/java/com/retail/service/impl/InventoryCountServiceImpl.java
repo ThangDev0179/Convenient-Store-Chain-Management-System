@@ -52,7 +52,8 @@ public class InventoryCountServiceImpl implements InventoryCountService {
             InventoryCountDetail detail = new InventoryCountDetail();
             detail.setProduct(entityManager.getReference(Product.class, detailDto.getProductId()));
 
-            // Dùng method findByBranchBranchIdAndProductProductId của Toàn
+            // BUG 2 FIX: Dùng QtyOnHand (số lượng vật lý thực tế) làm systemQty khi kiểm kê
+            // vì kiểm kê là đếm hàng vật lý, không phân biệt hàng đang cam kết chuyển đi
             BigDecimal systemQty = branchInventoryRepository
                     .findByBranchBranchIdAndProductProductId(request.getBranchId(), detailDto.getProductId())
                     .map(BranchInventory::getQtyOnHand)
@@ -143,6 +144,18 @@ public class InventoryCountServiceImpl implements InventoryCountService {
         auditLogService.logAction(rejectedByEmployeeId, "RejectInventoryCount", "InventoryCount",
                 saved.getInventoryCountId(), oldStatus, saved.getStatus().name(), "Từ chối", null, null);
         return saved;
+    }
+
+    @Override
+    @Transactional
+    public void cancelCount(Long countId, Long cancelledByEmployeeId) {
+        InventoryCount count = getCountById(countId);
+        if (count.getStatus() != InventoryCountStatus.Draft) {
+            throw new IllegalStateException("Chỉ có thể hủy bỏ phiếu ở trạng thái Nháp (Draft)");
+        }
+        auditLogService.logAction(cancelledByEmployeeId, "CancelInventoryCount", "InventoryCount",
+                countId, count.getStatus().name(), "Cancelled", "Hủy bỏ bản nháp kiểm kê", null, null);
+        countRepository.delete(count);
     }
 
     @Override

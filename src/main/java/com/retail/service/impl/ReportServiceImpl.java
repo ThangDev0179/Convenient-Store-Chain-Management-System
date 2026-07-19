@@ -67,7 +67,7 @@ public class ReportServiceImpl implements ReportService {
                 "FROM StockDisposalDetail dd " +
                 "JOIN dd.stockDisposal d " +
                 "JOIN d.branch b " +
-                "WHERE d.status = 'Completed' "
+                "WHERE d.status = com.retail.entity.StockDisposalStatus.Completed "
         );
         
         if (startDate != null) {
@@ -116,7 +116,7 @@ public class ReportServiceImpl implements ReportService {
         // 2. Tổng giá trị thất thoát (Completed) trong tháng hiện tại
         LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         String lossJpql = "SELECT SUM(dd.quantityDisposed * dd.unitCost) FROM StockDisposalDetail dd JOIN dd.stockDisposal d " +
-                          "WHERE d.status = 'Completed' AND d.approvedAt >= :startOfMonth";
+                          "WHERE d.status = com.retail.entity.StockDisposalStatus.Completed AND d.approvedAt >= :startOfMonth";
         Object rawTotalLossValue = entityManager.createQuery(lossJpql)
                                             .setParameter("startOfMonth", startOfMonth)
                                             .getSingleResult();
@@ -124,17 +124,17 @@ public class ReportServiceImpl implements ReportService {
         metrics.put("totalLossValue", totalLossValue);
         
         // 3. Số lượng phiếu xuất hủy nháp (Draft)
-        String draftDisposalJpql = "SELECT COUNT(d) FROM StockDisposal d WHERE d.status = 'Draft'";
+        String draftDisposalJpql = "SELECT COUNT(d) FROM StockDisposal d WHERE d.status = com.retail.entity.StockDisposalStatus.Draft";
         Long draftDisposals = (Long) entityManager.createQuery(draftDisposalJpql).getSingleResult();
         metrics.put("draftDisposals", draftDisposals);
         
         // 4. Số lượng phiếu kiểm kê chờ duyệt (Submitted)
-        String pendingCountJpql = "SELECT COUNT(c) FROM InventoryCount c WHERE c.status = 'Submitted'";
+        String pendingCountJpql = "SELECT COUNT(c) FROM InventoryCount c WHERE c.status = com.retail.entity.InventoryCountStatus.Submitted";
         Long pendingCounts = (Long) entityManager.createQuery(pendingCountJpql).getSingleResult();
         metrics.put("pendingCounts", pendingCounts);
         
         // 5. Số lượng phiếu điều chuyển đang vận chuyển (In_Transit)
-        String transitTransferJpql = "SELECT COUNT(t) FROM StockTransfer t WHERE t.status = 'In_Transit'";
+        String transitTransferJpql = "SELECT COUNT(t) FROM StockTransfer t WHERE t.status = com.retail.entity.StockTransferStatus.In_Transit";
         Long transitTransfers = (Long) entityManager.createQuery(transitTransferJpql).getSingleResult();
         metrics.put("transitTransfers", transitTransfers);
 

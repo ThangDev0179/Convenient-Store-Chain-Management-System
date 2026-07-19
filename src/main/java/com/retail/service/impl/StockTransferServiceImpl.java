@@ -1,6 +1,8 @@
 package com.retail.service.impl;
 import com.retail.service.AuditLogService;
 import com.retail.entity.Branch;
+import com.retail.entity.BranchInventory;
+import com.retail.repository.BranchInventoryRepository;
 import com.retail.entity.DisposalSourceType;
 import com.retail.entity.Employee;
 import com.retail.service.InventoryTransactionService;
@@ -34,6 +36,7 @@ public class StockTransferServiceImpl implements StockTransferService {
 
     private final StockTransferRepository transferRepository;
     private final StockTransferDetailRepository detailRepository;
+    private final BranchInventoryRepository branchInventoryRepository;
     private final InventoryTransactionService transactionService;
     private final StockDisposalService disposalService;
     private final AuditLogService auditLogService;
@@ -97,6 +100,18 @@ public class StockTransferServiceImpl implements StockTransferService {
         for (StockTransferDetail detail : transfer.getDetails()) {
             Long productId = detail.getProduct().getProductId();
             BigDecimal qty = detail.getQuantitySent();
+
+            // BUG 1 FIX: Kiểm tra tồn kho khả dụng trước khi duyệt
+            BranchInventory inventory = branchInventoryRepository
+                    .findByBranchBranchIdAndProductProductId(fromBranchId, productId)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Sản phẩm ID=" + productId + " không tồn tại trong kho chi nhánh ID=" + fromBranchId));
+            if (inventory.getQtyAvailable().compareTo(qty) < 0) {
+                throw new IllegalStateException(
+                        "Sản phẩm \"" + detail.getProduct().getProductName() + "\" không đủ tồn kho khả dụng. " +
+                        "Cần: " + qty.stripTrailingZeros().toPlainString() +
+                        " — Hiện có: " + inventory.getQtyAvailable().stripTrailingZeros().toPlainString());
+            }
 
             // Chi nhánh gửi: Trừ QtyAvailable (cam kết gửi đi, hàng vẫn vật lý ở đây)
             transactionService.recordTransaction(
