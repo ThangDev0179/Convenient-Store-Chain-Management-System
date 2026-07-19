@@ -2,13 +2,13 @@ package com.retail.service.impl;
 
 import com.retail.dto.ProductRequest;
 import com.retail.dto.ProductResponse;
-import com.retail.entity.Product;
-import com.retail.entity.ProductCategory;
-import com.retail.entity.ProductStatus;
-import com.retail.entity.Supplier;
+import com.retail.dto.UomRequest;
+import com.retail.dto.UomResponse;
+import com.retail.entity.*;
 import com.retail.exception.ValidationException;
 import com.retail.repository.ProductCategoryRepository;
 import com.retail.repository.ProductRepository;
+import com.retail.repository.ProductUOMRepository;
 import com.retail.repository.SupplierRepository;
 import com.retail.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +33,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private SupplierRepository supplierRepository;
+
+    @Autowired
+    private ProductUOMRepository uomRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -65,6 +68,9 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
+        // Validate UOM barcodes
+        validateUoms(null, request.getUoms());
+
         ProductCategory category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ValidationException("Danh mục không tồn tại với ID: " + request.getCategoryId()));
 
@@ -77,7 +83,7 @@ public class ProductServiceImpl implements ProductService {
         String maxSku = productRepository.findMaxSkuByPrefix(prefix);
         String generatedSku;
         if (maxSku == null) {
-            generatedSku = prefix + String.format("%04d", 1);
+            generatedSku = prefix + "-" + String.format("%04d", 1);
         } else {
             Matcher matcher = Pattern.compile("(\\d+)$").matcher(maxSku);
             if (matcher.find()) {
@@ -85,9 +91,9 @@ public class ProductServiceImpl implements ProductService {
                 int length = numStr.length();
                 int nextVal = Integer.parseInt(numStr) + 1;
                 String nextNumStr = String.format("%0" + length + "d", nextVal);
-                generatedSku = maxSku.substring(0, matcher.start()) + nextNumStr;
+                generatedSku = prefix + "-" + nextNumStr;
             } else {
-                generatedSku = maxSku + "0001";
+                generatedSku = prefix + "-0001";
             }
         }
 
@@ -108,6 +114,21 @@ public class ProductServiceImpl implements ProductService {
                 .status(ProductStatus.Active)
                 .build();
 
+        // Add UOMs
+        if (request.getUoms() != null) {
+            for (UomRequest u : request.getUoms()) {
+                ProductUOM uom = ProductUOM.builder()
+                        .uomName(u.getUomName().trim())
+                        .isBaseUnit(u.getIsBaseUnit() != null && u.getIsBaseUnit())
+                        .conversionRate(u.getConversionRate())
+                        .barcode(u.getBarcode() != null ? u.getBarcode().trim() : null)
+                        .standardPrice(u.getStandardPrice())
+                        .status(u.getStatus() != null ? ProductUOMStatus.valueOf(u.getStatus().toUpperCase()) : ProductUOMStatus.ACTIVE)
+                        .build();
+                product.addUom(uom);
+            }
+        }
+
         try {
             productRepository.save(product);
             productRepository.flush();
@@ -118,22 +139,38 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void update(Long id, ProductRequest request) {
+        System.out.println("--- BẮT ĐẦU CẬP NHẬT SẢN PHẨM ID: " + id + " ---");
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ValidationException("Sản phẩm không tồn tại với ID: " + id));
 
-        // Proactive name validation
-        if (request.getProductName() != null && !request.getProductName().trim().isEmpty()) {
-            if (productRepository.existsByProductNameAndProductIdNot(request.getProductName().trim(), id)) {
+        // 1. Chuẩn hóa chuỗi an toàn để so sánh
+        String currentName = product.getProductName() != null ? product.getProductName().trim() : "";
+        String newName = request.getProductName() != null ? request.getProductName().trim() : "";
+
+        String currentBarcode = product.getBarcode() != null ? product.getBarcode().trim() : "";
+        String newBarcode = request.getBarcode() != null ? request.getBarcode().trim() : "";
+
+        System.out.println("Tên hiện tại trong DB: [" + currentName + "]");
+        System.out.println("Tên mới gửi từ Form: [" + newName + "]");
+
+        // 2. CHỈ kiểm tra trùng lặp nếu người dùng THỰC SỰ đổi tên
+        if (!newName.isEmpty() && !newName.equalsIgnoreCase(currentName)) {
+            System.out.println("=> Tên bị thay đổi. Đang kiểm tra trùng lặp...");
+            if (productRepository.existsByProductNameAndProductIdNot(newName, id)) {
                 throw new ValidationException("Tên sản phẩm đã tồn tại trong hệ thống");
             }
         }
 
-        // Proactive barcode validation
-        if (request.getBarcode() != null && !request.getBarcode().trim().isEmpty()) {
-            if (productRepository.existsByBarcodeAndProductIdNot(request.getBarcode().trim(), id)) {
+        // Tương tự với mã vạch
+        if (!newBarcode.isEmpty() && !newBarcode.equalsIgnoreCase(currentBarcode)) {
+            System.out.println("=> Mã vạch bị thay đổi. Đang kiểm tra trùng lặp...");
+            if (productRepository.existsByBarcodeAndProductIdNot(newBarcode, id)) {
                 throw new ValidationException("Mã vạch đã tồn tại trong hệ thống");
             }
         }
+
+        // 3. Kiểm tra mã vạch UOM
+        validateUoms(id, request.getUoms());
 
         ProductCategory category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ValidationException("Danh mục không tồn tại với ID: " + request.getCategoryId()));
@@ -144,17 +181,47 @@ public class ProductServiceImpl implements ProductService {
                     .orElseThrow(() -> new ValidationException("Nhà cung cấp không tồn tại với ID: " + request.getDefaultSupplierId()));
         }
 
-        product.setProductName(request.getProductName().trim());
-        product.setBarcode(request.getBarcode() != null ? request.getBarcode().trim() : null);
+        // 4. CHỈ SET LẠI DỮ LIỆU NẾU CÓ THAY ĐỔI
+        // Việc này ngăn Hibernate kích hoạt lệnh UPDATE giả (Dirty Checking)
+        if (!currentName.equalsIgnoreCase(newName)) {
+            product.setProductName(newName);
+        }
+        if (!currentBarcode.equalsIgnoreCase(newBarcode)) {
+            product.setBarcode(newBarcode.isEmpty() ? null : newBarcode);
+        }
         product.setDescription(request.getDescription());
         product.setCategory(category);
         product.setStandardPrice(request.getStandardPrice());
         product.setDefaultSupplier(supplier);
 
+        // 5. CẬP NHẬT UOM ĐÚNG CHUẨN
+        product.getUoms().clear();
+        if (request.getUoms() != null) {
+            for (UomRequest u : request.getUoms()) {
+                ProductUOM uom = ProductUOM.builder()
+                        .uomId(u.getId()) // QUAN TRỌNG: Phải set ID để Hibernate biết đây là bản ghi cũ cần Cập nhật, không phải Thêm mới!
+                        .uomName(u.getUomName() != null ? u.getUomName().trim() : null)
+                        .isBaseUnit(u.getIsBaseUnit() != null && u.getIsBaseUnit())
+                        .conversionRate(u.getConversionRate())
+                        .barcode(u.getBarcode() != null ? u.getBarcode().trim() : null)
+                        .standardPrice(u.getStandardPrice())
+                        .status(u.getStatus() != null ? ProductUOMStatus.valueOf(u.getStatus().toUpperCase()) : ProductUOMStatus.ACTIVE)
+                        .build();
+                product.addUom(uom);
+            }
+        }
+
+        // 6. LƯU DỮ LIỆU VÀ BẮT LỖI
         try {
+            System.out.println("=> Bắt đầu lưu (flush) xuống Database...");
             productRepository.save(product);
             productRepository.flush();
+            System.out.println("=> CẬP NHẬT THÀNH CÔNG!");
         } catch (DataIntegrityViolationException e) {
+            System.out.println("=> LỖI DATA INTEGRITY: " + e.getMessage());
+            if (e.getRootCause() != null) {
+                System.out.println("=> NGUYÊN NHÂN GỐC: " + e.getRootCause().getMessage());
+            }
             handleDataIntegrityViolation(e);
         }
     }
@@ -179,6 +246,49 @@ public class ProductServiceImpl implements ProductService {
         productRepository.saveAndFlush(product);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public int calculateBaseQuantity(Long uomId, int transactionQuantity) {
+        ProductUOM uom = uomRepository.findById(uomId)
+                .orElseThrow(() -> new ValidationException("Đơn vị tính không tồn tại với ID: " + uomId));
+        return transactionQuantity * uom.getConversionRate();
+    }
+
+    private void validateUoms(Long productId, java.util.List<UomRequest> uomRequests) {
+        if (uomRequests == null || uomRequests.isEmpty()) {
+            return;
+        }
+
+        // 1. Check duplicate barcodes in the request list
+        java.util.List<String> requestBarcodes = uomRequests.stream()
+                .map(UomRequest::getBarcode)
+                .filter(java.util.Objects::nonNull)
+                .map(String::trim)
+                .filter(b -> !b.isEmpty())
+                .toList();
+        long uniqueBarcodes = requestBarcodes.stream().distinct().count();
+        if (uniqueBarcodes < requestBarcodes.size()) {
+            throw new ValidationException("Mã vạch đơn vị tính không được trùng lặp trong cùng một sản phẩm.");
+        }
+
+        // 2. Check duplicate barcodes across the entire database
+        for (UomRequest u : uomRequests) {
+            String barcode = u.getBarcode() != null ? u.getBarcode().trim() : "";
+            if (barcode.isEmpty()) {
+                continue;
+            }
+            boolean exists;
+            if (u.getId() != null) {
+                exists = uomRepository.existsByBarcodeAndUomIdNot(barcode, u.getId());
+            } else {
+                exists = uomRepository.existsByBarcode(barcode);
+            }
+            if (exists) {
+                throw new ValidationException("Mã vạch đơn vị tính '" + barcode + "' đã tồn tại ở sản phẩm khác.");
+            }
+        }
+    }
+
     private void checkInventoryConstraints(Long productId) {
         // Mock validation to simulate inventory or order constraints
         if (productId != null && productId.equals(999L)) {
@@ -200,6 +310,21 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductResponse mapToResponse(Product product) {
+        java.util.List<UomResponse> uomResponses = new java.util.ArrayList<>();
+        if (product.getUoms() != null) {
+            for (ProductUOM uom : product.getUoms()) {
+                uomResponses.add(UomResponse.builder()
+                        .id(uom.getUomId())
+                        .uomName(uom.getUomName())
+                        .isBaseUnit(uom.getIsBaseUnit())
+                        .conversionRate(uom.getConversionRate())
+                        .barcode(uom.getBarcode())
+                        .standardPrice(uom.getStandardPrice())
+                        .status(uom.getStatus().name())
+                        .build());
+            }
+        }
+
         return ProductResponse.builder()
                 .productId(product.getProductId())
                 .sku(product.getSku())
@@ -212,6 +337,7 @@ public class ProductServiceImpl implements ProductService {
                 .defaultSupplierId(product.getDefaultSupplier() != null ? product.getDefaultSupplier().getSupplierId() : null)
                 .defaultSupplierName(product.getDefaultSupplier() != null ? product.getDefaultSupplier().getSupplierName() : null)
                 .status(product.getStatus())
+                .uoms(uomResponses)
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .createdBy(product.getCreatedBy())

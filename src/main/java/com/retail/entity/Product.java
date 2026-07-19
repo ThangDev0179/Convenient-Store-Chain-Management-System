@@ -50,6 +50,18 @@ public class Product {
     @JoinColumn(name = "DefaultSupplierId")
     private Supplier defaultSupplier;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<ProductUOM> uoms = new java.util.ArrayList<>();
+
+    public void addUom(ProductUOM uom) {
+        if (uoms == null) {
+            uoms = new java.util.ArrayList<>();
+        }
+        uoms.add(uom);
+        uom.setProduct(this);
+    }
+
     @Enumerated(EnumType.STRING)
     @Column(name = "Status", nullable = false, length = 20)
     private ProductStatus status;

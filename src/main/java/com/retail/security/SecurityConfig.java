@@ -18,6 +18,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -72,7 +73,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/forgot-password", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/admin/branches/**").hasRole("ADMIN")
+                .requestMatchers("/admin/promotions/**").hasRole("ADMIN")
                 .requestMatchers("/admin/employees/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/admin/products", "/admin/products/detail/**").hasAnyRole("ADMIN", "MANAGER")
+                .requestMatchers("/admin/products/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/manager/schedule/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers("/manager/**").hasAnyRole("MANAGER", "ADMIN")

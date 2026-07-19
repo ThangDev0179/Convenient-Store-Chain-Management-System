@@ -13,4 +13,5 @@ public interface ProductService {
     void update(Long id, ProductRequest request);
     void delete(Long id);
     void restore(Long id);
+    int calculateBaseQuantity(Long uomId, int transactionQuantity);
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,6 +50,8 @@
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 0.8rem;
+            display: inline-block;
+            white-space: nowrap;
         }
         .badge-inactive {
             background-color: rgba(239, 68, 68, 0.15) !important;
@@ -58,6 +60,8 @@
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 0.8rem;
+            display: inline-block;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -72,7 +76,7 @@
             </div>
             <div>
                 <a th:href="@{/}" class="btn btn-secondary me-2">Quay lại Dashboard</a>
-                <a th:href="@{/admin/products/create}" class="btn btn-primary" style="width: auto;">Thêm sản phẩm mới</a>
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products/create}" class="btn btn-primary" style="width: auto;">Thêm sản phẩm mới</a>
             </div>
         </div>
 
@@ -121,40 +125,40 @@
             <table class="table align-middle">
                 <thead>
                     <tr>
-                        <th style="width: 120px;">Mã SKU</th>
+                        <th style="width: 120px; white-space: nowrap;">Mã SKU</th>
                         <th>Tên sản phẩm</th>
-                        <th>Mã vạch (Barcode)</th>
-                        <th>Ngành hàng</th>
-                        <th>Giá bán lẻ</th>
-                        <th>Nhà cung cấp</th>
-                        <th>Trạng thái</th>
-                        <th class="text-center" style="width: 250px;">Thao tác</th>
+                        <th style="white-space: nowrap;">Mã vạch (Barcode)</th>
+                        <th style="white-space: nowrap;">Ngành hàng</th>
+                        <th style="white-space: nowrap;">Giá bán lẻ</th>
+                        <th style="white-space: nowrap;">Nhà cung cấp</th>
+                        <th style="white-space: nowrap;">Trạng thái</th>
+                        <th class="text-center" style="width: 250px; white-space: nowrap;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="p : ${products}">
-                        <td class="text-info font-weight-bold" th:text="${p.sku}">SKU001</td>
+                        <td class="text-info font-weight-bold" style="white-space: nowrap;" th:text="${p.sku}">SKU001</td>
                         <td th:text="${p.productName}" class="font-weight-bold">Tên sản phẩm</td>
-                        <td th:text="${p.barcode != null ? p.barcode : '-'}">Barcode</td>
-                        <td th:text="${p.categoryName}">Ngành hàng</td>
-                        <td th:text="${#numbers.formatDecimal(p.standardPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">10,000 đ</td>
-                        <td th:text="${p.defaultSupplierName != null ? p.defaultSupplierName : '-'}">Nhà cung cấp</td>
-                        <td>
+                        <td style="white-space: nowrap;" th:text="${p.barcode != null ? p.barcode : '-'}">Barcode</td>
+                        <td style="white-space: nowrap;" th:text="${p.categoryName}">Ngành hàng</td>
+                        <td style="white-space: nowrap;" th:text="${#numbers.formatDecimal(p.standardPrice, 0, 'COMMA', 0, 'POINT') + ' đ'}">10,000 đ</td>
+                        <td style="white-space: nowrap;" th:text="${p.defaultSupplierName != null ? p.defaultSupplierName : '-'}">Nhà cung cấp</td>
+                        <td style="white-space: nowrap;">
                             <span th:if="${p.status.name() == 'Active'}" class="badge-active">Hoạt động</span>
                             <span th:if="${p.status.name() == 'Inactive'}" class="badge-inactive">Ngưng hoạt động</span>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" style="white-space: nowrap;">
                             <div class="d-flex gap-2 justify-content-center">
                                 <a th:href="@{/admin/products/detail/{id}(id=${p.productId})}" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">Chi tiết</a>
-                                <a th:href="@{/admin/products/edit/{id}(id=${p.productId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>
+                                <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products/edit/{id}(id=${p.productId})}" class="btn btn-sm btn-outline-light" style="border-radius: 6px; border-color: var(--card-border);">Sửa</a>
                                 
                                 <!-- Soft Delete Action -->
-                                <form th:if="${p.status.name() == 'Active'}" th:action="@{/admin/products/delete/{id}(id=${p.productId})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn ngưng hoạt động sản phẩm này?');">
+                                <form sec:authorize="hasRole('ADMIN')" th:if="${p.status.name() == 'Active'}" th:action="@{/admin/products/delete/{id}(id=${p.productId})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn ngưng hoạt động sản phẩm này?');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px;">Vô hiệu hóa</button>
                                 </form>
 
                                 <!-- Restore Action -->
-                                <form th:if="${p.status.name() == 'Inactive'}" th:action="@{/admin/products/restore/{id}(id=${p.productId})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn kích hoạt lại sản phẩm này?');">
+                                <form sec:authorize="hasRole('ADMIN')" th:if="${p.status.name() == 'Inactive'}" th:action="@{/admin/products/restore/{id}(id=${p.productId})}" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn kích hoạt lại sản phẩm này?');">
                                     <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius: 6px;">Khôi phục</button>
                                 </form>
                             </div>

@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,6 +24,7 @@ public class ProductResponse {
     private Integer defaultSupplierId;
     private String defaultSupplierName;
     private ProductStatus status;
+    private List<UomResponse> uoms;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

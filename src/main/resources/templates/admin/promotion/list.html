@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Khuyến mãi - Hệ thống bán lẻ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <style>
+        .dashboard-container { max-width: 1300px; }
+        .table { color: var(--text-primary); }
+        .table tbody tr { border-bottom: 1px solid var(--card-border); transition: background-color 0.2s ease; }
+        .table tbody tr:hover { background-color: rgba(255,255,255,0.03); }
+        .table th { color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid var(--card-border); }
+        .pagination .page-link { background-color: rgba(15,23,42,0.6); border-color: var(--card-border); color: var(--text-primary); transition: all 0.3s ease; }
+        .pagination .page-link:hover { background-color: var(--primary-glow); border-color: var(--primary-glow); }
+        .pagination .active .page-link { background: var(--primary-gradient); border-color: #6366f1; }
+        .badge-draft    { background-color: rgba(100,116,139,0.15); color:#94a3b8; border:1px solid rgba(100,116,139,0.3); padding:4px 10px; border-radius:4px; font-size:0.8rem; }
+        .badge-active   { background-color: rgba(16,185,129,0.15);  color:#10b981; border:1px solid rgba(16,185,129,0.3);  padding:4px 10px; border-radius:4px; font-size:0.8rem; }
+        .badge-ended    { background-color: rgba(99,102,241,0.15);   color:#818cf8; border:1px solid rgba(99,102,241,0.3);   padding:4px 10px; border-radius:4px; font-size:0.8rem; }
+        .badge-canceled { background-color: rgba(239,68,68,0.15);   color:#ef4444; border:1px solid rgba(239,68,68,0.3);   padding:4px 10px; border-radius:4px; font-size:0.8rem; }
+    </style>
+</head>
+<body>
+<div class="dashboard-container my-5">
+    <div class="dashboard-header">
+        <div>
+            <h1 class="h3 mb-0 font-weight-bold"
+                style="background: linear-gradient(to right, #a5b4fc, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                QUẢN LÝ KHUYẾN MÃI
+            </h1>
+            <small class="text-muted">Xem danh sách, tạo mới và quản lý trạng thái các chương trình khuyến mãi</small>
+        </div>
+        <div>
+            <a th:href="@{/}" class="btn btn-secondary me-2">Quay lại Dashboard</a>
+            <a th:href="@{/admin/promotions/create}" class="btn btn-primary" style="width:auto;">Thêm khuyến mãi mới</a>
+        </div>
+    </div>
+
+    <!-- Thông báo -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="card bg-transparent border-0 mb-4">
+        <form th:action="@{/admin/promotions}" method="get" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" name="keyword" th:value="${keyword}" class="form-control"
+                       placeholder="Tìm theo tên chương trình...">
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="Draft"    th:selected="${status == 'Draft'}">Bản nháp</option>
+                    <option value="Active"   th:selected="${status == 'Active'}">Đang hoạt động</option>
+                    <option value="Ended"    th:selected="${status == 'Ended'}">Đã kết thúc</option>
+                    <option value="Canceled" th:selected="${status == 'Canceled'}">Đã hủy</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-secondary px-3 w-50">Lọc</button>
+                <a th:href="@{/admin/promotions}" class="btn btn-outline-secondary px-3 w-50"
+                   style="border:1px solid var(--card-border);color:var(--text-primary);text-decoration:none;display:flex;align-items:center;justify-content:center;">
+                    Xóa bộ lọc
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bảng danh sách -->
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Tên chương trình</th>
+                <th>Bắt đầu</th>
+                <th>Kết thúc</th>
+                <th>Số SP</th>
+                <th>Trạng thái</th>
+                <th>Tạo bởi</th>
+                <th class="text-center" style="width:280px;">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${promotions}">
+                <td class="text-muted" th:text="${p.promotionId}">1</td>
+                <td class="fw-semibold" th:text="${p.promotionName}">Tên KM</td>
+                <td th:text="${#temporals.format(p.startDateTime,'dd/MM/yyyy HH:mm')}">01/01/2025</td>
+                <td th:text="${#temporals.format(p.endDateTime,'dd/MM/yyyy HH:mm')}">31/01/2025</td>
+                <td th:text="${p.details != null ? p.details.size() : 0}">0</td>
+                <td>
+                    <span th:if="${p.status.name() == 'Draft'}"    class="badge-draft">Bản nháp</span>
+                    <span th:if="${p.status.name() == 'Active'}"   class="badge-active">Đang hoạt động</span>
+                    <span th:if="${p.status.name() == 'Ended'}"    class="badge-ended">Đã kết thúc</span>
+                    <span th:if="${p.status.name() == 'Canceled'}" class="badge-canceled">Đã hủy</span>
+                </td>
+                <td th:text="${p.createdByName}">Admin</td>
+                <td class="text-center">
+                    <div class="d-flex gap-1 justify-content-center flex-wrap">
+                        <!-- Chi tiết -->
+                        <a th:href="@{/admin/promotions/detail/{id}(id=${p.promotionId})}"
+                           class="btn btn-sm btn-outline-info" style="border-radius:6px;">Chi tiết</a>
+
+                        <!-- Sửa (chỉ Draft) -->
+                        <a th:if="${p.status.name() == 'Draft'}"
+                           th:href="@{/admin/promotions/edit/{id}(id=${p.promotionId})}"
+                           class="btn btn-sm btn-outline-light" style="border-radius:6px;border-color:var(--card-border);">Sửa</a>
+
+                        <!-- Kích hoạt (chỉ Draft) -->
+                        <form th:if="${p.status.name() == 'Draft'}"
+                              th:action="@{/admin/promotions/activate/{id}(id=${p.promotionId})}"
+                              method="post" class="d-inline"
+                              onsubmit="return confirm('Kích hoạt chương trình khuyến mãi này?');">
+                            <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius:6px;">Kích hoạt</button>
+                        </form>
+
+                        <!-- Hủy (Draft hoặc Active) -->
+                        <form th:if="${p.status.name() == 'Draft' || p.status.name() == 'Active'}"
+                              th:action="@{/admin/promotions/cancel/{id}(id=${p.promotionId})}"
+                              method="post" class="d-inline"
+                              onsubmit="return confirm('Bạn có chắc muốn hủy chương trình khuyến mãi này?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:6px;">Hủy</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(promotions)}">
+                <td colspan="8" class="text-center text-muted py-4">Không tìm thấy chương trình khuyến mãi nào.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Phân trang -->
+    <nav class="d-flex justify-content-between align-items-center mt-4">
+        <span class="text-muted"
+              th:text="${totalItems == 0 ? 'Hiển thị 0 kết quả' :
+                         'Hiển thị ' + (currentPage * size + 1) + ' đến ' +
+                         ((currentPage * size + size) > totalItems ? totalItems : (currentPage * size + size)) +
+                         ' trên tổng số ' + totalItems + ' chương trình'}"></span>
+        <ul class="pagination mb-0">
+            <li class="page-item" th:classappend="${currentPage == 0 || totalPages <= 1 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/admin/promotions(keyword=${keyword},status=${status},page=${currentPage-1})}">Trước</a>
+            </li>
+            <li th:if="${totalPages > 0}" th:each="i : ${#numbers.sequence(0, totalPages-1)}"
+                class="page-item" th:classappend="${currentPage == i ? 'active' : ''}">
+                <a class="page-link" th:href="@{/admin/promotions(keyword=${keyword},status=${status},page=${i})}"
+                   th:text="${i+1}">1</a>
+            </li>
+            <li th:if="${totalPages == 0}" class="page-item active disabled"><span class="page-link">1</span></li>
+            <li class="page-item" th:classappend="${currentPage == (totalPages > 0 ? totalPages-1 : 0) || totalPages <= 1 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/admin/promotions(keyword=${keyword},status=${status},page=${currentPage+1})}">Sau</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
