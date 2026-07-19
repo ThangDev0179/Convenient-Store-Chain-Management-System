@@ -92,7 +92,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private void seedEmployee(String username, String password, String fullName, String email, String phone, 
                               RoleCode roleCode, Branch branch, String code) {
-        if (!employeeRepository.existsByUsername(username)) {
+        if (!employeeRepository.existsByUsername(username) && !employeeRepository.existsByEmployeeCode(code)) {
             Role role = roleRepository.findByRoleCode(roleCode)
                     .orElseThrow(() -> new RuntimeException("Role not found: " + roleCode));
 
