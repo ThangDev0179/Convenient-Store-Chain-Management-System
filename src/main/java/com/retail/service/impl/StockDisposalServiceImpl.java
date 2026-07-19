@@ -37,10 +37,15 @@ public class StockDisposalServiceImpl implements StockDisposalService {
     @Override
     @Transactional
     public StockDisposal createManualDisposal(StockDisposalRequest request, Long createdByEmployeeId) {
+        Branch branch = entityManager.find(Branch.class, request.getBranchId());
+        if (branch == null) {
+            throw new IllegalArgumentException("Không tìm thấy chi nhánh ID: " + request.getBranchId());
+        }
+        
         StockDisposal disposal = new StockDisposal();
         String code = "DSP-" + request.getBranchId() + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         disposal.setDisposalCode(code);
-        disposal.setBranch(entityManager.getReference(Branch.class, request.getBranchId()));
+        disposal.setBranch(branch);
         disposal.setStatus(StockDisposalStatus.Draft);
         disposal.setSourceType(DisposalSourceType.Manual);
         disposal.setReason(request.getReason());

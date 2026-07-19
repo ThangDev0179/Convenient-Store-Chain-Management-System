@@ -46,18 +46,32 @@ public class StockTransferServiceImpl implements StockTransferService {
             throw new IllegalArgumentException("Chi nhánh gửi và chi nhánh nhận không được giống nhau");
         }
 
+        Branch fromBranch = entityManager.find(Branch.class, request.getFromBranchId());
+        if (fromBranch == null) {
+            throw new IllegalArgumentException("Không tìm thấy chi nhánh gửi ID: " + request.getFromBranchId());
+        }
+
+        Branch toBranch = entityManager.find(Branch.class, request.getToBranchId());
+        if (toBranch == null) {
+            throw new IllegalArgumentException("Không tìm thấy chi nhánh nhận ID: " + request.getToBranchId());
+        }
+
         StockTransfer transfer = new StockTransfer();
         String code = "ST-" + request.getFromBranchId() + "-" + request.getToBranchId()
                 + "-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         transfer.setTransferCode(code);
-        transfer.setFromBranch(entityManager.getReference(Branch.class, request.getFromBranchId()));
-        transfer.setToBranch(entityManager.getReference(Branch.class, request.getToBranchId()));
+        transfer.setFromBranch(fromBranch);
+        transfer.setToBranch(toBranch);
         transfer.setStatus(StockTransferStatus.Draft);
         transfer.setCreatedBy(entityManager.getReference(Employee.class, createdByEmployeeId));
 
         for (StockTransferRequest.TransferDetailDto dto : request.getDetails()) {
             StockTransferDetail detail = new StockTransferDetail();
-            detail.setProduct(entityManager.getReference(Product.class, dto.getProductId()));
+            Product product = entityManager.find(Product.class, dto.getProductId());
+            if (product == null) {
+                throw new IllegalArgumentException("Không tìm thấy sản phẩm ID: " + dto.getProductId());
+            }
+            detail.setProduct(product);
             detail.setQuantitySent(dto.getQuantitySent());
             transfer.addDetail(detail);
         }
