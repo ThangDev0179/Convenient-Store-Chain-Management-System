@@ -38,7 +38,7 @@ public class DataInitializer implements CommandLineRunner {
         if (roleRepository.count() == 0) {
             log.info("Creating default roles...");
             roleRepository.save(Role.builder().roleCode(RoleCode.ADMIN).roleName("Quản trị viên").build());
-            roleRepository.save(Role.builder().roleCode(RoleCode.MANAGER).roleName("Quản lý cửa hàng").build());
+            roleRepository.save(Role.builder().roleCode(RoleCode.MANAGER).roleName("Quản lý kho").build());
             roleRepository.save(Role.builder().roleCode(RoleCode.STAFF).roleName("Nhân viên bán hàng").build());
         }
 

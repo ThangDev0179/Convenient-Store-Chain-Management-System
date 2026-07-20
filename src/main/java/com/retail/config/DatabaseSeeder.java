@@ -39,7 +39,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // 1. Seed Roles if they don't exist
         seedRole(RoleCode.ADMIN, "Administrator");
-        seedRole(RoleCode.MANAGER, "Quản lý cửa hàng");
+        seedRole(RoleCode.MANAGER, "Quản lý kho");
         seedRole(RoleCode.STAFF, "Nhân viên");
 
         // 2. Seed Branch if it doesn't exist

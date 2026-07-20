@@ -696,7 +696,7 @@ GO
    DỮ LIỆU KHỞI TẠO TỐI THIỂU (SEED DATA THAM KHẢO)
    ============================================================================ */
 INSERT INTO dbo.Role (RoleCode, RoleName) VALUES
-    (N'STAFF', N'Nhân viên'), (N'MANAGER', N'Quản lý cửa hàng'), (N'ADMIN', N'Administrator');
+    (N'STAFF', N'Nhân viên'), (N'MANAGER', N'Quản lý kho'), (N'ADMIN', N'Administrator');
 GO
 INSERT INTO dbo.ShiftType (ShiftName, StartTime, EndTime) VALUES
     (N'Sáng', '06:00', '14:00'), (N'Chiều', '14:00', '22:00'), (N'Tối', '22:00', '06:00');

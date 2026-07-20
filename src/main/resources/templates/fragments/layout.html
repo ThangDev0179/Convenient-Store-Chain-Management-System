@@ -166,7 +166,7 @@
             <div class="sidebar-user-info">
                 <div class="sidebar-user-name" th:text="${#authentication.name}">User</div>
                 <div class="sidebar-user-role" sec:authorize="hasRole('ADMIN')">Quản trị viên</div>
-                <div class="sidebar-user-role" sec:authorize="hasRole('MANAGER')">Quản lý chi nhánh</div>
+                <div class="sidebar-user-role" sec:authorize="hasRole('MANAGER')">Quản lý kho</div>
                 <div class="sidebar-user-role" sec:authorize="hasRole('STAFF')">Nhân viên thu ngân</div>
             </div>
         </div>
