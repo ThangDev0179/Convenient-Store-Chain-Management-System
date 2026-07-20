@@ -1,10 +1,12 @@
 package com.retail.controller;
-import com.retail.security.CustomUserDetails;
-import com.retail.dto.ReceiveTransferRequest;
-import com.retail.entity.StockTransfer;
-import com.retail.dto.StockTransferRequest;
-import com.retail.service.StockTransferService;
 
+import com.retail.dto.ReceiveTransferRequest;
+import com.retail.dto.StockTransferRequest;
+import com.retail.entity.StockTransfer;
+import com.retail.repository.BranchRepository;
+import com.retail.repository.ProductRepository;
+import com.retail.security.CustomUserDetails;
+import com.retail.service.StockTransferService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +25,8 @@ import java.util.List;
 public class StockTransferController {
 
     private final StockTransferService transferService;
+    private final BranchRepository branchRepository;
+    private final ProductRepository productRepository;
 
     private Long getEmployeeId(Authentication auth) {
         return ((CustomUserDetails) auth.getPrincipal()).getEmployee().getEmployeeId();
@@ -40,6 +44,8 @@ public class StockTransferController {
     @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public String showCreateForm(Model model) {
         model.addAttribute("request", new StockTransferRequest());
+        model.addAttribute("branches", branchRepository.findAll());
+        model.addAttribute("products", productRepository.findAll());
         return "transfer/create";
     }
 
@@ -48,8 +54,11 @@ public class StockTransferController {
     public String createTransfer(@Valid @ModelAttribute("request") StockTransferRequest request,
                                  BindingResult result,
                                  Authentication auth,
+                                 Model model,
                                  RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            model.addAttribute("branches", branchRepository.findAll());
+            model.addAttribute("products", productRepository.findAll());
             return "transfer/create";
         }
         try {

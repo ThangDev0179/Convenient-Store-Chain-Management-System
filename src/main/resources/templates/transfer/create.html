@@ -21,14 +21,24 @@
                     <div class="card-body-glass row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Chi nhánh gửi <span class="text-danger">*</span></label>
-                            <input type="number" th:field="*{fromBranchId}" class="form-control"
-                                   th:classappend="${#fields.hasErrors('fromBranchId')} ? 'is-invalid'" placeholder="ID chi nhánh gửi"/>
+                            <select th:field="*{fromBranchId}" class="form-select"
+                                    th:classappend="${#fields.hasErrors('fromBranchId')} ? 'is-invalid'" required>
+                                <option value="">-- Chọn chi nhánh gửi --</option>
+                                <option th:each="b : ${branches}"
+                                        th:value="${b.branchId}"
+                                        th:text="${b.branchCode + ' - ' + b.branchName}"></option>
+                            </select>
                             <div class="invalid-feedback" th:errors="*{fromBranchId}"></div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Chi nhánh nhận <span class="text-danger">*</span></label>
-                            <input type="number" th:field="*{toBranchId}" class="form-control"
-                                   th:classappend="${#fields.hasErrors('toBranchId')} ? 'is-invalid'" placeholder="ID chi nhánh nhận"/>
+                            <select th:field="*{toBranchId}" class="form-select"
+                                    th:classappend="${#fields.hasErrors('toBranchId')} ? 'is-invalid'" required>
+                                <option value="">-- Chọn chi nhánh nhận --</option>
+                                <option th:each="b : ${branches}"
+                                        th:value="${b.branchId}"
+                                        th:text="${b.branchCode + ' - ' + b.branchName}"></option>
+                            </select>
                             <div class="invalid-feedback" th:errors="*{toBranchId}"></div>
                         </div>
                     </div>
@@ -45,15 +55,22 @@
                         <table class="table-glass w-100 mb-0" id="detailTable">
                             <thead>
                                 <tr>
-                                    <th>Product ID</th>
-                                    <th>Số lượng gửi</th>
-                                    <th></th>
+                                    <th style="min-width: 250px;">Sản phẩm</th>
+                                    <th style="width: 150px;">Số lượng gửi</th>
+                                    <th style="width: 50px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="detailBody">
                                 <tr>
-                                    <td><input type="number" name="details[0].productId" class="form-control" placeholder="ID sản phẩm" required/></td>
-                                    <td><input type="number" name="details[0].quantitySent" step="0.001" class="form-control" placeholder="Số lượng" required/></td>
+                                    <td>
+                                        <select name="details[0].productId" class="form-select product-select" required>
+                                            <option value="">-- Chọn sản phẩm --</option>
+                                            <option th:each="p : ${products}"
+                                                    th:value="${p.productId}"
+                                                    th:text="${p.sku + ' - ' + p.productName}"></option>
+                                        </select>
+                                    </td>
+                                    <td><input type="number" name="details[0].quantitySent" step="0.001" min="0.001" class="form-control" placeholder="Số lượng" required/></td>
                                     <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)"><i class="fa-solid fa-trash"></i></button></td>
                                 </tr>
                             </tbody>
@@ -71,24 +88,42 @@
     </div>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
-<script>
+<script th:inline="javascript">
+/*<![CDATA[*/
+    const productsOptions = /*[[${products}]]*/ [];
     let rowIndex = 1;
+
+    function buildProductSelectOptions() {
+        if (!productsOptions || productsOptions.length === 0) return '<option value="">-- Chọn sản phẩm --</option>';
+        let html = '<option value="">-- Chọn sản phẩm --</option>';
+        productsOptions.forEach(p => {
+            html += `<option value="${p.productId}">${p.sku} - ${p.productName}</option>`;
+        });
+        return html;
+    }
+
     function addRow() {
         const tbody = document.getElementById('detailBody');
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td><input type="number" name="details[${rowIndex}].productId" class="form-control" placeholder="ID sản phẩm" required/></td>
-            <td><input type="number" name="details[${rowIndex}].quantitySent" step="0.001" class="form-control" placeholder="Số lượng" required/></td>
+            <td>
+                <select name="details[${rowIndex}].productId" class="form-select product-select" required>
+                    ${buildProductSelectOptions()}
+                </select>
+            </td>
+            <td><input type="number" name="details[${rowIndex}].quantitySent" step="0.001" min="0.001" class="form-control" placeholder="Số lượng" required/></td>
             <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)"><i class="fa-solid fa-trash"></i></button></td>
         `;
         tbody.appendChild(row);
         rowIndex++;
     }
+
     function removeRow(btn) {
         const row = btn.closest('tr');
         const tbody = document.getElementById('detailBody');
         if (tbody.rows.length > 1) row.remove();
     }
+/*]]>*/
 </script>
 </body>
 </html>
