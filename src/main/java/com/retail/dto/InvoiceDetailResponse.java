@@ -14,5 +14,6 @@ public record InvoiceDetailResponse(
         BigDecimal quantity,
         BigDecimal unitPrice,
         Long promotionId,
-        BigDecimal lineTotal   // Quantity * UnitPrice — read from @Formula field
+        BigDecimal lineTotal,   // Quantity * UnitPrice — read from @Formula field
+        BigDecimal qtyAvailable
 ) {}

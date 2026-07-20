@@ -108,6 +108,11 @@
            class="btn btn-outline-warning">
             <i class="bi bi-arrow-return-left"></i> Tạo yêu cầu đổi trả
         </a>
+        <a th:if="${invoice.status().name() == 'Draft' || invoice.status().name() == 'Held'}"
+           th:href="@{'/pos/invoices/new?invoiceId=' + ${invoice.invoiceId()}}"
+           class="btn btn-success">
+            <i class="bi bi-cart-plus"></i> Tiếp tục bán hàng (Mở tại POS)
+        </a>
         <button onclick="window.print()" class="btn btn-outline-secondary">
             <i class="bi bi-printer"></i> In hóa đơn
         </button>

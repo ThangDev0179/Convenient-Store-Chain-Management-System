@@ -106,8 +106,13 @@
                         </td>
                         <td>
                             <a th:href="@{'/pos/invoices/' + ${inv.invoiceId}}"
-                               class="btn btn-outline-primary btn-sm">
+                               class="btn btn-outline-primary btn-sm" title="Xem chi tiết">
                                 <i class="bi bi-eye"></i>
+                            </a>
+                            <a th:if="${inv.status.name() == 'Draft' || inv.status.name() == 'Held'}"
+                               th:href="@{'/pos/invoices/new?invoiceId=' + ${inv.invoiceId}}"
+                               class="btn btn-outline-success btn-sm ms-1" title="Mở tại POS để bán tiếp">
+                                <i class="bi bi-cart-plus"></i>
                             </a>
                         </td>
                     </tr>

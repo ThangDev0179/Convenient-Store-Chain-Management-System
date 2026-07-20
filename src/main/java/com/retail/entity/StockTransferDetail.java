@@ -39,6 +39,6 @@ public class StockTransferDetail {
      * VarianceQty = QuantityReceived - QuantitySent.
      * Computed in DB (PERSISTED), mapped as read-only here.
      */
-    @Column(name = "VarianceQty", insertable = false, updatable = false, precision = 18, scale = 3)
+    @Column(name = "VarianceQty", insertable = false, updatable = false, precision = 19, scale = 3)
     private BigDecimal varianceQty;
 }

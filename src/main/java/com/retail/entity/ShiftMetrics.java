@@ -29,7 +29,7 @@ public class ShiftMetrics {
     @Column(name = "CashCounted", nullable = false, precision = 18, scale = 2)
     private BigDecimal cashCounted;
 
-    @Column(name = "CashVariance", insertable = false, updatable = false, precision = 18, scale = 2)
+    @Column(name = "CashVariance", insertable = false, updatable = false, precision = 19, scale = 2)
     private BigDecimal cashVariance;
 
     @Column(name = "BankCardAmount", nullable = false, precision = 18, scale = 2)

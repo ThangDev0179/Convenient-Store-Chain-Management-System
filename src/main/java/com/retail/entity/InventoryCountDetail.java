@@ -34,6 +34,6 @@ public class InventoryCountDetail {
     @Column(name = "ActualQty", nullable = false, precision = 18, scale = 3)
     private BigDecimal actualQty;
 
-    @Column(name = "DeltaQty", insertable = false, updatable = false, precision = 18, scale = 3)
+    @Column(name = "DeltaQty", insertable = false, updatable = false, precision = 19, scale = 3)
     private BigDecimal deltaQty; // Computed column in DB
 }

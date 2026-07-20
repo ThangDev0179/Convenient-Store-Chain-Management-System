@@ -27,10 +27,12 @@ public class InvoiceMapper {
      * productMap: productId → Product (pre-fetched batch in service layer)
      */
     public InvoiceDetailResponse toDetailResponse(InvoiceDetail detail,
-                                                   Map<Long, Product> productMap) {
+                                                   Map<Long, Product> productMap,
+                                                   Map<Long, BigDecimal> qtyAvailableMap) {
         Product product = productMap.get(detail.getProductId());
         String sku = product != null ? product.getSku() : "N/A";
         String productName = product != null ? product.getProductName() : "Unknown";
+        BigDecimal qtyAvailable = qtyAvailableMap != null ? qtyAvailableMap.getOrDefault(detail.getProductId(), BigDecimal.ZERO) : BigDecimal.ZERO;
 
         // lineTotal: @Formula field may be null on newly-created (not yet flushed) entity
         BigDecimal lineTotal = detail.getLineTotal();
@@ -46,7 +48,8 @@ public class InvoiceMapper {
                 detail.getQuantity(),
                 detail.getUnitPrice(),
                 detail.getPromotionId(),
-                lineTotal
+                lineTotal,
+                qtyAvailable
         );
     }
 
@@ -56,9 +59,10 @@ public class InvoiceMapper {
      */
     public InvoiceResponse toResponse(Invoice invoice,
                                       Map<Long, Product> productMap,
+                                      Map<Long, BigDecimal> qtyAvailableMap,
                                       String cashierName) {
         List<InvoiceDetailResponse> items = invoice.getDetails().stream()
-                .map(d -> toDetailResponse(d, productMap))
+                .map(d -> toDetailResponse(d, productMap, qtyAvailableMap))
                 .toList();
 
         return new InvoiceResponse(

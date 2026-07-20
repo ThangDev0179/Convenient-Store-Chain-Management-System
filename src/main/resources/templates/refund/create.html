@@ -1,137 +1,148 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8">
-    <title>Tạo yêu cầu đổi trả</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-</head>
+<head th:replace="~{fragments/layout :: head('Tạo yêu cầu đổi trả')}"></head>
 <body class="bg-light">
 
-<div class="container py-4" style="max-width:900px">
-    <div class="d-flex align-items-center mb-3">
-        <a href="/refunds" class="btn btn-outline-secondary btn-sm me-3">
-            <i class="bi bi-arrow-left"></i> Quay lại
-        </a>
-        <h4 class="mb-0"><i class="bi bi-arrow-return-left text-warning"></i> Tạo yêu cầu đổi trả</h4>
-    </div>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('refund')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
 
-    <!-- Error / success alerts -->
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <span th:text="${errorMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
-        <span th:text="${successMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Tạo yêu cầu đổi trả')}"></div>
+        <div class="page-content">
+            <div class="container py-4" style="max-width:900px">
+                <div class="d-flex align-items-center mb-3">
+                    <a href="/refunds" class="btn btn-outline-secondary btn-sm me-3">
+                        <i class="bi bi-arrow-left"></i> Quay lại
+                    </a>
+                    <h4 class="mb-0"><i class="bi bi-arrow-return-left text-warning"></i> Tạo yêu cầu đổi trả</h4>
+                </div>
 
-    <!-- Step 1: Search invoice -->
-    <div class="card shadow-sm mb-3" id="invoice-search-card">
-        <div class="card-header fw-semibold bg-white">Bước 1: Tìm hóa đơn gốc</div>
-        <div class="card-body">
-            <div class="input-group">
-                <input type="text" id="invoice-code-input" class="form-control"
-                       placeholder="Nhập mã hóa đơn (VD: INV-HN01-20240101-000001)"
-                       th:value="${invoiceCode}">
-                <button class="btn btn-primary" id="btn-load-invoice">
-                    <i class="bi bi-search"></i> Tải hóa đơn
-                </button>
-            </div>
-        </div>
-    </div>
+                <!-- Error / success alerts -->
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
 
-    <!-- Step 2: Refund form (hidden until invoice loaded) -->
-    <div id="refund-form-section" style="display:none">
-        <div class="card shadow-sm mb-3">
-            <div class="card-header fw-semibold bg-white">Hóa đơn gốc</div>
-            <div class="card-body">
-                <div id="invoice-info" class="row g-2 mb-3"></div>
-            </div>
-        </div>
-
-        <form method="post" action="/refunds" id="refund-form" th:object="${createRefundRequest}">
-            <input type="hidden" name="_method" value="post">
-            <input type="hidden" name="originalInvoiceId" id="hidden-invoice-id">
-
-            <!-- Customer info -->
-            <div class="card shadow-sm mb-3">
-                <div class="card-header fw-semibold bg-white">Thông tin khách hàng</div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Tên khách hàng <span class="text-danger">*</span></label>
-                            <input type="text" name="customerName" class="form-control"
-                                   th:value="${param.customerName}" required
-                                   th:classappend="${#fields.hasErrors('customerName') ? ' is-invalid' : ''}">
-                            <div class="invalid-feedback" th:errors="*{customerName}"></div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                            <input type="tel" name="customerPhone" class="form-control"
-                                   th:value="${param.customerPhone}" required
-                                   pattern="^(0|\+84)[0-9]{9,10}$"
-                                   th:classappend="${#fields.hasErrors('customerPhone') ? ' is-invalid' : ''}">
-                            <div class="invalid-feedback" th:errors="*{customerPhone}">
-                                Số điện thoại không hợp lệ (VD: 0912345678)
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Lý do đổi trả <span class="text-danger">*</span></label>
-                            <textarea name="reason" class="form-control" rows="2" required maxlength="500"
-                                      th:classappend="${#fields.hasErrors('reason') ? ' is-invalid' : ''}"
-                                      th:text="${param.reason}"></textarea>
-                            <div class="invalid-feedback" th:errors="*{reason}"></div>
-                            <div class="form-text">Tối đa 500 ký tự</div>
+                <!-- Step 1: Search invoice -->
+                <div class="card shadow-sm mb-3" id="invoice-search-card">
+                    <div class="card-header fw-semibold bg-white">Bước 1: Tìm hóa đơn gốc</div>
+                    <div class="card-body">
+                        <div class="input-group">
+                            <input type="text" id="invoice-code-input" class="form-control"
+                                   placeholder="Nhập mã hóa đơn (VD: INV-HN01-20240101-000001)"
+                                   th:value="${invoiceCode}">
+                            <button class="btn btn-primary" id="btn-load-invoice">
+                                <i class="bi bi-search"></i> Tải hóa đơn
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Items -->
-            <div class="card shadow-sm mb-3">
-                <div class="card-header fw-semibold bg-white">Sản phẩm đổi trả</div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="refund-items-table">
-                        <thead class="table-light">
-                            <tr>
-                                <th><input type="checkbox" id="check-all"></th>
-                                <th>SKU</th>
-                                <th>Tên sản phẩm</th>
-                                <th class="text-end">Đã mua</th>
-                                <th class="text-end">Còn được trả</th>
-                                <th class="text-end">Đơn giá</th>
-                                <th class="text-center" style="width:100px">SL trả</th>
-                                <th class="text-center">Tình trạng</th>
-                            </tr>
-                        </thead>
-                        <tbody id="refund-items-body">
-                        </tbody>
-                    </table>
+                <!-- Step 2: Refund form (hidden until invoice loaded) -->
+                <div id="refund-form-section" style="display:none">
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-header fw-semibold bg-white">Hóa đơn gốc</div>
+                        <div class="card-body">
+                            <div id="invoice-info" class="row g-2 mb-3"></div>
+                        </div>
+                    </div>
+
+                    <form method="post" action="/refunds" id="refund-form" th:object="${createRefundRequest}">
+                        <input type="hidden" name="_method" value="post">
+                        <input type="hidden" name="originalInvoiceId" id="hidden-invoice-id">
+
+                        <!-- Customer info -->
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-header fw-semibold bg-white">Thông tin khách hàng</div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tên khách hàng <span class="text-danger">*</span></label>
+                                        <input type="text" name="customerName" class="form-control"
+                                               th:value="${param.customerName}" required
+                                               th:classappend="${#fields.hasErrors('customerName') ? ' is-invalid' : ''}">
+                                        <div class="invalid-feedback" th:errors="*{customerName}"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                        <input type="tel" name="customerPhone" class="form-control"
+                                               th:value="${param.customerPhone}" required
+                                               pattern="^(0|\+84)[0-9]{9,10}$"
+                                               th:classappend="${#fields.hasErrors('customerPhone') ? ' is-invalid' : ''}">
+                                        <div class="invalid-feedback" th:errors="*{customerPhone}">
+                                            Số điện thoại không hợp lệ (VD: 0912345678)
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Lý do đổi trả <span class="text-danger">*</span></label>
+                                        <textarea name="reason" class="form-control" rows="2" required maxlength="500"
+                                                  th:classappend="${#fields.hasErrors('reason') ? ' is-invalid' : ''}"
+                                                  th:text="${param.reason}"></textarea>
+                                        <div class="invalid-feedback" th:errors="*{reason}"></div>
+                                        <div class="form-text">Tối đa 500 ký tự</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Items -->
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-header fw-semibold bg-white">Sản phẩm đổi trả</div>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0" id="refund-items-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th><input type="checkbox" id="check-all"></th>
+                                            <th>SKU</th>
+                                            <th>Tên sản phẩm</th>
+                                            <th class="text-end">Đã mua</th>
+                                            <th class="text-end">Còn được trả</th>
+                                            <th class="text-end">Đơn giá</th>
+                                            <th class="text-center" style="width:100px">SL trả</th>
+                                            <th class="text-center">Tình trạng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="refund-items-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-check2-circle"></i> Tạo yêu cầu đổi trả
+                            </button>
+                            <a href="/refunds" class="btn btn-outline-secondary btn-lg">Hủy</a>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-warning btn-lg">
-                    <i class="bi bi-check2-circle"></i> Tạo yêu cầu đổi trả
-                </button>
-                <a href="/refunds" class="btn btn-outline-secondary btn-lg">Hủy</a>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
 /*<![CDATA[*/
 const conditionTypes = /*[[${conditionTypes}]]*/ ['Resalable','Damaged'];
 
-// Auto-load if invoiceCode pre-filled (coming from invoice detail page)
+// Auto-load if invoiceCode or invoiceId pre-filled
 window.addEventListener('DOMContentLoaded', () => {
     const code = document.getElementById('invoice-code-input').value.trim();
-    if (code) loadInvoice(code);
+    if (code) {
+        loadInvoice(code);
+    }
+    const urlInvoiceId = new URLSearchParams(window.location.search).get('invoiceId');
+    if (urlInvoiceId) {
+        loadInvoiceById(urlInvoiceId);
+    }
 });
 
 document.getElementById('btn-load-invoice').addEventListener('click', () => {
@@ -142,12 +153,7 @@ let invoiceData = null;
 
 async function loadInvoice(code) {
     if (!code) return;
-    // Search by code in the list endpoint
     const res = await fetch(`/pos/invoices?status=Paid&page=0&size=100`, { headers: { 'Accept': 'application/json' } });
-    // Simpler: load detail by searching code — need to find by code
-    // Here we use the products search-by-code approach since we don't have a code-based endpoint
-    // Suggest adding GET /pos/invoices/by-code/{code} at merge time.
-    // For now, guide user to enter invoice ID directly OR use the link from invoice-detail page.
     alert('Vui lòng sử dụng liên kết "Tạo yêu cầu đổi trả" từ trang chi tiết hóa đơn, hoặc nhập Invoice ID.');
 }
 
@@ -214,8 +220,6 @@ function fmt(v) {
 // If loaded from invoice-detail link with invoiceCode param
 const urlCode = new URLSearchParams(window.location.search).get('invoiceCode');
 if (urlCode) {
-    // We need invoice ID, not code — this should be passed as invoiceId query param in production
-    // At merge time, add GET /pos/invoices/by-code/{code} endpoint
     document.getElementById('invoice-code-input').value = urlCode;
 }
 /*]]>*/

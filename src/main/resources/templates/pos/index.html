@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS — Bán hàng</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <title>POS — Bán hàng - Chuỗi Cửa Hàng Tiện Lợi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
     <style>
-        body { background: #f4f6f9; }
         #cart-table tbody tr:hover { background: #f0f4ff; }
         #invoice-code-badge { font-size: 0.85rem; }
         .product-card { cursor: pointer; transition: box-shadow 0.15s; }
@@ -18,8 +19,12 @@
     </style>
 </head>
 <body>
-
-<div class="container-fluid py-3">
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('pos')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Thu ngân (POS)')}"></div>
+        <div class="page-content container-fluid">
     <!-- Header row -->
     <div class="row align-items-center mb-3">
         <div class="col-auto">
@@ -144,12 +149,17 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        </div> <!-- page-content -->
+    </div> <!-- main-content -->
+</div> <!-- app-layout -->
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
 <script th:inline="javascript">
 /*<![CDATA[*/
 let currentInvoiceId = null;
 let searchPage = 0;
 let currentBranchId = null; // Resolved from first invoice response
+const preloadedInvoiceId = /*[[${preloadedInvoiceId}]]*/ null;
 
 // ── Utility ──────────────────────────────────────────────────────────────────
 function fmt(amount) {
@@ -162,8 +172,33 @@ function showAlert(msg, type = 'danger') {
 }
 function clearAlert() { document.getElementById('alert-area').innerHTML = ''; }
 
+async function loadInvoice(invoiceId) {
+    clearAlert();
+    const res = await fetch(`/pos/invoices/${invoiceId}/json`, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) { showAlert('Không thể tải hóa đơn'); return; }
+    const inv = await res.json();
+    currentInvoiceId = inv.invoiceId;
+    currentBranchId = inv.branchId;
+    document.getElementById('invoice-code-badge').textContent = 'Hóa đơn: ' + inv.invoiceCode;
+    updateCartUI(inv);
+    enableButtons(inv.status === 'Draft' || inv.status === 'Held');
+}
+
+if (preloadedInvoiceId) {
+    loadInvoice(preloadedInvoiceId);
+}
+
 // ── New Invoice ───────────────────────────────────────────────────────────────
 document.getElementById('btn-new-invoice').addEventListener('click', async () => {
+    if (currentInvoiceId) {
+        const badgeElement = document.getElementById('cart-status-badge');
+        const badge = badgeElement ? badgeElement.textContent.trim() : '';
+        if (badge === 'Draft' || badge === 'Held') {
+            if (!confirm('Bạn đang có hóa đơn chưa thanh toán. Tạo hóa đơn mới sẽ lưu tạm hóa đơn hiện tại dưới dạng nháp. Bạn có chắc chắn muốn tiếp tục?')) {
+                return;
+            }
+        }
+    }
     clearAlert();
     const res = await fetch('/pos/invoices', { method: 'POST', headers: { 'Accept': 'application/json' } });
     if (!res.ok) { const e = await res.json(); showAlert(e.message || 'Lỗi tạo hóa đơn'); return; }
@@ -278,32 +313,50 @@ function updateCartUI(inv) {
     badge.textContent = inv.status;
     badge.className = 'badge ms-2 ' + statusBadgeClass(inv.status);
 
+    let hasStockError = false;
+
     if (!inv.items || inv.items.length === 0) {
         tbody.innerHTML = `<tr id="empty-cart-row"><td colspan="6" class="text-center text-muted py-4">
             <i class="bi bi-cart-x fs-4"></i><br>Chưa có sản phẩm</td></tr>`;
+        clearAlert();
     } else {
-        tbody.innerHTML = inv.items.map(d => `
-        <tr>
-          <td><small class="text-muted">${d.sku || ''}</small></td>
-          <td>${d.productName || ''}</td>
-          <td class="text-end">${fmt(d.unitPrice)}</td>
-          <td class="text-center">
-            <input type="number" class="form-control form-control-sm qty-input text-center"
-                   value="${d.quantity}" min="0.001" step="0.001"
-                   onchange="updateQty(${d.invoiceDetailId}, this.value)">
-          </td>
-          <td class="text-end fw-semibold">${fmt(d.lineTotal || d.unitPrice * d.quantity)}</td>
-          <td>
-            <button class="btn btn-outline-danger btn-sm" onclick="removeItem(${d.invoiceDetailId})">
-                <i class="bi bi-trash"></i>
-            </button>
-          </td>
-        </tr>`).join('');
+        tbody.innerHTML = inv.items.map(d => {
+            const isExceeded = d.quantity > d.qtyAvailable;
+            if (isExceeded) {
+                hasStockError = true;
+            }
+            return `
+            <tr class="${isExceeded ? 'table-warning' : ''}">
+              <td><small class="text-muted">${d.sku || ''}</small></td>
+              <td>
+                <div class="fw-semibold">${d.productName || ''}</div>
+                ${isExceeded ? `<div class="text-danger small mt-1"><i class="bi bi-exclamation-circle-fill"></i> Vượt quá tồn kho (Còn: ${d.qtyAvailable})</div>` : ''}
+              </td>
+              <td class="text-end">${fmt(d.unitPrice)}</td>
+              <td class="text-center">
+                <input type="number" class="form-control form-control-sm qty-input text-center ${isExceeded ? 'is-invalid border-danger text-danger' : ''}"
+                       value="${d.quantity}" min="0.001" step="0.001"
+                       onchange="updateQty(${d.invoiceDetailId}, this.value)">
+              </td>
+              <td class="text-end fw-semibold">${fmt(d.lineTotal || d.unitPrice * d.quantity)}</td>
+              <td>
+                <button class="btn btn-outline-danger btn-sm" onclick="removeItem(${d.invoiceDetailId})">
+                    <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>`;
+        }).join('');
+
+        if (hasStockError) {
+            showAlert('⚠️ Có sản phẩm vượt quá tồn kho khả dụng của chi nhánh! Nút Thanh toán đã bị khóa.', 'warning');
+        } else {
+            clearAlert();
+        }
     }
 
     document.getElementById('total-amount').textContent = fmt(inv.totalAmount || 0);
     const hasItems = inv.items && inv.items.length > 0;
-    document.getElementById('btn-pay').disabled = !hasItems || inv.status === 'Paid' || inv.status === 'Canceled';
+    document.getElementById('btn-pay').disabled = !hasItems || inv.status === 'Paid' || inv.status === 'Canceled' || hasStockError;
     document.getElementById('btn-hold').disabled = inv.status !== 'Draft';
     document.getElementById('btn-cancel').disabled = inv.status === 'Paid' || inv.status === 'Canceled';
 }

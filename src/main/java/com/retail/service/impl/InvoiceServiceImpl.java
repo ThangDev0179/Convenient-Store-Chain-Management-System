@@ -120,6 +120,17 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     public Page<ProductSearchResponse> searchProducts(String keyword, String sku,
                                                        Integer branchId, int page, int size) {
+        if (branchId == null) {
+            try {
+                Employee cashier = resolveCurrentEmployee();
+                if (cashier != null && cashier.getBranch() != null) {
+                    branchId = cashier.getBranch().getBranchId();
+                }
+            } catch (Exception e) {
+                // Ignore fallback if security context is not present (e.g. in tests)
+            }
+        }
+        final Integer finalBranchId = branchId;
         List<Product> allProducts = productRepo.findAll();
 
         List<Product> filtered = allProducts.stream()
@@ -137,7 +148,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .toList();
 
         List<ProductSearchResponse> responses = filtered.stream()
-                .map(p -> buildProductSearchResponse(p, branchId))
+                .map(p -> buildProductSearchResponse(p, finalBranchId))
                 .collect(Collectors.toList());
 
         int start = Math.min(page * size, responses.size());
@@ -164,8 +175,16 @@ public class InvoiceServiceImpl implements InvoiceService {
         if (existingDetail.isPresent()) {
             InvoiceDetail detail = existingDetail.get();
             detail.setQuantity(detail.getQuantity().add(request.quantity()));
+
+            BigDecimal basePrice = resolveEffectivePrice(product, invoice.getBranchId());
+            PromotionDetail bestPromo = findBestActivePromotion(request.productId());
+            BigDecimal finalPrice = applyPromotion(basePrice, bestPromo);
+
+            detail.setUnitPrice(finalPrice);
+            detail.setPromotionId(bestPromo != null && bestPromo.getPromotion() != null ? bestPromo.getPromotion().getPromotionId() : null);
+
             invoice.recalculateTotalAmount();
-            log.debug("Merged quantity for product {} in invoice {}", request.productId(), invoiceId);
+            log.debug("Merged quantity and updated price for product {} in invoice {}", request.productId(), invoiceId);
         } else {
             BigDecimal basePrice = resolveEffectivePrice(product, invoice.getBranchId());
             PromotionDetail bestPromo = findBestActivePromotion(request.productId());
@@ -197,16 +216,17 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("InvoiceDetail", detailId));
 
-        BranchInventoryId invKey = new BranchInventoryId(invoice.getBranchId(), detail.getProductId());
-        BranchInventory inventory = entityManager.find(BranchInventory.class, invKey);
-        if (inventory == null || inventory.getQtyAvailable().compareTo(request.quantity()) < 0) {
-            Product product = productRepo.findById(detail.getProductId()).orElse(null);
-            String productName = product != null ? product.getProductName() : "ProductId=" + detail.getProductId();
-            BigDecimal available = inventory != null ? inventory.getQtyAvailable() : BigDecimal.ZERO;
-            throw new InsufficientStockException(detail.getProductId(), productName, request.quantity(), available);
-        }
+        Product product = productRepo.findById(detail.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product", detail.getProductId()));
 
+        BigDecimal basePrice = resolveEffectivePrice(product, invoice.getBranchId());
+        PromotionDetail bestPromo = findBestActivePromotion(detail.getProductId());
+        BigDecimal finalPrice = applyPromotion(basePrice, bestPromo);
+
+        detail.setUnitPrice(finalPrice);
+        detail.setPromotionId(bestPromo != null && bestPromo.getPromotion() != null ? bestPromo.getPromotion().getPromotionId() : null);
         detail.setQuantity(request.quantity());
+
         invoice.recalculateTotalAmount();
         invoiceRepository.save(invoice);
         return buildFullResponse(invoice);
@@ -446,7 +466,12 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .collect(Collectors.toMap(Product::getProductId, p -> p));
         String cashierName = employeeRepository.findById(invoice.getCashierId())
                 .map(Employee::getFullName).orElse("N/A");
-        return invoiceMapper.toResponse(invoice, productMap, cashierName);
+
+        List<BranchInventory> inventories = inventoryRepo.findByBranchBranchId(invoice.getBranchId());
+        Map<Long, BigDecimal> qtyAvailableMap = inventories.stream()
+                .collect(Collectors.toMap(bi -> bi.getProduct().getProductId(), BranchInventory::getQtyAvailable, (v1, v2) -> v1));
+
+        return invoiceMapper.toResponse(invoice, productMap, qtyAvailableMap, cashierName);
     }
 
     private ProductSearchResponse buildProductSearchResponse(Product product, Integer branchId) {

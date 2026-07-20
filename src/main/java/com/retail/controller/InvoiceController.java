@@ -66,17 +66,18 @@ public class InvoiceController {
         return "pos/invoice-list";
     }
 
-    // â”€â”€â”€ POS screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── POS screen ───────────────────────────────────────────────────────────────
 
     @GetMapping("/invoices/new")
     @PreAuthorize("hasAnyRole('STAFF','MANAGER','ADMIN')")
-    public String posScreen(Model model) {
+    public String posScreen(@RequestParam(required = false) Long invoiceId, Model model) {
         model.addAttribute("paymentMethods",
                 Arrays.asList(com.retail.entity.PaymentMethod.values()));
+        model.addAttribute("preloadedInvoiceId", invoiceId);
         return "pos/index";
     }
 
-    // â”€â”€â”€ Detail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Detail ──────────────────────────────────────────────────────────────────
 
     @GetMapping("/invoices/{id}")
     @PreAuthorize("hasAnyRole('STAFF','MANAGER','ADMIN')")
@@ -84,6 +85,13 @@ public class InvoiceController {
         InvoiceResponse invoice = invoiceService.getInvoiceDetail(id);
         model.addAttribute("invoice", invoice);
         return "pos/invoice-detail";
+    }
+
+    @GetMapping("/invoices/{id}/json")
+    @PreAuthorize("hasAnyRole('STAFF','MANAGER','ADMIN')")
+    @ResponseBody
+    public ResponseEntity<InvoiceResponse> getInvoiceJson(@PathVariable Long id) {
+        return ResponseEntity.ok(invoiceService.getInvoiceDetail(id));
     }
 
     @GetMapping("/invoices/by-invoice-code")

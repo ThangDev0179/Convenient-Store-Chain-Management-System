@@ -31,7 +31,7 @@ public class EmployeeShiftSchedule {
     @JoinColumn(name = "ShiftTypeId", nullable = false)
     private ShiftType shiftType;
 
-    @Column(name = "DayOfWeek", nullable = false)
+    @Column(name = "DayOfWeek", nullable = false, columnDefinition = "tinyint")
     private Integer dayOfWeek;
 
     @Column(name = "EffectiveFrom", nullable = false)

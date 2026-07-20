@@ -1,151 +1,156 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8">
-    <title>Danh sách đổi trả</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-</head>
+<head th:replace="~{fragments/layout :: head('Danh sách đổi trả')}"></head>
 <body class="bg-light">
 
-<div class="container-fluid py-4">
-    <div class="d-flex align-items-center mb-3 gap-2">
-        <h4 class="me-auto mb-0"><i class="bi bi-arrow-return-left text-warning"></i> Danh sách đổi trả</h4>
-        <a th:href="@{/}" class="btn btn-secondary btn-sm">
-            <i class="bi bi-house"></i> Quay lại Dashboard
-        </a>
-        <a href="/refunds/create" class="btn btn-warning btn-sm">
-            <i class="bi bi-plus-circle"></i> Tạo đổi trả
-        </a>
-    </div>
+<div class="app-layout">
+    <nav th:replace="~{fragments/layout :: sidebar('refund')}"></nav>
+    <div th:replace="~{fragments/layout :: overlay}"></div>
 
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
-        <span th:text="${errorMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <!-- Filter -->
-    <div class="card shadow-sm mb-3">
-        <div class="card-body">
-            <form method="get" action="/refunds" class="row g-2 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label form-label-sm">Trạng thái</label>
-                    <select name="status" class="form-select form-select-sm">
-                        <option value="">Tất cả</option>
-                        <option th:each="s : ${statuses}"
-                                th:value="${s.name()}" th:text="${s.name()}"
-                                th:selected="${searchRequest.status() == s}"></option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label form-label-sm">Từ ngày</label>
-                    <input type="date" name="fromDate" class="form-control form-control-sm"
-                           th:value="${searchRequest.fromDate()}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label form-label-sm">Đến ngày</label>
-                    <input type="date" name="toDate" class="form-control form-control-sm"
-                           th:value="${searchRequest.toDate()}">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary btn-sm w-100">
-                        <i class="bi bi-search"></i> Lọc
-                    </button>
-                </div>
-                <div class="col-md-2">
-                    <a href="/refunds" class="btn btn-outline-secondary btn-sm w-100">
-                        <i class="bi bi-x-circle"></i> Xóa lọc
+    <div class="main-content">
+        <div th:replace="~{fragments/layout :: topbar('Danh sách đổi trả')}"></div>
+        <div class="page-content">
+            <div class="container-fluid py-4">
+                <div class="d-flex align-items-center mb-3 gap-2">
+                    <h4 class="me-auto mb-0"><i class="bi bi-arrow-return-left text-warning"></i> Danh sách đổi trả</h4>
+                    <a th:href="@{/}" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-house"></i> Quay lại Dashboard
+                    </a>
+                    <a href="/refunds/create" class="btn btn-warning btn-sm">
+                        <i class="bi bi-plus-circle"></i> Tạo đổi trả
                     </a>
                 </div>
-            </form>
-        </div>
-    </div>
 
-    <!-- Table -->
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Mã đổi trả</th>
-                        <th>HĐ gốc</th>
-                        <th>Khách hàng</th>
-                        <th>SĐT</th>
-                        <th class="text-end">Tổng tiền hoàn</th>
-                        <th class="text-center">Trạng thái</th>
-                        <th>Người yêu cầu</th>
-                        <th>Ngày tạo</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:if="${refundPage.content.isEmpty()}">
-                        <td colspan="9" class="text-center text-muted py-4">Không có yêu cầu đổi trả</td>
-                    </tr>
-                    <tr th:each="r : ${refundPage.content}">
-                        <td><code th:text="${r.refundCode()}"></code></td>
-                        <td><small th:text="${r.originalInvoiceCode()}"></small></td>
-                        <td th:text="${r.customerName()}"></td>
-                        <td th:text="${r.customerPhone()}"></td>
-                        <td class="text-end fw-semibold text-danger"
-                            th:text="${#numbers.formatDecimal(r.totalRefundAmount(), 0, 'COMMA', 0, 'POINT') + ' ₫'}"></td>
-                        <td class="text-center">
-                            <span th:switch="${r.status().name()}">
-                                <span th:case="'Completed'" class="badge bg-success" th:text="${r.status()}"></span>
-                                <span th:case="'Pending_Approval'" class="badge bg-warning text-dark" th:text="${r.status()}"></span>
-                                <span th:case="'Draft'" class="badge bg-secondary" th:text="${r.status()}"></span>
-                                <span th:case="'Rejected'" class="badge bg-danger" th:text="${r.status()}"></span>
-                                <span th:case="*" class="badge bg-secondary" th:text="${r.status()}"></span>
-                            </span>
-                        </td>
-                        <td th:text="${r.requestedByName()}"></td>
-                        <td>
-                            <small th:text="${#temporals.format(r.createdAt(), 'dd/MM/yyyy HH:mm')}"></small>
-                        </td>
-                        <td>
-                            <a th:href="@{'/refunds/' + ${r.refundId()}}"
-                               class="btn btn-outline-primary btn-sm me-1">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            <!-- Approve/Reject buttons for MANAGER/ADMIN on Pending items -->
-                            <span th:if="${isManagerOrAdmin and r.status().name() == 'Pending_Approval'}">
-                                <button class="btn btn-outline-success btn-sm me-1"
-                                        th:onclick="|approveRefund(${r.refundId()})|"
-                                        title="Phê duyệt">
-                                    <i class="bi bi-check-circle"></i>
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Filter -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <form method="get" action="/refunds" class="row g-2 align-items-end">
+                            <div class="col-md-2">
+                                <label class="form-label form-label-sm">Trạng thái</label>
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="">Tất cả</option>
+                                    <option th:each="s : ${statuses}"
+                                            th:value="${s.name()}" th:text="${s.name()}"
+                                            th:selected="${searchRequest.status() == s}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label form-label-sm">Từ ngày</label>
+                                <input type="date" name="fromDate" class="form-control form-control-sm"
+                                       th:value="${searchRequest.fromDate()}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label form-label-sm">Đến ngày</label>
+                                <input type="date" name="toDate" class="form-control form-control-sm"
+                                       th:value="${searchRequest.toDate()}">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">
+                                    <i class="bi bi-search"></i> Lọc
                                 </button>
-                                <button class="btn btn-outline-danger btn-sm"
-                                        th:onclick="|rejectRefund(${r.refundId()})|"
-                                        title="Từ chối">
-                                    <i class="bi bi-x-circle"></i>
-                                </button>
-                            </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <!-- Pagination -->
-        <div class="card-footer bg-white d-flex justify-content-between align-items-center"
-             th:if="${refundPage.totalPages > 1}">
-            <small class="text-muted"
-                   th:text="${'Tổng: ' + refundPage.totalElements + ' yêu cầu'}"></small>
-            <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    <li th:each="i : ${#numbers.sequence(0, refundPage.totalPages - 1)}"
-                        th:class="${'page-item ' + (i == refundPage.number ? 'active' : '')}">
-                        <a class="page-link"
-                           th:href="@{/refunds(page=${i}, size=${searchRequest.size()}, status=${searchRequest.status()})}"
-                           th:text="${i + 1}"></a>
-                    </li>
-                </ul>
-            </nav>
+                            </div>
+                            <div class="col-md-2">
+                                <a href="/refunds" class="btn btn-outline-secondary btn-sm w-100">
+                                    <i class="bi bi-x-circle"></i> Xóa lọc
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="card shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã đổi trả</th>
+                                    <th>HĐ gốc</th>
+                                    <th>Khách hàng</th>
+                                    <th>SĐT</th>
+                                    <th class="text-end">Tổng tiền hoàn</th>
+                                    <th class="text-center">Trạng thái</th>
+                                    <th>Người yêu cầu</th>
+                                    <th>Ngày tạo</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${refundPage.content.isEmpty()}">
+                                    <td colspan="9" class="text-center text-muted py-4">Không có yêu cầu đổi trả</td>
+                                </tr>
+                                <tr th:each="r : ${refundPage.content}">
+                                    <td><code th:text="${r.refundCode()}"></code></td>
+                                    <td><small th:text="${r.originalInvoiceCode()}"></small></td>
+                                    <td th:text="${r.customerName()}"></td>
+                                    <td th:text="${r.customerPhone()}"></td>
+                                    <td class="text-end fw-semibold text-danger"
+                                        th:text="${#numbers.formatDecimal(r.totalRefundAmount(), 0, 'COMMA', 0, 'POINT') + ' ₫'}"></td>
+                                    <td class="text-center">
+                                        <span th:switch="${r.status().name()}">
+                                            <span th:case="'Completed'" class="badge bg-success" th:text="${r.status()}"></span>
+                                            <span th:case="'Pending_Approval'" class="badge bg-warning text-dark" th:text="${r.status()}"></span>
+                                            <span th:case="'Draft'" class="badge bg-secondary" th:text="${r.status()}"></span>
+                                            <span th:case="'Rejected'" class="badge bg-danger" th:text="${r.status()}"></span>
+                                            <span th:case="*" class="badge bg-secondary" th:text="${r.status()}"></span>
+                                        </span>
+                                    </td>
+                                    <td th:text="${r.requestedByName()}"></td>
+                                    <td>
+                                        <small th:text="${#temporals.format(r.createdAt(), 'dd/MM/yyyy HH:mm')}"></small>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{'/refunds/' + ${r.refundId()}}"
+                                           class="btn btn-outline-primary btn-sm me-1">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <!-- Approve/Reject buttons for MANAGER/ADMIN on Pending items -->
+                                        <span th:if="${isManagerOrAdmin and r.status().name() == 'Pending_Approval'}">
+                                            <button class="btn btn-outline-success btn-sm me-1"
+                                                    th:onclick="|approveRefund(${r.refundId()})|"
+                                                    title="Phê duyệt">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm"
+                                                    th:onclick="|rejectRefund(${r.refundId()})|"
+                                                    title="Từ chối">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="card-footer bg-white d-flex justify-content-between align-items-center"
+                         th:if="${refundPage.totalPages > 1}">
+                        <small class="text-muted"
+                               th:text="${'Tổng: ' + refundPage.totalElements + ' yêu cầu'}"></small>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li th:each="i : ${#numbers.sequence(0, refundPage.totalPages - 1)}"
+                                    th:class="${'page-item ' + (i == refundPage.number ? 'active' : '')}">
+                                    <a class="page-link"
+                                       th:href="@{/refunds(page=${i}, size=${searchRequest.size()}, status=${searchRequest.status()})}"
+                                       th:text="${i + 1}"></a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 async function approveRefund(id) {
     if (!confirm('Phê duyệt yêu cầu đổi trả này?')) return;
