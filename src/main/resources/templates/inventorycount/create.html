@@ -10,7 +10,7 @@
         <div class="page-content">
 
             <div class="dashboard-header mb-4">
-                <h2 class="page-heading"><i class="fa-solid fa-plus-circle me-2"></i> Create Draft Inventory Count</h2>
+                <h2 class="page-heading"><i class="fa-solid fa-plus-circle me-2"></i> Tạo Phiếu Kiểm Kê Nháp</h2>
             </div>
 
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
@@ -18,8 +18,13 @@
             <form th:action="@{/inventory-count/create}" th:object="${request}" method="post">
                 <div class="card-glass p-4 mb-4" style="max-width: 600px;">
                     <div class="mb-3">
-                        <label class="form-label text-secondary small text-uppercase">Branch ID</label>
-                        <input type="number" th:field="*{branchId}" class="form-control" required/>
+                        <label class="form-label text-secondary small text-uppercase">Chi nhánh kiểm kê <span class="text-danger">*</span></label>
+                        <select th:field="*{branchId}" class="form-select" required>
+                            <option value="">-- Chọn chi nhánh --</option>
+                            <option th:each="b : ${branches}"
+                                    th:value="${b.branchId}"
+                                    th:text="${b.branchCode + ' - ' + b.branchName}"></option>
+                        </select>
                     </div>
                 </div>
 
@@ -34,15 +39,22 @@
                         <table class="table-glass w-100 mb-0" id="detailTable">
                             <thead>
                                 <tr>
-                                    <th>Product ID</th>
-                                    <th>Số lượng thực tế (Actual Qty)</th>
-                                    <th></th>
+                                    <th style="min-width: 250px;">Sản phẩm</th>
+                                    <th style="width: 180px;">Số lượng thực tế (Actual Qty)</th>
+                                    <th style="width: 50px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="detailBody">
                                 <tr>
-                                    <td><input type="number" name="details[0].productId" class="form-control" placeholder="ID sản phẩm" required/></td>
-                                    <td><input type="number" name="details[0].actualQty" step="0.001" class="form-control" placeholder="Số lượng thực tế" required/></td>
+                                    <td>
+                                        <select name="details[0].productId" class="form-select product-select" required>
+                                            <option value="">-- Chọn sản phẩm --</option>
+                                            <option th:each="p : ${products}"
+                                                    th:value="${p.productId}"
+                                                    th:text="${p.sku + ' - ' + p.productName}"></option>
+                                        </select>
+                                    </td>
+                                    <td><input type="number" name="details[0].actualQty" step="0.001" min="0" class="form-control" placeholder="Số lượng thực tế" required/></td>
                                     <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)"><i class="fa-solid fa-trash"></i></button></td>
                                 </tr>
                             </tbody>
@@ -51,7 +63,7 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save me-1"></i> Save Draft</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save me-1"></i> Lưu phiếu nháp</button>
                     <a href="/inventory-count" class="btn btn-secondary">Hủy</a>
                 </div>
             </form>
@@ -60,24 +72,42 @@
     </div>
 </div>
 <div th:replace="~{fragments/layout :: scripts}"></div>
-<script>
+<script th:inline="javascript">
+/*<![CDATA[*/
+    const productsOptions = /*[[${products}]]*/ [];
     let rowIndex = 1;
+
+    function buildProductSelectOptions() {
+        if (!productsOptions || productsOptions.length === 0) return '<option value="">-- Chọn sản phẩm --</option>';
+        let html = '<option value="">-- Chọn sản phẩm --</option>';
+        productsOptions.forEach(p => {
+            html += `<option value="${p.productId}">${p.sku} - ${p.productName}</option>`;
+        });
+        return html;
+    }
+
     function addRow() {
         const tbody = document.getElementById('detailBody');
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td><input type="number" name="details[${rowIndex}].productId" class="form-control" placeholder="ID sản phẩm" required/></td>
-            <td><input type="number" name="details[${rowIndex}].actualQty" step="0.001" class="form-control" placeholder="Số lượng thực tế" required/></td>
+            <td>
+                <select name="details[${rowIndex}].productId" class="form-select product-select" required>
+                    ${buildProductSelectOptions()}
+                </select>
+            </td>
+            <td><input type="number" name="details[${rowIndex}].actualQty" step="0.001" min="0" class="form-control" placeholder="Số lượng thực tế" required/></td>
             <td><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)"><i class="fa-solid fa-trash"></i></button></td>
         `;
         tbody.appendChild(row);
         rowIndex++;
     }
+
     function removeRow(btn) {
         const row = btn.closest('tr');
         const tbody = document.getElementById('detailBody');
         if (tbody.rows.length > 1) row.remove();
     }
+/*]]>*/
 </script>
 </body>
 </html>

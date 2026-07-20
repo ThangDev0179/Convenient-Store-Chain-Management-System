@@ -1,9 +1,11 @@
 package com.retail.controller;
-import com.retail.security.CustomUserDetails;
-import com.retail.entity.InventoryCount;
-import com.retail.dto.InventoryCountRequest;
-import com.retail.service.InventoryCountService;
 
+import com.retail.dto.InventoryCountRequest;
+import com.retail.entity.InventoryCount;
+import com.retail.repository.BranchRepository;
+import com.retail.repository.ProductRepository;
+import com.retail.security.CustomUserDetails;
+import com.retail.service.InventoryCountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +24,8 @@ import java.util.List;
 public class InventoryCountController {
 
     private final InventoryCountService countService;
+    private final BranchRepository branchRepository;
+    private final ProductRepository productRepository;
 
     private Long getEmployeeId(Authentication auth) {
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
@@ -40,6 +44,8 @@ public class InventoryCountController {
     @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     public String showCreateForm(Model model) {
         model.addAttribute("request", new InventoryCountRequest());
+        model.addAttribute("branches", branchRepository.findAll());
+        model.addAttribute("products", productRepository.findAll());
         return "inventorycount/create";
     }
 
@@ -48,8 +54,11 @@ public class InventoryCountController {
     public String createDraftCount(@Valid @ModelAttribute("request") InventoryCountRequest request,
                                    BindingResult result,
                                    Authentication auth,
+                                   Model model,
                                    RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            model.addAttribute("branches", branchRepository.findAll());
+            model.addAttribute("products", productRepository.findAll());
             return "inventorycount/create";
         }
         try {
