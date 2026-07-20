@@ -153,8 +153,28 @@ let invoiceData = null;
 
 async function loadInvoice(code) {
     if (!code) return;
-    const res = await fetch(`/pos/invoices?status=Paid&page=0&size=100`, { headers: { 'Accept': 'application/json' } });
-    alert('Vui lòng sử dụng liên kết "Tạo yêu cầu đổi trả" từ trang chi tiết hóa đơn, hoặc nhập Invoice ID.');
+    const res = await fetch(`/pos/invoices/by-invoice-code?invoiceCode=${encodeURIComponent(code)}`, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) {
+        alert('Không tìm thấy hóa đơn có mã: ' + code);
+        return;
+    }
+    invoiceData = await res.json();
+
+    if (invoiceData.status !== 'Paid') {
+        alert('Hóa đơn chưa được thanh toán (Trạng thái: ' + invoiceData.status + '). Chỉ có thể đổi trả hóa đơn đã thanh toán.');
+        return;
+    }
+
+    document.getElementById('hidden-invoice-id').value = invoiceData.invoiceId;
+    document.getElementById('refund-form-section').style.display = '';
+
+    // Show invoice info
+    document.getElementById('invoice-info').innerHTML = `
+        <div class="col-md-4"><strong>Mã HĐ:</strong> <code>${invoiceData.invoiceCode}</code></div>
+        <div class="col-md-4"><strong>Ngày bán:</strong> ${new Date(invoiceData.createdAt).toLocaleDateString('vi-VN')}</div>
+        <div class="col-md-4"><strong>Tổng tiền:</strong> <span class="text-primary fw-bold">${fmt(invoiceData.totalAmount)}</span></div>`;
+
+    renderRefundItems(invoiceData.items);
 }
 
 // Load via URL parameter (invoiceId) — preferred flow from invoice-detail link
