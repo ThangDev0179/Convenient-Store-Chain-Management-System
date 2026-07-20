@@ -34,6 +34,9 @@ public class SupplierServiceImpl implements SupplierService {
     private PurchaseOrderRepository purchaseOrderRepository;
 
     @Autowired
+    private com.retail.repository.ProductRepository productRepository;
+
+    @Autowired
     private EmployeeRepository employeeRepository;
 
     @Autowired
@@ -170,6 +173,11 @@ public class SupplierServiceImpl implements SupplierService {
         boolean hasPending = purchaseOrderRepository.existsBySupplierSupplierIdAndStatusIn(supplierId, pendingStatuses);
         if (hasPending) {
             throw new ValidationException("Không thể ngừng hoạt động nhà cung cấp này vì đang có đơn mua hàng (Purchase Order) chưa hoàn tất.");
+        }
+
+        boolean hasActiveProducts = productRepository.existsByDefaultSupplierSupplierIdAndStatus(supplierId, com.retail.entity.ProductStatus.Active);
+        if (hasActiveProducts) {
+            throw new ValidationException("Không thể ngừng hoạt động nhà cung cấp này vì đang là Nhà cung cấp mặc định của các sản phẩm đang kinh doanh.");
         }
     }
 

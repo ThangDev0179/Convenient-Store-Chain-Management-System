@@ -181,8 +181,30 @@ public class ProductServiceImpl implements ProductService {
                     .orElseThrow(() -> new ValidationException("Nhà cung cấp không tồn tại với ID: " + request.getDefaultSupplierId()));
         }
 
+        // Check category change to update SKU if needed
+        if (!product.getCategory().getCategoryId().equals(category.getCategoryId())) {
+            String newPrefix = category.getSkuPrefix();
+            if (newPrefix != null && !newPrefix.trim().isEmpty()) {
+                String maxSku = productRepository.findMaxSkuByPrefix(newPrefix);
+                String generatedSku;
+                if (maxSku == null) {
+                    generatedSku = newPrefix + "-0001";
+                } else {
+                    Matcher matcher = Pattern.compile("(\\d+)$").matcher(maxSku);
+                    if (matcher.find()) {
+                        String numStr = matcher.group(1);
+                        int nextVal = Integer.parseInt(numStr) + 1;
+                        generatedSku = newPrefix + "-" + String.format("%0" + numStr.length() + "d", nextVal);
+                    } else {
+                        generatedSku = newPrefix + "-0001";
+                    }
+                }
+                product.setSku(generatedSku);
+            }
+            product.setCategory(category);
+        }
+
         // 4. CHỈ SET LẠI DỮ LIỆU NẾU CÓ THAY ĐỔI
-        // Việc này ngăn Hibernate kích hoạt lệnh UPDATE giả (Dirty Checking)
         if (!currentName.equalsIgnoreCase(newName)) {
             product.setProductName(newName);
         }
@@ -190,25 +212,41 @@ public class ProductServiceImpl implements ProductService {
             product.setBarcode(newBarcode.isEmpty() ? null : newBarcode);
         }
         product.setDescription(request.getDescription());
-        product.setCategory(category);
         product.setStandardPrice(request.getStandardPrice());
         product.setDefaultSupplier(supplier);
 
-        // 5. CẬP NHẬT UOM ĐÚNG CHUẨN
-        product.getUoms().clear();
+        // 5. CẬP NHẬT UOM ĐÚNG CHUẨN (In-Place Update để bảo toàn ID và không vi phạm Khóa ngoại)
         if (request.getUoms() != null) {
+            java.util.Set<Long> updatedUomIds = new java.util.HashSet<>();
             for (UomRequest u : request.getUoms()) {
-                ProductUOM uom = ProductUOM.builder()
-                        .uomId(u.getId()) // QUAN TRỌNG: Phải set ID để Hibernate biết đây là bản ghi cũ cần Cập nhật, không phải Thêm mới!
-                        .uomName(u.getUomName() != null ? u.getUomName().trim() : null)
-                        .isBaseUnit(u.getIsBaseUnit() != null && u.getIsBaseUnit())
-                        .conversionRate(u.getConversionRate())
-                        .barcode(u.getBarcode() != null ? u.getBarcode().trim() : null)
-                        .standardPrice(u.getStandardPrice())
-                        .status(u.getStatus() != null ? ProductUOMStatus.valueOf(u.getStatus().toUpperCase()) : ProductUOMStatus.ACTIVE)
-                        .build();
-                product.addUom(uom);
+                if (u.getId() != null) {
+                    updatedUomIds.add(u.getId());
+                    ProductUOM existingUom = product.getUoms().stream()
+                            .filter(existing -> existing.getUomId().equals(u.getId()))
+                            .findFirst().orElse(null);
+                    if (existingUom != null) {
+                        existingUom.setUomName(u.getUomName() != null ? u.getUomName().trim() : null);
+                        existingUom.setIsBaseUnit(u.getIsBaseUnit() != null && u.getIsBaseUnit());
+                        existingUom.setConversionRate(Boolean.TRUE.equals(u.getIsBaseUnit()) ? 1 : u.getConversionRate());
+                        existingUom.setBarcode(u.getBarcode() != null ? u.getBarcode().trim() : null);
+                        existingUom.setStandardPrice(Boolean.TRUE.equals(u.getIsBaseUnit()) ? request.getStandardPrice() : u.getStandardPrice());
+                        if (u.getStatus() != null) {
+                            existingUom.setStatus(ProductUOMStatus.valueOf(u.getStatus().toUpperCase()));
+                        }
+                    }
+                } else {
+                    ProductUOM newUom = ProductUOM.builder()
+                            .uomName(u.getUomName() != null ? u.getUomName().trim() : null)
+                            .isBaseUnit(u.getIsBaseUnit() != null && u.getIsBaseUnit())
+                            .conversionRate(Boolean.TRUE.equals(u.getIsBaseUnit()) ? 1 : u.getConversionRate())
+                            .barcode(u.getBarcode() != null ? u.getBarcode().trim() : null)
+                            .standardPrice(Boolean.TRUE.equals(u.getIsBaseUnit()) ? request.getStandardPrice() : u.getStandardPrice())
+                            .status(u.getStatus() != null ? ProductUOMStatus.valueOf(u.getStatus().toUpperCase()) : ProductUOMStatus.ACTIVE)
+                            .build();
+                    product.addUom(newUom);
+                }
             }
+            product.getUoms().removeIf(existing -> existing.getUomId() != null && !updatedUomIds.contains(existing.getUomId()));
         }
 
         // 6. LƯU DỮ LIỆU VÀ BẮT LỖI
