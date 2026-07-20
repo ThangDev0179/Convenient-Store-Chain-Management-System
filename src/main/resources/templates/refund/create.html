@@ -56,24 +56,32 @@
 
                     <form method="post" action="/refunds" id="refund-form" th:object="${createRefundRequest}">
                         <input type="hidden" name="_method" value="post">
-                        <input type="hidden" name="originalInvoiceId" id="hidden-invoice-id">
+                        <input type="hidden" id="hidden-invoice-id" th:field="*{originalInvoiceId}">
 
                         <!-- Customer info -->
                         <div class="card shadow-sm mb-3">
                             <div class="card-header fw-semibold bg-white">Thông tin khách hàng</div>
                             <div class="card-body">
+                                <!-- Validation errors summary -->
+                                <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger alert-dismissible fade show mb-3">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <strong>Lỗi nhập liệu:</strong>
+                                    <ul class="mb-0 mt-1">
+                                        <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
+                                    </ul>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Tên khách hàng <span class="text-danger">*</span></label>
-                                        <input type="text" name="customerName" class="form-control"
-                                               th:value="${param.customerName}" required
+                                        <input type="text" th:field="*{customerName}" class="form-control" required
                                                th:classappend="${#fields.hasErrors('customerName') ? ' is-invalid' : ''}">
                                         <div class="invalid-feedback" th:errors="*{customerName}"></div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                                        <input type="tel" name="customerPhone" class="form-control"
-                                               th:value="${param.customerPhone}" required
+                                        <input type="tel" th:field="*{customerPhone}" class="form-control" required
                                                pattern="^(0|\+84)[0-9]{9,10}$"
                                                th:classappend="${#fields.hasErrors('customerPhone') ? ' is-invalid' : ''}">
                                         <div class="invalid-feedback" th:errors="*{customerPhone}">
@@ -82,9 +90,8 @@
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Lý do đổi trả <span class="text-danger">*</span></label>
-                                        <textarea name="reason" class="form-control" rows="2" required maxlength="500"
-                                                  th:classappend="${#fields.hasErrors('reason') ? ' is-invalid' : ''}"
-                                                  th:text="${param.reason}"></textarea>
+                                        <textarea th:field="*{reason}" class="form-control" rows="2" required maxlength="500"
+                                                  th:classappend="${#fields.hasErrors('reason') ? ' is-invalid' : ''}"></textarea>
                                         <div class="invalid-feedback" th:errors="*{reason}"></div>
                                         <div class="form-text">Tối đa 500 ký tự</div>
                                     </div>
@@ -142,6 +149,11 @@ window.addEventListener('DOMContentLoaded', () => {
     const urlInvoiceId = new URLSearchParams(window.location.search).get('invoiceId');
     if (urlInvoiceId) {
         loadInvoiceById(urlInvoiceId);
+    } else {
+        const existingInvoiceId = document.getElementById('hidden-invoice-id').value;
+        if (existingInvoiceId) {
+            loadInvoiceById(existingInvoiceId);
+        }
     }
 });
 
@@ -208,12 +220,12 @@ function renderRefundItems(items) {
             <td class="text-center">
                 <input type="number" name="items[${idx}].quantity" class="form-control form-control-sm text-center"
                        value="1" min="0.001" max="${item.quantity}" step="0.001"
-                       style="width:80px;display:none" id="qty-${idx}">
-                <input type="hidden" name="items[${idx}].productId" value="${item.productId}">
+                       style="width:80px;display:none" id="qty-${idx}" disabled>
+                <input type="hidden" name="items[${idx}].productId" value="${item.productId}" id="pid-${idx}" disabled>
             </td>
             <td class="text-center">
                 <select name="items[${idx}].conditionType" class="form-select form-select-sm"
-                        style="width:110px;display:none" id="cond-${idx}">
+                        style="width:110px;display:none" id="cond-${idx}" disabled>
                     ${conditionTypes.map(c => `<option value="${c}">${c === 'Resalable' ? 'Tốt' : 'Hỏng'}</option>`).join('')}
                 </select>
             </td>
@@ -222,8 +234,17 @@ function renderRefundItems(items) {
 
 function toggleItem(idx) {
     const checked = document.querySelector(`.item-check[data-idx="${idx}"]`).checked;
-    document.getElementById(`qty-${idx}`).style.display = checked ? '' : 'none';
-    document.getElementById(`cond-${idx}`).style.display = checked ? '' : 'none';
+    
+    const qtyInput = document.getElementById(`qty-${idx}`);
+    qtyInput.style.display = checked ? '' : 'none';
+    qtyInput.disabled = !checked;
+    
+    const condSelect = document.getElementById(`cond-${idx}`);
+    condSelect.style.display = checked ? '' : 'none';
+    condSelect.disabled = !checked;
+    
+    const pidInput = document.getElementById(`pid-${idx}`);
+    pidInput.disabled = !checked;
 }
 
 document.getElementById('check-all').addEventListener('change', function() {
