@@ -163,8 +163,11 @@ async function approveRefund(id) {
 async function rejectRefund(id) {
     const reason = prompt('Lý do từ chối:');
     if (reason === null) return;
-    const res = await fetch(`/refunds/${id}/reject?reason=${encodeURIComponent(reason)}`,
-        { method: 'PUT', headers: { 'Accept': 'application/json' } });
+    const res = await fetch(`/refunds/${id}/reject`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ reason: reason })
+    });
     const data = await res.json();
     if (res.ok) { alert('Đã từ chối.'); location.reload(); }
     else alert('Lỗi: ' + (data.message || 'Không thể từ chối'));

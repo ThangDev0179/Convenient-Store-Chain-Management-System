@@ -258,6 +258,37 @@ function fmt(v) {
     return new Intl.NumberFormat('vi-VN', {style:'currency', currency:'VND'}).format(v);
 }
 
+document.getElementById('refund-form').addEventListener('submit', function(e) {
+    const checkedBoxes = Array.from(document.querySelectorAll('.item-check:checked'));
+    if (checkedBoxes.length === 0) {
+        e.preventDefault();
+        alert('Vui lòng chọn ít nhất một sản phẩm để đổi trả.');
+        return;
+    }
+    
+    // Disable all inputs in the items body first
+    document.querySelectorAll('#refund-items-body input, #refund-items-body select').forEach(el => {
+        el.disabled = true;
+    });
+
+    // Re-index only checked items contiguously starting from 0
+    checkedBoxes.forEach((cb, newIdx) => {
+        const idx = cb.getAttribute('data-idx');
+        
+        const qtyInput = document.getElementById(`qty-${idx}`);
+        qtyInput.name = `items[${newIdx}].quantity`;
+        qtyInput.disabled = false;
+        
+        const pidInput = document.getElementById(`pid-${idx}`);
+        pidInput.name = `items[${newIdx}].productId`;
+        pidInput.disabled = false;
+        
+        const condSelect = document.getElementById(`cond-${idx}`);
+        condSelect.name = `items[${newIdx}].conditionType`;
+        condSelect.disabled = false;
+    });
+});
+
 // If loaded from invoice-detail link with invoiceCode param
 const urlCode = new URLSearchParams(window.location.search).get('invoiceCode');
 if (urlCode) {
