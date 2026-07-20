@@ -42,8 +42,14 @@ public class StockTransferController {
 
     @GetMapping("/create")
     @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
-    public String showCreateForm(Model model) {
-        model.addAttribute("request", new StockTransferRequest());
+    public String showCreateForm(Model model, Authentication auth) {
+        StockTransferRequest request = new StockTransferRequest();
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
+            if (userDetails.getEmployee() != null && userDetails.getEmployee().getBranch() != null) {
+                request.setFromBranchId(userDetails.getEmployee().getBranch().getBranchId());
+            }
+        }
+        model.addAttribute("request", request);
         model.addAttribute("branches", branchRepository.findAll());
         model.addAttribute("products", productRepository.findAll());
         return "transfer/create";

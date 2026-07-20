@@ -42,8 +42,14 @@ public class InventoryCountController {
 
     @GetMapping("/create")
     @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
-    public String showCreateForm(Model model) {
-        model.addAttribute("request", new InventoryCountRequest());
+    public String showCreateForm(Model model, Authentication auth) {
+        InventoryCountRequest request = new InventoryCountRequest();
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
+            if (userDetails.getEmployee() != null && userDetails.getEmployee().getBranch() != null) {
+                request.setBranchId(userDetails.getEmployee().getBranch().getBranchId());
+            }
+        }
+        model.addAttribute("request", request);
         model.addAttribute("branches", branchRepository.findAll());
         model.addAttribute("products", productRepository.findAll());
         return "inventorycount/create";
