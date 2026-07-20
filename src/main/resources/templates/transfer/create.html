@@ -20,15 +20,24 @@
                     <div class="card-header-glass fw-bold">Thông tin chung</div>
                     <div class="card-body-glass row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Chi nhánh gửi <span class="text-danger">*</span></label>
-                            <select th:field="*{fromBranchId}" class="form-select"
-                                    th:classappend="${#fields.hasErrors('fromBranchId')} ? 'is-invalid'" required>
-                                <option value="">-- Chọn chi nhánh gửi --</option>
-                                <option th:each="b : ${branches}"
-                                        th:value="${b.branchId}"
-                                        th:text="${b.branchCode + ' - ' + b.branchName}"></option>
-                            </select>
-                            <div class="invalid-feedback" th:errors="*{fromBranchId}"></div>
+                            <label class="form-label">Chi nhánh gửi</label>
+                            <div sec:authorize="hasRole('ADMIN')">
+                                <select th:field="*{fromBranchId}" class="form-select"
+                                        th:classappend="${#fields.hasErrors('fromBranchId')} ? 'is-invalid'" required>
+                                    <option value="">-- Chọn chi nhánh gửi --</option>
+                                    <option th:each="b : ${branches}"
+                                            th:value="${b.branchId}"
+                                            th:text="${b.branchCode + ' - ' + b.branchName}"></option>
+                                </select>
+                                <div class="invalid-feedback" th:errors="*{fromBranchId}"></div>
+                            </div>
+                            <div sec:authorize="!hasRole('ADMIN')">
+                                <input type="hidden" th:field="*{fromBranchId}"/>
+                                <div class="form-control-plaintext fw-bold text-primary fs-6">
+                                    <i class="fa-solid fa-store me-1"></i>
+                                    <span th:text="${#authentication.principal.employee.branch != null ? #authentication.principal.employee.branch.branchCode + ' - ' + #authentication.principal.employee.branch.branchName : 'Chi nhánh chính'}"></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Chi nhánh nhận <span class="text-danger">*</span></label>
