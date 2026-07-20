@@ -24,7 +24,7 @@ public class ProductCategory {
     @Column(name = "CategoryId")
     private Integer categoryId;
 
-    @Column(name = "CategoryName", nullable = false, length = 150)
+    @Column(name = "CategoryName", nullable = false, length = 150, columnDefinition = "NVARCHAR(150)")
     private String categoryName;
 
     @Column(name = "SkuPrefix", unique = true, nullable = false, length = 5)

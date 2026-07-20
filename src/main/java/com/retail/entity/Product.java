@@ -32,7 +32,7 @@ public class Product {
     @Column(name = "Barcode", unique = true, length = 100)
     private String barcode;
 
-    @Column(name = "ProductName", nullable = false, length = 150)
+    @Column(name = "ProductName", nullable = false, length = 150, columnDefinition = "NVARCHAR(150)")
     private String productName;
 
     @Column(name = "Description", columnDefinition = "NVARCHAR(MAX)")

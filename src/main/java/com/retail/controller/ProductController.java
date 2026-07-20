@@ -84,6 +84,21 @@ public class ProductController {
         }
     }
 
+    private java.util.List<com.retail.entity.Supplier> getActiveSuppliers() {
+        return supplierRepository.findByStatus(com.retail.entity.SupplierStatus.Active);
+    }
+
+    private java.util.List<com.retail.entity.Supplier> getSuppliersForEdit(Integer currentSupplierId) {
+        java.util.List<com.retail.entity.Supplier> suppliers = new java.util.ArrayList<>(supplierRepository.findByStatus(com.retail.entity.SupplierStatus.Active));
+        if (currentSupplierId != null) {
+            boolean exists = suppliers.stream().anyMatch(s -> s.getSupplierId().equals(currentSupplierId));
+            if (!exists) {
+                supplierRepository.findById(currentSupplierId).ifPresent(suppliers::add);
+            }
+        }
+        return suppliers;
+    }
+
     @GetMapping("/create")
     public String showCreateForm(Model model) {
         ProductRequest request = new ProductRequest();
@@ -96,7 +111,7 @@ public class ProductController {
         model.addAttribute("product", request);
         model.addAttribute("isEdit", false);
         model.addAttribute("categories", categoryRepository.findAll());
-        model.addAttribute("suppliers", supplierRepository.findAll());
+        model.addAttribute("suppliers", getActiveSuppliers());
         return "admin/product/form";
     }
 
@@ -110,7 +125,7 @@ public class ProductController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("isEdit", false);
             model.addAttribute("categories", categoryRepository.findAll());
-            model.addAttribute("suppliers", supplierRepository.findAll());
+            model.addAttribute("suppliers", getActiveSuppliers());
             return "admin/product/form";
         }
 
@@ -132,7 +147,13 @@ public class ProductController {
             }
             model.addAttribute("isEdit", false);
             model.addAttribute("categories", categoryRepository.findAll());
-            model.addAttribute("suppliers", supplierRepository.findAll());
+            model.addAttribute("suppliers", getActiveSuppliers());
+            return "admin/product/form";
+        } catch (Exception e) {
+            model.addAttribute("error", "Đã xảy ra lỗi khi tạo sản phẩm: " + (e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống không xác định"));
+            model.addAttribute("isEdit", false);
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("suppliers", getActiveSuppliers());
             return "admin/product/form";
         }
     }
@@ -175,7 +196,7 @@ public class ProductController {
             model.addAttribute("productId", id);
             model.addAttribute("sku", detail.getSku());
             model.addAttribute("categories", categoryRepository.findAll());
-            model.addAttribute("suppliers", supplierRepository.findAll());
+            model.addAttribute("suppliers", getSuppliersForEdit(detail.getDefaultSupplierId()));
             return "admin/product/form";
         } catch (ValidationException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -198,7 +219,7 @@ public class ProductController {
                 model.addAttribute("sku", productService.getDetail(id).getSku());
             } catch (Exception ignored) {}
             model.addAttribute("categories", categoryRepository.findAll());
-            model.addAttribute("suppliers", supplierRepository.findAll());
+            model.addAttribute("suppliers", getSuppliersForEdit(request.getDefaultSupplierId()));
             return "admin/product/form";
         }
 
@@ -222,7 +243,17 @@ public class ProductController {
                 model.addAttribute("sku", productService.getDetail(id).getSku());
             } catch (Exception ignored) {}
             model.addAttribute("categories", categoryRepository.findAll());
-            model.addAttribute("suppliers", supplierRepository.findAll());
+            model.addAttribute("suppliers", getSuppliersForEdit(request.getDefaultSupplierId()));
+            return "admin/product/form";
+        } catch (Exception e) {
+            model.addAttribute("error", "Đã xảy ra lỗi khi cập nhật sản phẩm: " + (e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống không xác định"));
+            model.addAttribute("isEdit", true);
+            model.addAttribute("productId", id);
+            try {
+                model.addAttribute("sku", productService.getDetail(id).getSku());
+            } catch (Exception ignored) {}
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("suppliers", getSuppliersForEdit(request.getDefaultSupplierId()));
             return "admin/product/form";
         }
     }
