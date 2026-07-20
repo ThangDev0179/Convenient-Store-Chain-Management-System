@@ -37,7 +37,7 @@ public class ProductCategoryController {
             @RequestParam(value = "size", defaultValue = "5") int size,
             Model model) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "categoryId"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "categoryId"));
         Page<ProductCategoryResponse> categoryPage = categoryService.list(search, pageable);
 
         model.addAttribute("categories", categoryPage.getContent());

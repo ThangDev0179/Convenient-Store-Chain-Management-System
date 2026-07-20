@@ -28,11 +28,30 @@ public class DataInitializer implements CommandLineRunner {
     private final ProductRepository productRepository;
     private final BranchInventoryRepository inventoryRepository;
     private final PasswordEncoder passwordEncoder;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
         log.info("Checking and initializing dummy data for testing...");
+
+        // 0. Auto-migrate SQL Server VARCHAR columns to NVARCHAR for full Vietnamese Unicode support
+        try {
+            log.info("Migrating SQL Server VARCHAR columns to NVARCHAR...");
+            jdbcTemplate.execute("ALTER TABLE dbo.Promotion ALTER COLUMN PromotionName NVARCHAR(200) NOT NULL");
+            jdbcTemplate.execute("ALTER TABLE dbo.Product ALTER COLUMN ProductName NVARCHAR(150) NOT NULL");
+            jdbcTemplate.execute("ALTER TABLE dbo.Product ALTER COLUMN Description NVARCHAR(MAX) NULL");
+            jdbcTemplate.execute("ALTER TABLE dbo.Supplier ALTER COLUMN SupplierName NVARCHAR(200) NOT NULL");
+            jdbcTemplate.execute("ALTER TABLE dbo.Supplier ALTER COLUMN Address NVARCHAR(300) NULL");
+            jdbcTemplate.execute("ALTER TABLE dbo.ProductCategory ALTER COLUMN CategoryName NVARCHAR(150) NOT NULL");
+            jdbcTemplate.execute("ALTER TABLE dbo.ProductUOM ALTER COLUMN UomName NVARCHAR(50) NOT NULL");
+            jdbcTemplate.execute("ALTER TABLE dbo.Employee ALTER COLUMN FullName NVARCHAR(100) NOT NULL");
+            jdbcTemplate.execute("ALTER TABLE dbo.Branch ALTER COLUMN BranchName NVARCHAR(100) NOT NULL");
+            jdbcTemplate.execute("ALTER TABLE dbo.Branch ALTER COLUMN Address NVARCHAR(255) NULL");
+            log.info("SQL Server columns successfully migrated to NVARCHAR for full Vietnamese Unicode support!");
+        } catch (Exception e) {
+            log.warn("SQL Server column migration notice: {}", e.getMessage());
+        }
 
         // 1. Khởi tạo Roles nếu chưa có
         if (roleRepository.count() == 0) {

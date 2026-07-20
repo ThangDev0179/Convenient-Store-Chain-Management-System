@@ -24,7 +24,7 @@ public class Supplier {
     @Column(name = "SupplierId")
     private Integer supplierId;
 
-    @Column(name = "SupplierName", nullable = false, length = 200)
+    @Column(name = "SupplierName", nullable = false, length = 200, columnDefinition = "NVARCHAR(200)")
     private String supplierName;
 
     @Column(name = "ContactPhone", unique = true, length = 20)
@@ -33,7 +33,7 @@ public class Supplier {
     @Column(name = "ContactEmail", unique = true, length = 150)
     private String contactEmail;
 
-    @Column(name = "Address", length = 300)
+    @Column(name = "Address", length = 300, columnDefinition = "NVARCHAR(300)")
     private String address;
 
     @Enumerated(EnumType.STRING)

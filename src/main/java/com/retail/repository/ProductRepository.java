@@ -33,9 +33,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     boolean existsByBarcodeAndProductIdNot(String barcode, Long productId);
 
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT MAX(p.sku) FROM Product p WHERE p.sku LIKE :prefix%")
     String findMaxSkuByPrefix(@Param("prefix") String prefix);
+
+    boolean existsByDefaultSupplierSupplierIdAndStatus(Integer supplierId, ProductStatus status);
 
     @Query("SELECT COUNT(p) > 0 FROM Product p WHERE p.category.categoryId = :categoryId")
     boolean existsByCategoryId(@Param("categoryId") Integer categoryId);

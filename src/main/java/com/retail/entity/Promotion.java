@@ -20,7 +20,7 @@ public class Promotion {
     @Column(name = "PromotionId")
     private Long promotionId;
 
-    @Column(name = "PromotionName", nullable = false, length = 200)
+    @Column(name = "PromotionName", nullable = false, length = 200, columnDefinition = "NVARCHAR(200)")
     private String promotionName;
 
     @Column(name = "StartDateTime", nullable = false)

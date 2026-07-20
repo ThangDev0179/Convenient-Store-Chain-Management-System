@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public class DatabaseSeeder implements CommandLineRunner {
+public class  DatabaseSeeder implements CommandLineRunner {
 
     @Autowired
     private EmployeeRepository employeeRepository;
