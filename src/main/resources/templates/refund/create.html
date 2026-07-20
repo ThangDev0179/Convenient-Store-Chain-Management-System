@@ -56,7 +56,7 @@
 
                     <form method="post" action="/refunds" id="refund-form" th:object="${createRefundRequest}">
                         <input type="hidden" name="_method" value="post">
-                        <input type="hidden" id="hidden-invoice-id" th:field="*{originalInvoiceId}">
+                        <input type="hidden" id="hidden-invoice-id" name="originalInvoiceId" th:value="*{originalInvoiceId}">
 
                         <!-- Customer info -->
                         <div class="card shadow-sm mb-3">
