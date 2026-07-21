@@ -44,8 +44,8 @@
                                 <option value="Canceled" th:selected="${status == 'Canceled'}">Đã hủy (Canceled)</option>
                             </select>
                         </div>
-                        <!-- Show branch filter only for ADMIN role -->
-                        <div class="col-md-3" th:if="${!isManager}">
+                        <!-- Show branch filter when branches list is provided (ADMIN role) -->
+                        <div class="col-md-3" th:if="${branches != null}">
                             <select name="branchId" class="form-select form-control">
                                 <option value="">-- Tất cả chi nhánh --</option>
                                 <option th:each="b : ${branches}" 

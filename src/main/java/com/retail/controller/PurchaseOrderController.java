@@ -58,11 +58,12 @@ public class PurchaseOrderController {
             Model model) {
 
         Employee employee = userDetails.getEmployee();
+        boolean isAdmin = employee.getRole() != null && employee.getRole().getRoleCode() != null 
+                && "ADMIN".equalsIgnoreCase(employee.getRole().getRoleCode().name());
         Integer branchId = null;
 
-        // If employee is MANAGER, restrict to their branch
-        if (!employee.getRole().getRoleCode().equals("ADMIN")) {
-            branchId = employee.getBranch().getBranchId();
+        if (!isAdmin) {
+            branchId = employee.getBranch() != null ? employee.getBranch().getBranchId() : null;
             model.addAttribute("isManager", true);
         } else {
             // ADMIN can filter by branch
