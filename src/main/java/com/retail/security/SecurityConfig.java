@@ -66,8 +66,17 @@ public class SecurityConfig {
     }
 
     @Bean
+    public org.springframework.web.filter.CharacterEncodingFilter characterEncodingFilter() {
+        org.springframework.web.filter.CharacterEncodingFilter filter = new org.springframework.web.filter.CharacterEncodingFilter();
+        filter.setEncoding("UTF-8");
+        filter.setForceEncoding(true);
+        return filter;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .addFilterBefore(characterEncodingFilter(), org.springframework.security.web.header.HeaderWriterFilter.class)
             .securityContext(context -> context.securityContextRepository(securityContextRepository()))
             .authenticationProvider(authenticationProvider()).csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
