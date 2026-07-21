@@ -133,6 +133,7 @@ public class PurchaseOrderController {
         model.addAttribute("poRequest", poRequest);
         model.addAttribute("suppliers", suppliers);
         model.addAttribute("products", getProductData());
+
         model.addAttribute("uoms", productUOMRepository.findAll());
         model.addAttribute("branch", employee.getBranch());
         
